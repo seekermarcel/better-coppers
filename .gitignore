@@ -42,3 +42,4 @@ replay_*.log
 # superpowers (local planning docs)
 
 docs/superpowers/
+logs/

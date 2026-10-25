@@ -36,24 +36,17 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.Util;
-import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.Container;
-import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.ai.ActivityData;
 import net.minecraft.world.entity.ai.behavior.Behavior;
+import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
-import net.minecraft.world.entity.ai.behavior.DoNothing;
-import net.minecraft.world.entity.ai.behavior.RandomStroll;
-import net.minecraft.world.entity.ai.behavior.RunOne;
-import net.minecraft.world.entity.ai.behavior.SetEntityLookTargetSometimes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.animal.golem.CopperGolemState;
-import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -143,32 +136,21 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 		super(ImmutableMap.of(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS, MemoryStatus.VALUE_ABSENT, MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT));
 	}
 
-	/** Vanilla's idle activity with the transport behaviour swapped for this one. */
-	public static ActivityData<CopperGolem> createIdleActivity() {
-		return ActivityData.create(
-			Activity.IDLE,
-			ImmutableList.of(
-				Pair.of(0, new RepairBehavior()),
-				Pair.of(0, new SortItemsBehavior()),
-				Pair.of(0, new CourierBehavior()),
-				Pair.of(0, new MineBehavior()),
-				Pair.of(0, new ChargeBehavior()),
-				Pair.of(0, new FarmBehavior()),
-				Pair.of(0, new ForestBehavior()),
-				Pair.of(0, new FishBehavior()),
-				Pair.of(0, new KeeperBehavior()),
-				Pair.of(0, new CraftBehavior()),
-				// Last, so it sees the walk target the job behaviours just set.
-				Pair.of(0, new RideBehavior()),
-				Pair.of(1, SetEntityLookTargetSometimes.create(EntityTypes.PLAYER, 6.0F, UniformInt.of(40, 80))),
-				Pair.of(
-					2,
-					new RunOne<>(
-						ImmutableMap.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT, MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS, MemoryStatus.VALUE_PRESENT),
-						ImmutableList.of(Pair.of(RandomStroll.stroll(1.0F, 2, 2), 1), Pair.of(new DoNothing(30, 60), 1))
-					)
-				)
-			)
+	/** The mod's idle behaviours, put in front of vanilla's (see {@code CopperGolemAiMixin}). */
+	public static ImmutableList<Pair<Integer, BehaviorControl<? super CopperGolem>>> modBehaviours() {
+		return ImmutableList.of(
+			Pair.of(0, new RepairBehavior()),
+			Pair.of(0, new SortItemsBehavior()),
+			Pair.of(0, new CourierBehavior()),
+			Pair.of(0, new MineBehavior()),
+			Pair.of(0, new ChargeBehavior()),
+			Pair.of(0, new FarmBehavior()),
+			Pair.of(0, new ForestBehavior()),
+			Pair.of(0, new FishBehavior()),
+			Pair.of(0, new KeeperBehavior()),
+			Pair.of(0, new CraftBehavior()),
+			// Last, so it sees the walk target the job behaviours just set.
+			Pair.of(0, new RideBehavior())
 		);
 	}
 
@@ -177,8 +159,12 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 		if (Couriers.isCourier(golem)) {
 			return false;
 		}
-		if (!Upkeep.hasJob(golem) || Homes.get(golem) == null) {
-			// Nothing to do (no job, or no home yet): wander about like a vanilla golem between jobs.
+		if (!Upkeep.hasJob(golem)) {
+			// Vanilla transport handles golems without a job; a cooldown here would block it.
+			return false;
+		}
+		if (Homes.get(golem) == null) {
+			// A job but no home yet: vanilla's stroll needs the cooldown to wander about.
 			if (golem.getBrain().getMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS).isEmpty()) {
 				golem.getBrain().setMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS, IDLE_COOLDOWN);
 			}

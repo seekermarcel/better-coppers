@@ -79,8 +79,8 @@ public class RideBehavior extends Behavior<CopperGolem> {
 			current.setDeltaMovement(Vec3.ZERO);
 			return false;
 		}
-		if ((level.getGameTime() + golem.getId()) % SEARCH_INTERVAL != 0 || golem.isLeashed() || CartChaining.findCart(golem) != null) {
-			// A golem towing a chained cart stays on foot: the cart would not keep up.
+		if ((level.getGameTime() + golem.getId()) % SEARCH_INTERVAL != 0 || golem.isLeashed() || !Upkeep.hasJob(golem) || CartChaining.findCart(golem) != null) {
+			// Golems without a job walk, as in vanilla. A golem towing a chained cart stays on foot: the cart would not keep up.
 			return false;
 		}
 		Vec3 goal = walkGoal(golem);

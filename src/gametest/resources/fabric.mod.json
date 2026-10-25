@@ -7,7 +7,8 @@
 	"entrypoints": {
 		"fabric-gametest": [
 			"dev.bettercoppers.test.GameTests",
-			"dev.bettercoppers.test.JobGameTests"
+			"dev.bettercoppers.test.JobGameTests",
+			"dev.bettercoppers.test.VanillaGameTests"
 		]
 	},
 	"depends": {

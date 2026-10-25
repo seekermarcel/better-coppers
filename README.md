@@ -19,7 +19,7 @@ Everything is meant to feel vanilla: golems are slow, sometimes shake their head
 | a **crafting table** | Crafter | Crafts whatever the item frames on its chest show |
 | a **route** (two chests) | Courier | Carries everything from one chest to another, however far apart |
 
-A golem without any of these just wanders around, like in vanilla.
+A golem without any of these sorts its copper chest exactly like in vanilla.
 
 On top of the jobs:
 - **Copper Chest Minecart:** a golem can tow one on an iron chain to carry much more.
