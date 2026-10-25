@@ -1,0 +1,15 @@
+{
+	"schemaVersion": 1,
+	"id": "bettercoppers-gametest",
+	"version": "1.0.0",
+	"name": "Better Coppers game tests",
+	"environment": "*",
+	"entrypoints": {
+		"fabric-gametest": [
+			"dev.bettercoppers.test.GameTests"
+		]
+	},
+	"depends": {
+		"bettercoppers": "*"
+	}
+}
