@@ -280,7 +280,7 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 		}
 	}
 
-	/** Home chests of the farming golems around {@code pos}. */
+	/** Home chests of the farmer golems around {@code pos}. */
 	public static Set<BlockPos> farmerHomesNear(ServerLevel level, BlockPos pos) {
 		Set<BlockPos> homes = new HashSet<>();
 		for (CopperGolem golem : level.getEntitiesOfClass(CopperGolem.class, new AABB(pos).inflate(64))) {

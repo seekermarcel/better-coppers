@@ -19,7 +19,7 @@ public final class ModAttachments {
 		BetterCoppers.id("miner"), builder -> builder.persistent(MinerData.CODEC).initializer(MinerData::new)
 	);
 
-	/** Home chest, pouch and supplies of a farmer, forester, fisher, animal keeper or crafter golem. */
+	/** Pouch and supplies of a farmer, forester, fisher, animal keeper or crafter golem. */
 	public static final AttachmentType<WorkerData> WORKER = AttachmentRegistry.create(
 		BetterCoppers.id("worker"), builder -> builder.persistent(WorkerData.CODEC).initializer(WorkerData::new)
 	);

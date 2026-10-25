@@ -5,27 +5,24 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.bettercoppers.registry.ModAttachments;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Home chest, pouch and supplies of a farmer, forester, fisher, animal keeper or crafter golem, plus a few remembered places
+ * Pouch and supplies of a farmer, forester, fisher, animal keeper or crafter golem, plus a few remembered places
  * (the forester's tree stumps waiting for a sapling). Stored on the golem as a Fabric attachment.
  */
 public final class WorkerData {
 	public static final Codec<WorkerData> CODEC = RecordCodecBuilder.create(
 		instance -> instance.group(
-				BlockPos.CODEC.optionalFieldOf("home").forGetter(data -> Optional.ofNullable(data.home)),
 				ItemStack.OPTIONAL_CODEC.listOf().optionalFieldOf("pouch", List.of()).forGetter(data -> data.pouch),
 				ItemStack.OPTIONAL_CODEC.listOf().optionalFieldOf("supplies", List.of()).forGetter(data -> data.supplies),
 				BlockPos.CODEC.listOf().optionalFieldOf("marks", List.of()).forGetter(data -> data.marks)
 			)
-			.apply(instance, (home, pouch, supplies, marks) -> {
+			.apply(instance, (pouch, supplies, marks) -> {
 				WorkerData data = new WorkerData();
-				data.home = home.orElse(null);
 				data.pouch.addAll(pouch.stream().filter(stack -> !stack.isEmpty()).toList());
 				data.supplies.addAll(supplies.stream().filter(stack -> !stack.isEmpty()).toList());
 				data.marks.addAll(marks);
@@ -33,7 +30,6 @@ public final class WorkerData {
 			})
 	);
 
-	private @Nullable BlockPos home;
 	private final List<ItemStack> pouch = new ArrayList<>();
 	private final List<ItemStack> supplies = new ArrayList<>();
 	private final List<BlockPos> marks = new ArrayList<>();
@@ -55,14 +51,6 @@ public final class WorkerData {
 	public static boolean isWorker(CopperGolem golem) {
 		WorkerData data = get(golem);
 		return data != null && (Job.forTool(golem.getMainHandItem()) != null || data.pouchCount() > 0);
-	}
-
-	public @Nullable BlockPos home() {
-		return this.home;
-	}
-
-	public void setHome(@Nullable BlockPos home) {
-		this.home = home;
 	}
 
 	public List<ItemStack> pouch() {

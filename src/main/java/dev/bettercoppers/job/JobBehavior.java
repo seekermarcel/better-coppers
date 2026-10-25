@@ -15,7 +15,6 @@ import java.util.function.ToIntFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.behavior.Behavior;
@@ -27,8 +26,6 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.animal.golem.CopperGolemState;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.ChestBlock;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
@@ -47,7 +44,6 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 	private boolean returning;
 	private boolean hesitated;
 	private int pauseTicks;
-	private int travelTicks;
 	private final TravelWatch travel = new TravelWatch();
 	private int homeTicks;
 	/** Ticks spent on the current task once in reach; free for subclasses to use. */
@@ -158,7 +154,6 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 				return;
 			}
 			this.task = this.chooseTask(level, golem, data, home);
-			this.travelTicks = 0;
 			this.travel.reset();
 			this.workTicks = 0;
 			this.hesitated = false;

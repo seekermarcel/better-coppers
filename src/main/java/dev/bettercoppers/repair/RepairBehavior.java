@@ -3,6 +3,7 @@ package dev.bettercoppers.repair;
 import com.google.common.collect.ImmutableMap;
 import dev.bettercoppers.courier.CourierRoute;
 import dev.bettercoppers.courier.Couriers;
+import dev.bettercoppers.golem.Errands;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.golem.TravelWatch;
@@ -285,7 +286,7 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 		AABB area = new AABB(golem.blockPosition()).inflate(CHEST_RANGE, 6, CHEST_RANGE);
 		BlockPos[] best = {null};
 		double[] bestDistance = {Double.MAX_VALUE};
-		Inventories.forEachContainer(level, area, blockEntity -> {
+		Inventories.forEachBlockEntity(level, area, blockEntity -> {
 			BlockPos pos = blockEntity.getBlockPos();
 			double distance = pos.distToCenterSqr(golem.position());
 			if (distance < bestDistance[0] && hasIron(level, pos)) {

@@ -1,7 +1,5 @@
 package dev.bettercoppers.home;
 
-import dev.bettercoppers.job.WorkerData;
-import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.registry.ModAttachments;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
@@ -10,6 +8,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -19,24 +18,15 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Every golem with a job belongs to exactly one copper chest, its home, which the player links by hand (see
- * {@link HomeLinking}). Nothing is guessed from distance any more: a golem without a home waits.
+ * {@link HomeLinking}). A golem without a home waits.
  */
 public final class Homes {
 	private Homes() {
 	}
 
-	/** The linked home chest, if any. Homes from before linking existed are taken over once. */
+	/** The linked home chest, if any. */
 	public static @Nullable BlockPos get(CopperGolem golem) {
-		BlockPos home = golem.getAttached(ModAttachments.HOME);
-		if (home != null) {
-			return home;
-		}
-		WorkerData worker = WorkerData.get(golem);
-		BlockPos legacy = worker != null ? worker.home() : null;
-		if (legacy != null) {
-			set(golem, legacy);
-		}
-		return legacy;
+		return golem.getAttached(ModAttachments.HOME);
 	}
 
 	public static void set(CopperGolem golem, @Nullable BlockPos home) {
@@ -44,11 +34,6 @@ public final class Homes {
 			golem.removeAttached(ModAttachments.HOME);
 		} else {
 			golem.setAttached(ModAttachments.HOME, home);
-		}
-		// Clear the old per-job fields so they cannot come back.
-		WorkerData worker = WorkerData.get(golem);
-		if (worker != null) {
-			worker.setHome(null);
 		}
 	}
 
@@ -69,13 +54,18 @@ public final class Homes {
 		return container(level, home) != null ? home : null;
 	}
 
+	/** Any chest (copper chests too) or barrel can be a route's end or a golem's source. */
+	public static boolean canEndRoute(BlockState state) {
+		return state.getBlock() instanceof ChestBlock || state.is(Blocks.BARREL);
+	}
+
 	/** Any chest or barrel's inventory, double chests combined; null if it is gone, locked, blocked or not loaded. */
 	public static @Nullable Container containerAt(Level level, BlockPos pos) {
 		if (!level.isLoaded(pos)) {
 			return null;
 		}
 		BlockState state = level.getBlockState(pos);
-		if (!Couriers.canEndRoute(state)) {
+		if (!canEndRoute(state)) {
 			return null;
 		}
 		BlockEntity blockEntity = level.getBlockEntity(pos);

@@ -1,6 +1,6 @@
 package dev.bettercoppers.mixin;
 
-import dev.bettercoppers.repair.Errands;
+import dev.bettercoppers.golem.Errands;
 import dev.bettercoppers.upkeep.Upkeep;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.PathfinderMob;

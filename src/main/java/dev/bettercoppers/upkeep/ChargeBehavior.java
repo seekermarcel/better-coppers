@@ -1,7 +1,7 @@
 package dev.bettercoppers.upkeep;
 
 import com.google.common.collect.ImmutableMap;
-import dev.bettercoppers.repair.Errands;
+import dev.bettercoppers.golem.Errands;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -75,7 +75,7 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 				return;
 			}
 			this.searchCooldown = RESEARCH_TICKS;
-			this.pad = findPad(level, Upkeep.homeOf(level, golem), golem);
+			this.pad = findPad(level, Upkeep.homeOf(golem), golem);
 			this.travelTicks = 0;
 			if (this.pad == null) {
 				return;

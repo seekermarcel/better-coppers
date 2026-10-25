@@ -59,7 +59,6 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 	}
 
 	private int chopTicks;
-	private int walkTicks;
 
 	public ForestBehavior() {
 		super(Job.FORESTER);
@@ -207,14 +206,12 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 		boolean beside = Math.abs(golem.getY() - base.getY()) < 0.6
 			&& golem.position().subtract(Vec3.atBottomCenterOf(base)).horizontalDistanceSqr() < 2.0 * 2.0;
 		if (beside) {
-			this.walkTicks = 0;
 			Golems.stopInPlace(golem);
 			golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(base));
 			return true;
 		}
 		BlockPos stand = standFor(level, base, golem);
 		if (stand == null || this.stalledTowards(golem, Vec3.atBottomCenterOf(stand)) > Golems.MAX_TRAVEL_TICKS) {
-			this.walkTicks = 0;
 			this.ignore(level, base);
 			this.giveUp();
 			return false;

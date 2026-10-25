@@ -77,7 +77,7 @@ public final class HomeLinking {
 		}
 		BlockState state = level.getBlockState(pos);
 		if (selection.routeStart() != null) {
-			return Couriers.canEndRoute(state) ? endRoute(player, serverLevel, selection, pos) : InteractionResult.PASS;
+			return Homes.canEndRoute(state) ? endRoute(player, serverLevel, selection, pos) : InteractionResult.PASS;
 		}
 		if (Couriers.canStartRoute(state)) {
 			SELECTIONS.put(player.getUUID(), new Selection(selection.golem(), selection.dimension(), serverLevel.getGameTime() + ROUTE_TICKS, pos));

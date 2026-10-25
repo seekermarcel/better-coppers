@@ -7,7 +7,7 @@ import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.golem.TravelWatch;
 import dev.bettercoppers.home.Homes;
-import dev.bettercoppers.repair.Errands;
+import dev.bettercoppers.golem.Errands;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;

@@ -1,7 +1,7 @@
 package dev.bettercoppers.job;
 
-import dev.bettercoppers.upkeep.Upkeep;
 import dev.bettercoppers.golem.Golems;
+import dev.bettercoppers.upkeep.Upkeep;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -42,7 +42,6 @@ public class FishBehavior extends JobBehavior<FishBehavior.Spot> {
 
 	private @Nullable Spot spot;
 	private int waitTicks;
-	private int walkTicks;
 
 	public FishBehavior() {
 		super(Job.FISHER);
@@ -73,13 +72,11 @@ public class FishBehavior extends JobBehavior<FishBehavior.Spot> {
 			if (this.stalledTowards(golem, Vec3.atBottomCenterOf(spot.stand())) > Golems.MAX_TRAVEL_TICKS) {
 				this.ignore(level, spot.stand());
 				this.spot = null;
-				this.walkTicks = 0;
 				return true;
 			}
 			BehaviorUtils.setWalkAndLookTargetMemories(golem, spot.stand(), Golems.WALK_SPEED * Upkeep.speed(golem), 0);
 			return false;
 		}
-		this.walkTicks = 0;
 		Golems.stopInPlace(golem);
 		golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(spot.water()));
 		if (this.workTicks == 0) {

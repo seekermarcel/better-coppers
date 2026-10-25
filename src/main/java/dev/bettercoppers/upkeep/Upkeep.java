@@ -11,7 +11,7 @@ import dev.bettercoppers.mining.MinerData;
 import dev.bettercoppers.mining.MinerInteractions;
 import dev.bettercoppers.mixin.CopperGolemAccessor;
 import dev.bettercoppers.registry.ModAttachments;
-import dev.bettercoppers.repair.Errands;
+import dev.bettercoppers.golem.Errands;
 import dev.bettercoppers.repair.RepairBehavior;
 import dev.bettercoppers.trim.GolemTrims;
 import net.minecraft.core.BlockPos;
@@ -92,7 +92,7 @@ public final class Upkeep {
 	 */
 	public static boolean scrape(ServerLevel level, CopperGolem golem) {
 		CopperGolemAccessor accessor = (CopperGolemAccessor) golem;
-		if (accessor.bettercoppers$getNextWeatheringTick() == -2L) {
+		if (isWaxed(golem)) {
 			accessor.bettercoppers$setNextWeatheringTick(-1L);
 			level.playSound(null, golem, SoundEvents.AXE_SCRAPE, golem.getSoundSource(), 1.0F, 1.0F);
 			level.levelEvent(golem, 3004, golem.blockPosition(), 0);
@@ -111,7 +111,7 @@ public final class Upkeep {
 	}
 
 	/** Where the golem's work is centred: its home chest, or wherever it stands. */
-	public static BlockPos homeOf(ServerLevel level, CopperGolem golem) {
+	public static BlockPos homeOf(CopperGolem golem) {
 		BlockPos home = Homes.get(golem);
 		return home != null ? home : golem.blockPosition();
 	}

@@ -14,7 +14,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
@@ -85,10 +84,5 @@ public final class Couriers {
 	/** Plain chests and barrels can start a route. */
 	public static boolean canStartRoute(BlockState state) {
 		return state.is(Blocks.CHEST) || state.is(Blocks.TRAPPED_CHEST) || state.is(Blocks.BARREL);
-	}
-
-	/** Any chest (copper chests too) or barrel can end one. */
-	public static boolean canEndRoute(BlockState state) {
-		return state.getBlock() instanceof ChestBlock || state.is(Blocks.BARREL);
 	}
 }

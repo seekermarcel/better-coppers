@@ -69,7 +69,7 @@ public class MineshaftPlanItem extends Item {
 		}
 	}
 
-	public static Component directionName(Direction direction) {
+	private static Component directionName(Direction direction) {
 		return Component.translatable("direction.bettercoppers." + direction.getSerializedName());
 	}
 }

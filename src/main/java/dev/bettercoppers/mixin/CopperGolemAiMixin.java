@@ -2,7 +2,7 @@ package dev.bettercoppers.mixin;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
-import dev.bettercoppers.golem.SortItemsBehavior;
+import dev.bettercoppers.golem.GolemBrain;
 import net.minecraft.world.entity.ai.ActivityData;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
@@ -19,7 +19,7 @@ public abstract class CopperGolemAiMixin {
 	private static void bettercoppers$addBehaviours(CallbackInfoReturnable<ActivityData<CopperGolem>> cir) {
 		ActivityData<CopperGolem> vanilla = cir.getReturnValue();
 		ImmutableList<Pair<Integer, ? extends BehaviorControl<? super CopperGolem>>> behaviours = ImmutableList.<Pair<Integer, ? extends BehaviorControl<? super CopperGolem>>>builder()
-			.addAll(SortItemsBehavior.modBehaviours())
+			.addAll(GolemBrain.modBehaviours())
 			.addAll(vanilla.behaviorPriorityPairs())
 			.build();
 		cir.setReturnValue(new ActivityData<>(vanilla.activityType(), behaviours, vanilla.conditions(), vanilla.memoriesToEraseWhenStopped()));

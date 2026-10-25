@@ -1,23 +1,11 @@
 package dev.bettercoppers.golem;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.mojang.datafixers.util.Pair;
-import dev.bettercoppers.courier.CourierBehavior;
 import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.home.Homes;
-import dev.bettercoppers.job.CraftBehavior;
 import dev.bettercoppers.job.FarmBehavior;
-import dev.bettercoppers.job.FishBehavior;
-import dev.bettercoppers.job.ForestBehavior;
-import dev.bettercoppers.job.KeeperBehavior;
 import dev.bettercoppers.mining.MineBehavior;
-import dev.bettercoppers.mining.MinerData;
-import dev.bettercoppers.repair.Errands;
-import dev.bettercoppers.repair.RepairBehavior;
-import dev.bettercoppers.travel.RideBehavior;
-import dev.bettercoppers.upkeep.ChargeBehavior;
 import dev.bettercoppers.upkeep.Upkeep;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -38,7 +26,6 @@ import net.minecraft.util.Util;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.behavior.Behavior;
-import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -120,24 +107,6 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 
 	public SortItemsBehavior() {
 		super(ImmutableMap.of(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS, MemoryStatus.VALUE_ABSENT, MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT));
-	}
-
-	/** The mod's idle behaviours, put in front of vanilla's (see {@code CopperGolemAiMixin}). */
-	public static ImmutableList<Pair<Integer, BehaviorControl<? super CopperGolem>>> modBehaviours() {
-		return ImmutableList.of(
-			Pair.of(0, new RepairBehavior()),
-			Pair.of(0, new SortItemsBehavior()),
-			Pair.of(0, new CourierBehavior()),
-			Pair.of(0, new MineBehavior()),
-			Pair.of(0, new ChargeBehavior()),
-			Pair.of(0, new FarmBehavior()),
-			Pair.of(0, new ForestBehavior()),
-			Pair.of(0, new FishBehavior()),
-			Pair.of(0, new KeeperBehavior()),
-			Pair.of(0, new CraftBehavior()),
-			// Last, so it sees the walk target the job behaviours just set.
-			Pair.of(0, new RideBehavior())
-		);
 	}
 
 	@Override
@@ -498,7 +467,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 	private List<Spot> scan(ServerLevel level, CopperGolem golem, long now) {
 		AABB area = new AABB(golem.blockPosition()).inflate(HORIZONTAL_RANGE, VERTICAL_RANGE, HORIZONTAL_RANGE);
 		List<Spot> spots = new ArrayList<>();
-		Inventories.forEachContainer(level, area, blockEntity -> {
+		Inventories.forEachBlockEntity(level, area, blockEntity -> {
 			BlockPos pos = blockEntity.getBlockPos();
 			if (this.isIgnored(pos, now)) {
 				return;

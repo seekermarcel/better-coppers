@@ -36,16 +36,13 @@ import net.minecraft.world.entity.animal.golem.CopperGolemState;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.WallTorchBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
@@ -70,7 +67,6 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	private static final int PLACE_TICKS = 20;
 	private static final int ORE_BUDGET = 16;
 	private static final int RECENT_DIGS = 32;
-	private static final int HOME_SEARCH_RADIUS = 12;
 	private static final int FILLER_RESERVE = 16;
 	private static final float WALK_SPEED = 0.9F;
 	private static final int ENERGY_PER_DIG = 2;
@@ -213,22 +209,8 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	// --- choosing what to do next ---
 
 	private boolean chooseWork(ServerLevel level, CopperGolem golem, MinerData data, MinePlan plan) {
-		// Gravel or sand that fell into the tunnel comes out first.
-		for (MineLayout.Step dug : this.recentDigs) {
-			if (level.isLoaded(dug.pos()) && level.getBlockState(dug.pos()).getBlock() instanceof FallingBlock) {
-				return this.setWork(dug, true);
-			}
-		}
-		while (!this.oreDigs.isEmpty()) {
-			MineLayout.Step ore = this.oreDigs.poll();
-			if (level.isLoaded(ore.pos()) && isOre(level.getBlockState(ore.pos())) && this.canDig(level, golem, ore.pos())) {
-				if (JobBehavior.isFull(golem, data.lootCount(), Golems.POUCH_LIMIT)) {
-					this.oreDigs.addFirst(ore);
-					this.startReturn(level, golem, data, false);
-					return false;
-				}
-				return this.setWork(ore, true);
-			}
+		if (this.nextExtraDig(level, golem, data)) {
+			return this.work != null;
 		}
 		this.oreBudget = ORE_BUDGET;
 
@@ -242,7 +224,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 				plan = this.advance(data, plan);
 				continue;
 			}
-			Predicate<ItemStack> material = this.materialFor(step.action(), plan);
+			Predicate<ItemStack> material = this.materialFor(step.action());
 			if (material != null && !this.hasMaterial(golem, data, material)) {
 				if (this.homeHas(level, golem, material)) {
 					this.startReturn(level, golem, data, false);
@@ -256,34 +238,70 @@ public class MineBehavior extends Behavior<CopperGolem> {
 				this.startReturn(level, golem, data, false);
 				return false;
 			}
-			if (step.action() == MineLayout.Action.DIG) {
-				int slice = MineLayout.sliceOf(plan, step.pos());
-				if (slice > this.checkedSlice) {
-					if (!this.hasSliceMaterials(golem, data, slice, null)) {
-						// No supports, no digging. Fetch them, or wait at home until someone fills the chest.
-						BlockPos homePos = Homes.valid(level, golem);
-						Container homeChest = Homes.container(level, homePos);
-						boolean available = homeChest != null && this.hasSliceMaterials(golem, data, slice, homeChest);
-						this.startReturn(level, golem, data, !available);
-						return false;
-					}
-					this.checkedSlice = slice;
-				}
+			if (step.action() == MineLayout.Action.DIG && !this.checkSliceSupplies(level, golem, data, plan, step)) {
+				return false;
 			}
-			// No floor where the golem should stand (the entrance at a ledge, the edge of a cave)? Lay one first, from
-			// one block further back, or it would never get there.
-			BlockPos standFloor = step.stand().below();
-			BlockState below = level.getBlockState(standFloor);
-			if (!below.isFaceSturdy(level, standFloor, Direction.UP) && below.canBeReplaced() && !this.unreachable.contains(standFloor)
-				&& this.hasMaterial(golem, data, this.materialFor(MineLayout.Action.FLOOR, plan))) {
-				BlockPos further = step.stand().relative(plan.heading().orElseThrow().getOpposite());
-				return this.setWork(new MineLayout.Step(MineLayout.Action.FLOOR, standFloor, further, Direction.UP), true);
-			}
-			return this.setWork(step, false);
+			MineLayout.Step floor = this.floorFirst(level, golem, data, plan, step);
+			return floor != null ? this.setWork(floor, true) : this.setWork(step, false);
 		}
 		// Plan finished.
 		this.startReturn(level, golem, data, true);
 		return false;
+	}
+
+	/** Fallen blocks and ores come before the plan. Returns true if it decided (picked work, or went home to unload). */
+	private boolean nextExtraDig(ServerLevel level, CopperGolem golem, MinerData data) {
+		// Gravel or sand that fell into the tunnel comes out first.
+		for (MineLayout.Step dug : this.recentDigs) {
+			if (level.isLoaded(dug.pos()) && level.getBlockState(dug.pos()).getBlock() instanceof FallingBlock) {
+				this.setWork(dug, true);
+				return true;
+			}
+		}
+		while (!this.oreDigs.isEmpty()) {
+			MineLayout.Step ore = this.oreDigs.poll();
+			if (level.isLoaded(ore.pos()) && isOre(level.getBlockState(ore.pos())) && this.canDig(level, golem, ore.pos())) {
+				if (JobBehavior.isFull(golem, data.lootCount(), Golems.POUCH_LIMIT)) {
+					this.oreDigs.addFirst(ore);
+					this.startReturn(level, golem, data, false);
+				} else {
+					this.setWork(ore, true);
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** No supports, no digging: fetch them, or wait at home until someone fills the chest. False if it went home. */
+	private boolean checkSliceSupplies(ServerLevel level, CopperGolem golem, MinerData data, MinePlan plan, MineLayout.Step step) {
+		int slice = MineLayout.sliceOf(plan, step.pos());
+		if (slice <= this.checkedSlice) {
+			return true;
+		}
+		if (!this.hasSliceMaterials(golem, data, slice, null)) {
+			Container homeChest = Homes.container(level, Homes.valid(level, golem));
+			boolean available = homeChest != null && this.hasSliceMaterials(golem, data, slice, homeChest);
+			this.startReturn(level, golem, data, !available);
+			return false;
+		}
+		this.checkedSlice = slice;
+		return true;
+	}
+
+	/**
+	 * No floor where the golem should stand (the entrance at a ledge, the edge of a cave)? Then it lays one first, from
+	 * one block further back, or it would never get there. Null if the floor is fine.
+	 */
+	private MineLayout.@Nullable Step floorFirst(ServerLevel level, CopperGolem golem, MinerData data, MinePlan plan, MineLayout.Step step) {
+		BlockPos standFloor = step.stand().below();
+		BlockState below = level.getBlockState(standFloor);
+		if (!below.isFaceSturdy(level, standFloor, Direction.UP) && below.canBeReplaced() && !this.unreachable.contains(standFloor)
+			&& this.hasMaterial(golem, data, this.materialFor(MineLayout.Action.FLOOR))) {
+			BlockPos further = step.stand().relative(plan.heading().orElseThrow().getOpposite());
+			return new MineLayout.Step(MineLayout.Action.FLOOR, standFloor, further, Direction.UP);
+		}
+		return null;
 	}
 
 	private boolean setWork(MineLayout.Step step, boolean extra) {
@@ -296,7 +314,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		return true;
 	}
 
-	private void finishWork(ServerLevel level, CopperGolem golem, MinerData data) {
+	private void finishWork(CopperGolem golem, MinerData data) {
 		if (!this.extraWork && data.plan() != null) {
 			this.advance(data, data.plan());
 		}
@@ -360,7 +378,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 				// Clumsy, but not stubborn: give up on this one.
 				this.unreachable.add(pos);
 				level.destroyBlockProgress(golem.getId(), pos, -1);
-				this.finishWork(level, golem, data);
+				this.finishWork(golem, data);
 				return;
 			}
 			BehaviorUtils.setWalkAndLookTargetMemories(golem, step.stand(), WALK_SPEED * Upkeep.speed(golem), 0);
@@ -378,7 +396,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		}
 		if (this.workTicks >= PLACE_TICKS) {
 			this.build(level, golem, data, plan, step);
-			this.finishWork(level, golem, data);
+			this.finishWork(golem, data);
 			this.pauseTicks = 10;
 		}
 	}
@@ -387,7 +405,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		BlockPos pos = step.pos();
 		if (this.digTicks == 0) {
 			if (!this.canDig(level, golem, pos) || level.getBlockState(pos).isAir()) {
-				this.finishWork(level, golem, data);
+				this.finishWork(golem, data);
 				return;
 			}
 			if (!this.sealFluids(level, golem, data, pos)) {
@@ -418,7 +436,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		if (this.workTicks >= this.digTicks) {
 			level.destroyBlockProgress(golem.getId(), pos, -1);
 			this.dig(level, golem, data, step, state);
-			this.finishWork(level, golem, data);
+			this.finishWork(golem, data);
 		}
 	}
 
@@ -544,7 +562,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			this.placeTorch(level, golem, data, pos, step.facing());
 			return;
 		}
-		Predicate<ItemStack> material = this.materialFor(step.action(), plan);
+		Predicate<ItemStack> material = this.materialFor(step.action());
 		ItemStack item = material == null ? ItemStack.EMPTY : this.takeMaterial(golem, data, material);
 		if (step.action() == MineLayout.Action.FLOOR && item.isEmpty()) {
 			// No planks left for a mineshaft floor: any filler will do.
@@ -586,7 +604,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 
 	// --- materials ---
 
-	private @Nullable Predicate<ItemStack> materialFor(MineLayout.Action action, MinePlan plan) {
+	private @Nullable Predicate<ItemStack> materialFor(MineLayout.Action action) {
 		return switch (action) {
 			case DIG -> null;
 			case FLOOR -> stack -> stack.is(ItemTags.PLANKS) || isFiller(stack);

@@ -51,7 +51,7 @@ public final class WorkerInteractions {
 			// Let vanilla scrape it first.
 			return InteractionResult.PASS;
 		}
-		if (level instanceof ServerLevel serverLevel) {
+		if (!level.isClientSide()) {
 			giveTool(player, golem, held);
 			WorkerData.getOrCreate(golem);
 			Component jobName = Component.translatable("job.bettercoppers." + job.id());

@@ -158,7 +158,7 @@ public final class Inventories {
 	}
 
 	/** Every block entity inside {@code area}, from chunks that are already loaded. */
-	public static void forEachContainer(ServerLevel level, AABB area, Consumer<BlockEntity> action) {
+	public static void forEachBlockEntity(ServerLevel level, AABB area, Consumer<BlockEntity> action) {
 		for (int x = SectionPos.blockToSectionCoord(area.minX); x <= SectionPos.blockToSectionCoord(area.maxX); x++) {
 			for (int z = SectionPos.blockToSectionCoord(area.minZ); z <= SectionPos.blockToSectionCoord(area.maxZ); z++) {
 				LevelChunk chunk = level.getChunkSource().getChunkNow(x, z);

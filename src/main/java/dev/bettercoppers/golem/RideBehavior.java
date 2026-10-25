@@ -1,7 +1,6 @@
-package dev.bettercoppers.travel;
+package dev.bettercoppers.golem;
 
 import com.google.common.collect.ImmutableMap;
-import dev.bettercoppers.golem.CartChaining;
 import dev.bettercoppers.upkeep.Upkeep;
 import java.util.HashMap;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package dev.bettercoppers.repair;
+package dev.bettercoppers.golem;
 
 import dev.bettercoppers.registry.ModAttachments;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
@@ -12,7 +12,7 @@ public final class Errands {
 		return Boolean.TRUE.equals(golem.getAttached(ModAttachments.ERRAND));
 	}
 
-	static void setBusy(CopperGolem golem, boolean busy) {
+	public static void setBusy(CopperGolem golem, boolean busy) {
 		if (busy) {
 			golem.setAttached(ModAttachments.ERRAND, true);
 		} else {
