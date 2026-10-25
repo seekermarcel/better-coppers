@@ -1,7 +1,7 @@
 package dev.bettercoppers.job;
 
-import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.golem.CartChaining;
+import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.upkeep.Upkeep;
@@ -42,7 +42,6 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 	private static final int FIELD_RADIUS = 8;
 	private static final int FIELD_HEIGHT = 3;
 	private static final int WORK_TICKS = 25;
-	private static final int SEED_RESERVE = 16;
 	private static final int STALK_MIN_HEIGHT = 3;
 	private static final int ENERGY_PER_ACTION = 3;
 
@@ -83,7 +82,7 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 			Task found = this.taskAt(level, golem, data, pos);
 			if (found == null) {
 				if (!seedsAtHome && level.getBlockState(pos).is(Blocks.FARMLAND) && level.getBlockState(pos.above()).isAir()) {
-					Container chest = homeContainer(level, home);
+					Container chest = Homes.container(level, home);
 					seedsAtHome = chest != null && Inventories.contains(chest, stack -> isSeed(stack) && cropOf(stack) instanceof CropBlock);
 				}
 				continue;
@@ -243,7 +242,7 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 			return;
 		}
 		BlockState crop = blockItem.getBlock().defaultBlockState();
-		if (!level.getBlockState(pos).isAir() || !crop.canSurvive(level, pos) || this.takeSeed(golem, data, seed).isEmpty()) {
+		if (!level.getBlockState(pos).isAir() || !crop.canSurvive(level, pos) || Inventories.takeOne(List.of(data.supplies(), data.pouch()), CartChaining.findCart(golem), stack -> stack.is(seed)).isEmpty()) {
 			return;
 		}
 		level.setBlockAndUpdate(pos, crop);
@@ -256,39 +255,13 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 
 	/** Finds (without taking) a seed in the supplies, the pouch or the cart. */
 	private ItemStack findSeed(CopperGolem golem, WorkerData data, Predicate<ItemStack> filter) {
-		for (List<ItemStack> pouch : List.of(data.supplies(), data.pouch())) {
-			for (ItemStack stack : pouch) {
-				if (!stack.isEmpty() && filter.test(stack)) {
-					return stack;
-				}
-			}
-		}
-		CopperChestMinecart cart = CartChaining.findCart(golem);
-		if (cart != null) {
-			for (ItemStack stack : cart) {
-				if (!stack.isEmpty() && filter.test(stack)) {
-					return stack;
-				}
-			}
-		}
-		return ItemStack.EMPTY;
-	}
-
-	private ItemStack takeSeed(CopperGolem golem, WorkerData data, Item seed) {
-		for (List<ItemStack> pouch : List.of(data.supplies(), data.pouch())) {
-			ItemStack one = WorkerData.takeOne(pouch, stack -> stack.is(seed));
-			if (!one.isEmpty()) {
-				return one;
-			}
-		}
-		CopperChestMinecart cart = CartChaining.findCart(golem);
-		return cart == null ? ItemStack.EMPTY : Inventories.takeFirst(cart, 1, stack -> stack.is(seed));
+		return Inventories.find(List.of(data.supplies(), data.pouch()), CartChaining.findCart(golem), filter);
 	}
 
 	/** Keeps a handful of every seed for replanting, the rest goes in the chest. */
 	@Override
 	protected int keepOnUnload(WorkerData data, ItemStack stack) {
-		return isSeed(stack) ? Math.max(0, SEED_RESERVE - WorkerData.countOf(data.supplies(), other -> other.is(stack.getItem()))) : 0;
+		return isSeed(stack) ? Math.max(0, Golems.SEED_RESERVE - Inventories.count(data.supplies(), other -> other.is(stack.getItem()))) : 0;
 	}
 
 	@Override
@@ -300,9 +273,9 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 			}
 		}
 		for (Item seed : seedTypes) {
-			int missing = SEED_RESERVE - WorkerData.countOf(data.supplies(), stack -> stack.is(seed));
+			int missing = Golems.SEED_RESERVE - Inventories.count(data.supplies(), stack -> stack.is(seed));
 			if (missing > 0) {
-				WorkerData.addTo(data.supplies(), Inventories.takeFirst(chest, missing, stack -> stack.is(seed)));
+				Inventories.addTo(data.supplies(), Inventories.takeFirst(chest, missing, stack -> stack.is(seed)));
 			}
 		}
 	}

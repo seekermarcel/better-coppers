@@ -3,6 +3,8 @@ package dev.bettercoppers.repair;
 import com.google.common.collect.ImmutableMap;
 import dev.bettercoppers.courier.CourierRoute;
 import dev.bettercoppers.courier.Couriers;
+import dev.bettercoppers.golem.Golems;
+import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.golem.TravelWatch;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.registry.ModAttachments;
@@ -27,9 +29,6 @@ import net.minecraft.world.entity.animal.golem.CopperGolemState;
 import net.minecraft.world.entity.animal.golem.IronGolem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -49,7 +48,6 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 	private static final int SEARCH_INTERVAL = 40;
 	private static final int CHEST_TICKS = 30;
 	private static final int REPAIR_TICKS = 25;
-	private static final int MAX_STALL_TICKS = 300;
 
 	/** Which copper golem is looking after which iron golem. */
 	private static final Map<UUID, UUID> CLAIMS = new HashMap<>();
@@ -141,16 +139,16 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 				return;
 			}
 		}
-		Container chest = Couriers.container(level, this.supply);
+		Container chest = Homes.containerAt(level, this.supply);
 		if (chest == null) {
 			this.supply = null;
 			return;
 		}
-		if (!isInReach(golem, this.supply)) {
+		if (!Golems.isInReach(golem, this.supply)) {
 			this.walkTo(golem, Vec3.atCenterOf(this.supply), this.supply);
 			return;
 		}
-		stopInPlace(golem);
+		Golems.stopInPlace(golem);
 		golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(this.supply));
 		this.ticks++;
 		if (this.ticks == 1) {
@@ -158,7 +156,7 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 			golem.setOpenedChestPos(this.supply);
 			golem.setState(CopperGolemState.GETTING_ITEM);
 		}
-		if (this.ticks == 9) {
+		if (this.ticks == Golems.SOUND_TICK) {
 			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET);
 		}
 		if (this.ticks < CHEST_TICKS) {
@@ -188,16 +186,16 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 	// --- repairing ---
 
 	private void tickRepair(ServerLevel level, CopperGolem golem, IronGolem target) {
-		if (golem.distanceToSqr(target) > 2.5 * 2.5) {
+		if (golem.distanceToSqr(target) > Golems.REACH_SQR) {
 			this.ticks = 0;
-			if (this.travel.tick(golem, target.position()) > MAX_STALL_TICKS) {
+			if (this.travel.tick(golem, target.position()) > Golems.MAX_TRAVEL_TICKS) {
 				this.patient = null;
 				return;
 			}
 			BehaviorUtils.setWalkAndLookTargetMemories(golem, target, Upkeep.speed(golem), 1);
 			return;
 		}
-		stopInPlace(golem);
+		Golems.stopInPlace(golem);
 		golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new EntityTracker(target, true));
 		this.ticks++;
 		if (this.ticks == 1) {
@@ -216,7 +214,7 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 	}
 
 	private void walkTo(CopperGolem golem, Vec3 goal, BlockPos block) {
-		if (this.travel.tick(golem, goal) > MAX_STALL_TICKS) {
+		if (this.travel.tick(golem, goal) > Golems.MAX_TRAVEL_TICKS) {
 			// Cannot get there; leave it to another golem, or to the next try.
 			this.patient = null;
 			return;
@@ -226,7 +224,7 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 
 	private void closeChest(ServerLevel level, CopperGolem golem) {
 		if (this.supply != null) {
-			Container chest = Couriers.container(level, this.supply);
+			Container chest = Homes.containerAt(level, this.supply);
 			if (chest != null && chest.getEntitiesWithContainerOpen().contains(golem)) {
 				chest.stopOpen(golem);
 			}
@@ -285,30 +283,24 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 			return route.from();
 		}
 		AABB area = new AABB(golem.blockPosition()).inflate(CHEST_RANGE, 6, CHEST_RANGE);
-		BlockPos best = null;
-		double bestDistance = Double.MAX_VALUE;
-		for (ChunkPos chunkPos : ChunkPos.rangeClosed(ChunkPos.containing(golem.blockPosition()), CHEST_RANGE / 16 + 1).toList()) {
-			LevelChunk chunk = level.getChunkSource().getChunkNow(chunkPos.x(), chunkPos.z());
-			if (chunk == null) {
-				continue;
+		BlockPos[] best = {null};
+		double[] bestDistance = {Double.MAX_VALUE};
+		Inventories.forEachContainer(level, area, blockEntity -> {
+			BlockPos pos = blockEntity.getBlockPos();
+			double distance = pos.distToCenterSqr(golem.position());
+			if (distance < bestDistance[0] && hasIron(level, pos)) {
+				best[0] = pos;
+				bestDistance[0] = distance;
 			}
-			for (BlockEntity blockEntity : chunk.getBlockEntities().values()) {
-				BlockPos pos = blockEntity.getBlockPos();
-				double distance = pos.distToCenterSqr(golem.position());
-				if (distance < bestDistance && area.contains(pos.getX(), pos.getY(), pos.getZ()) && hasIron(level, pos)) {
-					best = pos;
-					bestDistance = distance;
-				}
-			}
-		}
-		return best;
+		});
+		return best[0];
 	}
 
 	private static boolean hasIron(ServerLevel level, @Nullable BlockPos pos) {
 		if (pos == null) {
 			return false;
 		}
-		Container container = Couriers.container(level, pos);
+		Container container = Homes.containerAt(level, pos);
 		if (container == null) {
 			return false;
 		}
@@ -342,18 +334,5 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 			golem.spawnAtLocation(level, new ItemStack(Items.IRON_INGOT, count));
 			setCarried(golem, 0);
 		}
-	}
-
-	private static boolean isInReach(CopperGolem golem, BlockPos pos) {
-		return new AABB(pos).inflate(1.0, 1.5, 1.0).intersects(golem.getBoundingBox());
-	}
-
-	private static void stopInPlace(CopperGolem golem) {
-		golem.getNavigation().stop();
-		golem.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
-		golem.setXxa(0.0F);
-		golem.setZza(0.0F);
-		golem.setSpeed(0.0F);
-		golem.setDeltaMovement(0.0, golem.getDeltaMovement().y, 0.0);
 	}
 }

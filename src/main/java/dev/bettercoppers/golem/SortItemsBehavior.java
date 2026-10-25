@@ -47,15 +47,9 @@ import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.animal.golem.CopperGolemState;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.ChestBlock;
-import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.ChestType;
-import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -73,15 +67,8 @@ import org.jspecify.annotations.Nullable;
 public class SortItemsBehavior extends Behavior<CopperGolem> {
 	private static final int HORIZONTAL_RANGE = 32;
 	private static final int VERTICAL_RANGE = 8;
-	private static final int HAND_LIMIT = 16;
-	/** Seeds left in a farmer's home chest for replanting. */
-	private static final int SEED_RESERVE = 16;
-	private static final int INTERACTION_TICKS = 60;
-	private static final int SOUND_TICK = 9;
 	private static final int IDLE_COOLDOWN = 140;
 	private static final int MAX_TRAVEL_TICKS = 600;
-	/** How long an unreachable or full container is skipped. */
-	private static final int IGNORE_TICKS = 600;
 	private static final int MAX_DECOYS = 3;
 	/** Decoys are picked from this many containers closest to the real destination. */
 	private static final int DECOY_CANDIDATES = 6;
@@ -109,8 +96,8 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 
 		boolean accepts(Spot spot, ItemStack item) {
 			return switch (this) {
-				case MATCHING_CHEST -> spot.kind == Kind.CHEST && containsItem(spot.container, item) && hasRoom(spot.container, item);
-				case BARREL -> spot.kind == Kind.BARREL && hasRoom(spot.container, item);
+				case MATCHING_CHEST -> spot.kind == Kind.CHEST && Inventories.containsItem(spot.container, item) && Inventories.hasRoom(spot.container, item);
+				case BARREL -> spot.kind == Kind.BARREL && Inventories.hasRoom(spot.container, item);
 				case EMPTY_CHEST -> spot.kind == Kind.CHEST && spot.container.isEmpty();
 			};
 		}
@@ -185,7 +172,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 	/** A sorter only empties its own copper chest (either half, if it is a double chest). */
 	private static boolean isOwnChest(ServerLevel level, CopperGolem golem, BlockPos pos) {
 		BlockPos home = Homes.get(golem);
-		return home != null && sameContainer(level, home).contains(pos);
+		return home != null && Homes.sameContainer(level, home).contains(pos);
 	}
 
 	@Override
@@ -218,7 +205,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 			golem.getBrain().setMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS, IDLE_COOLDOWN);
 			return;
 		}
-		Container container = containerAt(level, this.target);
+		Container container = Homes.containerAt(level, this.target);
 		if (container == null) {
 			this.endInteraction(golem);
 			this.dropTarget(golem);
@@ -235,7 +222,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 		CopperChestMinecart cart = CartChaining.findCart(golem);
 		ItemStack hand = golem.getMainHandItem();
 		if (hand.isEmpty() && cart != null && !cart.isEmpty()) {
-			hand = takeFirst(cart, HAND_LIMIT);
+			hand = Inventories.takeFirst(cart, Golems.HAND_LIMIT, stack -> true);
 			this.setHandItem(golem, hand);
 		}
 
@@ -262,7 +249,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 			}
 			while (!this.decoys.isEmpty()) {
 				BlockPos decoy = this.decoys.poll();
-				if (containerAt(level, decoy) != null && this.canReach(level, golem, decoy)) {
+				if (Homes.containerAt(level, decoy) != null && this.canReach(level, golem, decoy)) {
 					this.setTarget(golem, decoy, Purpose.DECOY);
 					return true;
 				}
@@ -284,10 +271,10 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 			return;
 		}
 
-		Set<BlockPos> excluded = new HashSet<>(sameContainer(golem.level(), destination.pos));
+		Set<BlockPos> excluded = new HashSet<>(Homes.sameContainer(golem.level(), destination.pos));
 		List<Spot> candidates = new ArrayList<>();
 		for (Spot spot : spots) {
-			if (spot.kind != Kind.SOURCE && !excluded.contains(spot.pos) && !containsItem(spot.container, item)) {
+			if (spot.kind != Kind.SOURCE && !excluded.contains(spot.pos) && !Inventories.containsItem(spot.container, item)) {
 				candidates.add(spot);
 			}
 		}
@@ -304,7 +291,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 				continue;
 			}
 			chosen.add(spot.pos);
-			excluded.addAll(sameContainer(golem.level(), spot.pos));
+			excluded.addAll(Homes.sameContainer(golem.level(), spot.pos));
 		}
 		chosen.sort(Comparator.comparingDouble(pos -> pos.distToCenterSqr(golem.position())));
 		this.decoys.addAll(chosen);
@@ -342,7 +329,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 	}
 
 	private void ignore(BlockPos pos, long now) {
-		this.ignoredUntil.put(pos, now + IGNORE_TICKS);
+		this.ignoredUntil.put(pos, now + Golems.IGNORE_TICKS);
 	}
 
 	private boolean isIgnored(BlockPos pos, long now) {
@@ -367,7 +354,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 			return;
 		}
 		if (isWithinReach(level, golem, this.target, QUEUE_DISTANCE) && isOpenedByOthers(container, golem)) {
-			stopInPlace(golem);
+			Golems.stopInPlace(golem);
 		} else if (isWithinReach(level, golem, this.target, interactionRange(golem))) {
 			this.interacting = true;
 			this.ticks = 0;
@@ -385,19 +372,19 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 		}
 		this.ticks++;
 		golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(this.target));
-		stopInPlace(golem);
+		Golems.stopInPlace(golem);
 		if (this.ticks == 1) {
 			container.startOpen(golem);
 			golem.setOpenedChestPos(this.target);
 			golem.setState(this.animationFor(golem, container));
 		}
-		if (this.ticks == SOUND_TICK) {
+		if (this.ticks == Golems.SOUND_TICK) {
 			SoundEvent sound = soundFor(golem.getState());
 			if (sound != null) {
 				golem.playSound(sound);
 			}
 		}
-		if (this.ticks >= INTERACTION_TICKS) {
+		if (this.ticks >= Golems.INTERACTION_TICKS) {
 			switch (this.purpose) {
 				case PICKUP -> this.pickUp(level, golem, container);
 				case DELIVER -> this.deliver(golem, container, now);
@@ -421,7 +408,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 	private CopperGolemState animationFor(CopperGolem golem, Container container) {
 		return switch (this.purpose) {
 			case PICKUP -> container.isEmpty() ? CopperGolemState.GETTING_NO_ITEM : CopperGolemState.GETTING_ITEM;
-			case DELIVER -> hasRoom(container, golem.getMainHandItem()) ? CopperGolemState.DROPPING_ITEM : CopperGolemState.DROPPING_NO_ITEM;
+			case DELIVER -> Inventories.hasRoom(container, golem.getMainHandItem()) ? CopperGolemState.DROPPING_ITEM : CopperGolemState.DROPPING_NO_ITEM;
 			case DECOY -> CopperGolemState.DROPPING_NO_ITEM;
 		};
 	}
@@ -443,19 +430,9 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 		}
 		if (this.farmerHomes.contains(source)) {
 			// A farm chest keeps a few of every seed so its farmer can always replant.
-			return stack -> !FarmBehavior.isSeed(stack) || countOf(container, stack) > SEED_RESERVE;
+			return stack -> !FarmBehavior.isSeed(stack) || Inventories.count(container, other -> other.is(stack.getItem())) > Golems.SEED_RESERVE;
 		}
 		return stack -> true;
-	}
-
-	private static int countOf(Container container, ItemStack item) {
-		int count = 0;
-		for (ItemStack stack : container) {
-			if (ItemStack.isSameItem(stack, item)) {
-				count += stack.getCount();
-			}
-		}
-		return count;
 	}
 
 	private void pickUp(ServerLevel level, CopperGolem golem, Container source) {
@@ -470,13 +447,13 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 		if (kind.isEmpty()) {
 			return;
 		}
-		ItemStack hand = Inventories.takeFirst(source, HAND_LIMIT, sortable);
+		ItemStack hand = Inventories.takeFirst(source, Golems.HAND_LIMIT, sortable);
 		CopperChestMinecart cart = CartChaining.findCart(golem);
 		if (cart != null) {
 			for (int slot = 0; slot < source.getContainerSize(); slot++) {
 				ItemStack stack = source.getItem(slot);
 				if (!stack.isEmpty() && sortable.test(stack) && ItemFamilies.related(kind, stack)) {
-					source.setItem(slot, insert(cart, stack));
+					source.setItem(slot, Inventories.insert(cart, stack));
 				}
 			}
 			cart.setChanged();
@@ -491,7 +468,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 		ItemStack hand = golem.getMainHandItem();
 		ItemStack delivered = hand.copyWithCount(1);
 		boolean matchingChest = this.tier == Tier.MATCHING_CHEST;
-		ItemStack left = insert(destination, hand);
+		ItemStack left = Inventories.insert(destination, hand);
 		this.setHandItem(golem, left);
 		this.deliveryPrepared = false;
 
@@ -500,8 +477,8 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 			// Unload everything of the same kind, and into a sorted chest also anything else it already holds.
 			for (int slot = 0; slot < cart.getContainerSize(); slot++) {
 				ItemStack stack = cart.getItem(slot);
-				if (!stack.isEmpty() && (ItemStack.isSameItem(stack, delivered) || matchingChest && containsItem(destination, stack))) {
-					cart.setItem(slot, insert(destination, stack));
+				if (!stack.isEmpty() && (ItemStack.isSameItem(stack, delivered) || matchingChest && Inventories.containsItem(destination, stack))) {
+					cart.setItem(slot, Inventories.insert(destination, stack));
 				}
 			}
 			cart.setChanged();
@@ -521,23 +498,17 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 	private List<Spot> scan(ServerLevel level, CopperGolem golem, long now) {
 		AABB area = new AABB(golem.blockPosition()).inflate(HORIZONTAL_RANGE, VERTICAL_RANGE, HORIZONTAL_RANGE);
 		List<Spot> spots = new ArrayList<>();
-		for (ChunkPos chunkPos : ChunkPos.rangeClosed(ChunkPos.containing(golem.blockPosition()), HORIZONTAL_RANGE / 16 + 1).toList()) {
-			LevelChunk chunk = level.getChunkSource().getChunkNow(chunkPos.x(), chunkPos.z());
-			if (chunk == null) {
-				continue;
+		Inventories.forEachContainer(level, area, blockEntity -> {
+			BlockPos pos = blockEntity.getBlockPos();
+			if (this.isIgnored(pos, now)) {
+				return;
 			}
-			for (BlockEntity blockEntity : chunk.getBlockEntities().values()) {
-				BlockPos pos = blockEntity.getBlockPos();
-				if (!area.contains(pos.getX(), pos.getY(), pos.getZ()) || this.isIgnored(pos, now)) {
-					continue;
-				}
-				Kind kind = kindOf(blockEntity.getBlockState());
-				Container container = kind == null ? null : containerOf(level, pos, blockEntity);
-				if (container != null) {
-					spots.add(new Spot(pos, kind, container));
-				}
+			Kind kind = kindOf(blockEntity.getBlockState());
+			Container container = kind == null ? null : Homes.containerAt(level, pos);
+			if (container != null) {
+				spots.add(new Spot(pos, kind, container));
 			}
-		}
+		});
 		return spots;
 	}
 
@@ -549,32 +520,6 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 			return Kind.CHEST;
 		}
 		return state.is(Blocks.BARREL) ? Kind.BARREL : null;
-	}
-
-	private static @Nullable Container containerAt(Level level, BlockPos pos) {
-		BlockEntity blockEntity = level.getBlockEntity(pos);
-		return blockEntity == null || kindOf(blockEntity.getBlockState()) == null ? null : containerOf(level, pos, blockEntity);
-	}
-
-	/** The container behind a block, with double chests combined. Locked or blocked containers count as absent. */
-	private static @Nullable Container containerOf(Level level, BlockPos pos, BlockEntity blockEntity) {
-		if (blockEntity instanceof BaseContainerBlockEntity base && base.isLocked()) {
-			return null;
-		}
-		BlockState state = blockEntity.getBlockState();
-		if (state.getBlock() instanceof ChestBlock chestBlock) {
-			return ChestBlock.getContainer(chestBlock, state, level, pos, false);
-		}
-		return blockEntity instanceof Container container ? container : null;
-	}
-
-	/** Both halves of a double chest, or just the position itself. */
-	private static List<BlockPos> sameContainer(Level level, BlockPos pos) {
-		BlockState state = level.getBlockState(pos);
-		if (state.getBlock() instanceof ChestBlock && state.getValue(ChestBlock.TYPE) != ChestType.SINGLE) {
-			return List.of(pos, ChestBlock.getConnectedBlockPos(pos, state));
-		}
-		return List.of(pos);
 	}
 
 	private static @Nullable Spot nearest(CopperGolem golem, List<Spot> spots, Predicate<Spot> filter) {
@@ -612,31 +557,5 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 		VoxelShape shape = level.getBlockState(pos).getCollisionShape(level, pos);
 		AABB blockBox = shape.isEmpty() ? new AABB(0, 0, 0, 1, 1, 1) : shape.bounds();
 		return blockBox.inflate(distance, 0.5, distance).move(pos).intersects(golemBox);
-	}
-
-	private static void stopInPlace(CopperGolem golem) {
-		golem.getNavigation().stop();
-		golem.setXxa(0.0F);
-		golem.setYya(0.0F);
-		golem.setSpeed(0.0F);
-		golem.setDeltaMovement(0.0, golem.getDeltaMovement().y, 0.0);
-	}
-
-	// --- inventory helpers ---
-
-	private static ItemStack takeFirst(Container container, int limit) {
-		return Inventories.takeFirst(container, limit, stack -> true);
-	}
-
-	private static boolean containsItem(Container container, ItemStack item) {
-		return Inventories.containsItem(container, item);
-	}
-
-	private static boolean hasRoom(Container container, ItemStack item) {
-		return Inventories.hasRoom(container, item);
-	}
-
-	private static ItemStack insert(Container container, ItemStack stack) {
-		return Inventories.insert(container, stack);
 	}
 }

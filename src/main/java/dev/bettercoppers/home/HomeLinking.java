@@ -21,9 +21,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -109,7 +107,7 @@ public final class HomeLinking {
 
 	private static InteractionResult endRoute(Player player, ServerLevel level, Selection selection, BlockPos pos) {
 		BlockPos start = selection.routeStart();
-		if (sameContainer(level, start, pos)) {
+		if (Homes.sameContainer(level, start).contains(pos)) {
 			player.sendOverlayMessage(Component.translatable("message.bettercoppers.route_same_chest"));
 			return InteractionResult.FAIL;
 		}
@@ -121,13 +119,5 @@ public final class HomeLinking {
 		level.playSound(null, pos, SoundEvents.COPPER_GOLEM_ITEM_DROP, SoundSource.NEUTRAL, 1.0F, 1.2F);
 		player.sendOverlayMessage(Component.translatable("message.bettercoppers.route_set", (int) Math.sqrt(start.distSqr(pos))));
 		return InteractionResult.SUCCESS;
-	}
-
-	private static boolean sameContainer(Level level, BlockPos a, BlockPos b) {
-		if (a.equals(b)) {
-			return true;
-		}
-		BlockState state = level.getBlockState(a);
-		return state.getBlock() instanceof ChestBlock && state.getValue(ChestBlock.TYPE) != ChestType.SINGLE && ChestBlock.getConnectedBlockPos(a, state).equals(b);
 	}
 }

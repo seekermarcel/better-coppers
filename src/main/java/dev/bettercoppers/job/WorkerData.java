@@ -6,7 +6,6 @@ import dev.bettercoppers.registry.ModAttachments;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.item.ItemStack;
@@ -80,39 +79,5 @@ public final class WorkerData {
 
 	public int pouchCount() {
 		return this.pouch.stream().mapToInt(ItemStack::getCount).sum();
-	}
-
-	/** Adds to a pouch, merging with existing stacks. */
-	public static void addTo(List<ItemStack> pouch, ItemStack stack) {
-		ItemStack rest = stack.copy();
-		for (ItemStack existing : pouch) {
-			if (rest.isEmpty()) {
-				return;
-			}
-			if (ItemStack.isSameItemSameComponents(existing, rest) && existing.getCount() < existing.getMaxStackSize()) {
-				int moved = Math.min(rest.getCount(), existing.getMaxStackSize() - existing.getCount());
-				existing.grow(moved);
-				rest.shrink(moved);
-			}
-		}
-		if (!rest.isEmpty()) {
-			pouch.add(rest);
-		}
-	}
-
-	/** Takes one matching item out of a pouch, or an empty stack. */
-	public static ItemStack takeOne(List<ItemStack> pouch, Predicate<ItemStack> filter) {
-		for (ItemStack stack : pouch) {
-			if (!stack.isEmpty() && filter.test(stack)) {
-				ItemStack one = stack.split(1);
-				pouch.removeIf(ItemStack::isEmpty);
-				return one;
-			}
-		}
-		return ItemStack.EMPTY;
-	}
-
-	public static int countOf(List<ItemStack> pouch, Predicate<ItemStack> filter) {
-		return pouch.stream().filter(filter).mapToInt(ItemStack::getCount).sum();
 	}
 }

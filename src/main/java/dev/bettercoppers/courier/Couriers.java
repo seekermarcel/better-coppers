@@ -6,20 +6,15 @@ import dev.bettercoppers.registry.ModAttachments;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.TicketType;
-import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
-import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
@@ -95,24 +90,5 @@ public final class Couriers {
 	/** Any chest (copper chests too) or barrel can end one. */
 	public static boolean canEndRoute(BlockState state) {
 		return state.getBlock() instanceof ChestBlock || state.is(Blocks.BARREL);
-	}
-
-	/** The container at a route end, double chests combined; null if it is gone, locked or not loaded. */
-	public static @Nullable Container container(Level level, BlockPos pos) {
-		if (!level.isLoaded(pos)) {
-			return null;
-		}
-		BlockState state = level.getBlockState(pos);
-		if (!canEndRoute(state)) {
-			return null;
-		}
-		BlockEntity blockEntity = level.getBlockEntity(pos);
-		if (blockEntity instanceof BaseContainerBlockEntity base && base.isLocked()) {
-			return null;
-		}
-		if (state.getBlock() instanceof ChestBlock chestBlock) {
-			return ChestBlock.getContainer(chestBlock, state, level, pos, false);
-		}
-		return blockEntity instanceof Container container ? container : null;
 	}
 }

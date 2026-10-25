@@ -1,6 +1,7 @@
 package dev.bettercoppers.job;
 
 import dev.bettercoppers.golem.Inventories;
+import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.upkeep.Upkeep;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,13 +51,13 @@ public class CraftBehavior extends JobBehavior<CraftBehavior.Order> {
 
 	@Override
 	protected @Nullable Order chooseTask(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos home) {
-		Container chest = homeContainer(level, home);
+		Container chest = Homes.container(level, home);
 		if (chest == null) {
 			return null;
 		}
 		for (ItemFrame frame : level.getEntitiesOfClass(ItemFrame.class, new AABB(home).inflate(FRAME_RANGE))) {
 			ItemStack wanted = frame.getItem();
-			if (wanted.isEmpty() || countOf(chest, wanted.getItem()) >= STOCK_LIMIT) {
+			if (wanted.isEmpty() || Inventories.count(chest, stack -> stack.is(wanted.getItem())) >= STOCK_LIMIT) {
 				continue;
 			}
 			for (CraftingRecipe recipe : recipesFor(level, wanted.getItem())) {
@@ -71,7 +72,7 @@ public class CraftBehavior extends JobBehavior<CraftBehavior.Order> {
 
 	@Override
 	protected boolean tickTask(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos home, Order order) {
-		Container chest = homeContainer(level, home);
+		Container chest = Homes.container(level, home);
 		if (chest == null) {
 			return true;
 		}
@@ -200,16 +201,6 @@ public class CraftBehavior extends JobBehavior<CraftBehavior.Order> {
 			}
 		}
 		return -1;
-	}
-
-	private static int countOf(Container chest, Item item) {
-		int count = 0;
-		for (ItemStack stack : chest) {
-			if (stack.is(item)) {
-				count += stack.getCount();
-			}
-		}
-		return count;
 	}
 
 	/** Crafting recipes by the item they make, worked out once per recipe reload. */

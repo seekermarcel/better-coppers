@@ -18,9 +18,6 @@ import org.jspecify.annotations.Nullable;
  * supplies (torches, wood, rails, filler blocks) it takes along. Stored on the golem as a Fabric attachment.
  */
 public final class MinerData {
-	/** Without a cart a golem goes home once it carries this many mined items. */
-	public static final int LOOT_LIMIT = 64;
-
 	public static final Codec<MinerData> CODEC = RecordCodecBuilder.create(
 		instance -> instance.group(
 				MinePlan.CODEC.optionalFieldOf("plan").forGetter(data -> Optional.ofNullable(data.plan)),
@@ -85,23 +82,5 @@ public final class MinerData {
 
 	public int lootCount() {
 		return this.loot.stream().mapToInt(ItemStack::getCount).sum();
-	}
-
-	/** Adds to a pouch, merging with existing stacks. */
-	public static void addTo(List<ItemStack> pouch, ItemStack stack) {
-		for (ItemStack existing : pouch) {
-			if (stack.isEmpty()) {
-				return;
-			}
-			if (ItemStack.isSameItemSameComponents(existing, stack) && existing.getCount() < existing.getMaxStackSize()) {
-				int moved = Math.min(stack.getCount(), existing.getMaxStackSize() - existing.getCount());
-				existing.grow(moved);
-				stack.shrink(moved);
-			}
-		}
-		if (!stack.isEmpty()) {
-			pouch.add(stack.copy());
-			stack.setCount(0);
-		}
 	}
 }

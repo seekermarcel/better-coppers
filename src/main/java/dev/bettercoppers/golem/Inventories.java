@@ -1,10 +1,20 @@
 package dev.bettercoppers.golem;
 
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.phys.AABB;
+import org.jspecify.annotations.Nullable;
 
-/** Small container helpers shared by the sorting and mining golems. */
+/** Small container and pouch helpers shared by the golem behaviours. */
 public final class Inventories {
 	private Inventories() {
 	}
@@ -77,5 +87,91 @@ public final class Inventories {
 		}
 		container.setChanged();
 		return rest;
+	}
+
+	/** Adds to a pouch, merging with existing stacks. Leaves {@code stack} untouched. */
+	public static void addTo(List<ItemStack> pouch, ItemStack stack) {
+		ItemStack rest = stack.copy();
+		for (ItemStack existing : pouch) {
+			if (rest.isEmpty()) {
+				return;
+			}
+			if (ItemStack.isSameItemSameComponents(existing, rest) && existing.getCount() < existing.getMaxStackSize()) {
+				int moved = Math.min(rest.getCount(), existing.getMaxStackSize() - existing.getCount());
+				existing.grow(moved);
+				rest.shrink(moved);
+			}
+		}
+		if (!rest.isEmpty()) {
+			pouch.add(rest);
+		}
+	}
+
+	/** The first matching stack (not taken) in the pouches, then the cart; or an empty stack. */
+	public static ItemStack find(List<List<ItemStack>> pouches, @Nullable Container cart, Predicate<ItemStack> filter) {
+		for (List<ItemStack> pouch : pouches) {
+			for (ItemStack stack : pouch) {
+				if (!stack.isEmpty() && filter.test(stack)) {
+					return stack;
+				}
+			}
+		}
+		if (cart != null) {
+			for (ItemStack stack : cart) {
+				if (!stack.isEmpty() && filter.test(stack)) {
+					return stack;
+				}
+			}
+		}
+		return ItemStack.EMPTY;
+	}
+
+	/** Takes one matching item out of the pouches, then the cart; or an empty stack. */
+	public static ItemStack takeOne(List<List<ItemStack>> pouches, @Nullable Container cart, Predicate<ItemStack> filter) {
+		for (List<ItemStack> pouch : pouches) {
+			for (ItemStack stack : pouch) {
+				if (!stack.isEmpty() && filter.test(stack)) {
+					ItemStack one = stack.split(1);
+					pouch.removeIf(ItemStack::isEmpty);
+					return one;
+				}
+			}
+		}
+		return cart == null ? ItemStack.EMPTY : takeFirst(cart, 1, filter);
+	}
+
+	public static int count(Iterable<ItemStack> stacks, Predicate<ItemStack> filter) {
+		int count = 0;
+		for (ItemStack stack : stacks) {
+			if (filter.test(stack)) {
+				count += stack.getCount();
+			}
+		}
+		return count;
+	}
+
+	/** Into the player's inventory, or at their feet if it is full. */
+	public static void giveOrDrop(Player player, ItemStack stack) {
+		if (!player.getInventory().add(stack)) {
+			player.spawnAtLocation((ServerLevel) player.level(), stack);
+		}
+	}
+
+	/** Every block entity inside {@code area}, from chunks that are already loaded. */
+	public static void forEachContainer(ServerLevel level, AABB area, Consumer<BlockEntity> action) {
+		for (int x = SectionPos.blockToSectionCoord(area.minX); x <= SectionPos.blockToSectionCoord(area.maxX); x++) {
+			for (int z = SectionPos.blockToSectionCoord(area.minZ); z <= SectionPos.blockToSectionCoord(area.maxZ); z++) {
+				LevelChunk chunk = level.getChunkSource().getChunkNow(x, z);
+				if (chunk == null) {
+					continue;
+				}
+				for (BlockEntity blockEntity : chunk.getBlockEntities().values()) {
+					BlockPos pos = blockEntity.getBlockPos();
+					if (area.contains(pos.getX(), pos.getY(), pos.getZ())) {
+						action.accept(blockEntity);
+					}
+				}
+			}
+		}
 	}
 }

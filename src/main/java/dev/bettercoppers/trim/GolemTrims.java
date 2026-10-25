@@ -1,5 +1,6 @@
 package dev.bettercoppers.trim;
 
+import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.registry.ModAttachments;
 import java.util.Optional;
 import net.minecraft.core.Holder;
@@ -75,7 +76,7 @@ public final class GolemTrims {
 			return InteractionResult.PASS;
 		}
 		if (old != null) {
-			giveBack(level, player, golem, old);
+			Inventories.giveOrDrop(player, old);
 		}
 		golem.setAttached(ModAttachments.TRIM_TEMPLATE, held.copyWithCount(1));
 		held.consume(1, player);
@@ -113,7 +114,7 @@ public final class GolemTrims {
 			return InteractionResult.PASS;
 		}
 		if (template != null) {
-			giveBack(level, player, golem, template);
+			Inventories.giveOrDrop(player, template);
 		}
 		golem.playSound(SoundEvents.SHEARS_SNIP);
 		shears.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
@@ -126,12 +127,6 @@ public final class GolemTrims {
 		golem.removeAttached(ModAttachments.TRIM);
 		if (template != null) {
 			golem.spawnAtLocation(level, template);
-		}
-	}
-
-	private static void giveBack(ServerLevel level, Player player, CopperGolem golem, ItemStack stack) {
-		if (!player.getInventory().add(stack)) {
-			golem.spawnAtLocation(level, stack);
 		}
 	}
 

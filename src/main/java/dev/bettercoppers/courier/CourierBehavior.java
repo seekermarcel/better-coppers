@@ -3,8 +3,10 @@ package dev.bettercoppers.courier;
 import com.google.common.collect.ImmutableMap;
 import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.golem.CartChaining;
+import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.golem.TravelWatch;
+import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.repair.Errands;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -20,7 +22,6 @@ import net.minecraft.world.entity.ai.util.LandRandomPos;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.animal.golem.CopperGolemState;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
@@ -30,8 +31,6 @@ import org.jspecify.annotations.Nullable;
  * its chunks loaded. Stuck somewhere, it shakes its head, wanders off a few blocks and tries again; it never gives up.
  */
 public class CourierBehavior extends Behavior<CopperGolem> {
-	private static final int HAND_LIMIT = 16;
-	private static final int INTERACTION_TICKS = 60;
 	private static final int WAIT_TICKS = 200;
 	private static final int STALL_TICKS = 200;
 	private static final int DETOUR_TICKS = 100;
@@ -100,7 +99,7 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 			this.tickDetour(golem);
 			return;
 		}
-		if (!isInReach(golem, target)) {
+		if (!Golems.isInReach(golem, target)) {
 			this.endInteraction(level, golem);
 			if (this.travel.tick(golem, Vec3.atCenterOf(target)) > STALL_TICKS) {
 				this.startDetour(golem);
@@ -110,7 +109,7 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 			return;
 		}
 
-		Container container = Couriers.container(level, target);
+		Container container = Homes.containerAt(level, target);
 		if (container == null) {
 			// The chest is gone: nothing to do until the player fixes the route.
 			this.waitAWhile(golem, CopperGolemState.GETTING_NO_ITEM);
@@ -126,10 +125,10 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 			golem.setOpenedChestPos(target);
 			golem.setState(carrying ? CopperGolemState.DROPPING_ITEM : container.isEmpty() ? CopperGolemState.GETTING_NO_ITEM : CopperGolemState.GETTING_ITEM);
 		}
-		if (this.interactionTicks == 9) {
+		if (this.interactionTicks == Golems.SOUND_TICK) {
 			golem.playSound(carrying ? SoundEvents.COPPER_GOLEM_ITEM_DROP : container.isEmpty() ? SoundEvents.COPPER_GOLEM_ITEM_NO_GET : SoundEvents.COPPER_GOLEM_ITEM_GET);
 		}
-		if (this.interactionTicks < INTERACTION_TICKS) {
+		if (this.interactionTicks < Golems.INTERACTION_TICKS) {
 			return;
 		}
 		if (carrying) {
@@ -149,7 +148,7 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 	}
 
 	private static void load(CopperGolem golem, Container from) {
-		ItemStack hand = Inventories.takeFirst(from, HAND_LIMIT, stack -> true);
+		ItemStack hand = Inventories.takeFirst(from, Golems.HAND_LIMIT, stack -> true);
 		golem.setItemSlot(EquipmentSlot.MAINHAND, hand);
 		golem.setGuaranteedDrop(EquipmentSlot.MAINHAND);
 		CopperChestMinecart cart = CartChaining.findCart(golem);
@@ -215,7 +214,7 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 		CourierRoute route = Couriers.route(golem);
 		if (route != null) {
 			for (BlockPos pos : new BlockPos[] {route.from(), route.to()}) {
-				Container container = Couriers.container(level, pos);
+				Container container = Homes.containerAt(level, pos);
 				if (container != null && container.getEntitiesWithContainerOpen().contains(golem)) {
 					container.stopOpen(golem);
 				}
@@ -223,9 +222,5 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 		}
 		golem.clearOpenedChestPos();
 		golem.setState(CopperGolemState.IDLE);
-	}
-
-	private static boolean isInReach(CopperGolem golem, BlockPos pos) {
-		return new AABB(pos).inflate(1.0, 1.5, 1.0).intersects(golem.getBoundingBox());
 	}
 }

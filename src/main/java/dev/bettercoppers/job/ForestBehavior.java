@@ -1,5 +1,6 @@
 package dev.bettercoppers.job;
 
+import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.upkeep.Upkeep;
 import java.util.ArrayDeque;
@@ -140,7 +141,7 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 		}
 		BlockState state = blockItem.getBlock().defaultBlockState();
 		boolean fits = level.getBlockState(stump).isAir() && state.canSurvive(level, stump);
-		if (fits && (!WorkerData.takeOne(data.supplies(), stack -> stack.is(sapling)).isEmpty() || this.takeFromPouch(data, sapling))) {
+		if (fits && !Inventories.takeOne(List.of(data.supplies(), data.pouch()), null, stack -> stack.is(sapling)).isEmpty()) {
 			level.setBlockAndUpdate(stump, state);
 			level.gameEvent(GameEvent.BLOCK_PLACE, stump, GameEvent.Context.of(golem, state));
 			level.playSound(null, stump, state.getSoundType().getPlaceSound(), SoundSource.BLOCKS, 1.0F, 0.8F);
@@ -148,10 +149,6 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 		}
 		data.marks().remove(stump);
 		return true;
-	}
-
-	private boolean takeFromPouch(WorkerData data, Item sapling) {
-		return !WorkerData.takeOne(data.pouch(), stack -> stack.is(sapling)).isEmpty();
 	}
 
 	private boolean fell(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos base) {
@@ -211,18 +208,18 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 			&& golem.position().subtract(Vec3.atBottomCenterOf(base)).horizontalDistanceSqr() < 2.0 * 2.0;
 		if (beside) {
 			this.walkTicks = 0;
-			stopInPlace(golem);
+			Golems.stopInPlace(golem);
 			golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(base));
 			return true;
 		}
 		BlockPos stand = standFor(level, base, golem);
-		if (stand == null || this.stalledTowards(golem, Vec3.atBottomCenterOf(stand)) > MAX_TRAVEL_TICKS) {
+		if (stand == null || this.stalledTowards(golem, Vec3.atBottomCenterOf(stand)) > Golems.MAX_TRAVEL_TICKS) {
 			this.walkTicks = 0;
 			this.ignore(level, base);
 			this.giveUp();
 			return false;
 		}
-		BehaviorUtils.setWalkAndLookTargetMemories(golem, stand, 0.8F * Upkeep.speed(golem), 0);
+		BehaviorUtils.setWalkAndLookTargetMemories(golem, stand, Golems.WALK_SPEED * Upkeep.speed(golem), 0);
 		return false;
 	}
 
@@ -317,13 +314,13 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 		if (!stack.is(ItemTags.SAPLINGS)) {
 			return 0;
 		}
-		return Math.max(0, SAPLING_RESERVE - WorkerData.countOf(data.supplies(), other -> other.is(stack.getItem())));
+		return Math.max(0, SAPLING_RESERVE - Inventories.count(data.supplies(), other -> other.is(stack.getItem())));
 	}
 
 	@Override
 	protected void restock(ServerLevel level, CopperGolem golem, WorkerData data, Container chest) {
-		if (WorkerData.countOf(data.supplies(), stack -> stack.is(ItemTags.SAPLINGS)) == 0) {
-			WorkerData.addTo(data.supplies(), Inventories.takeFirst(chest, SAPLING_RESERVE, stack -> stack.is(ItemTags.SAPLINGS)));
+		if (Inventories.count(data.supplies(), stack -> stack.is(ItemTags.SAPLINGS)) == 0) {
+			Inventories.addTo(data.supplies(), Inventories.takeFirst(chest, SAPLING_RESERVE, stack -> stack.is(ItemTags.SAPLINGS)));
 		}
 	}
 }

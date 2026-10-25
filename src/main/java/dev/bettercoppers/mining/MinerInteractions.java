@@ -1,5 +1,7 @@
 package dev.bettercoppers.mining;
 
+import dev.bettercoppers.golem.Inventories;
+import dev.bettercoppers.job.WorkerInteractions;
 import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.registry.ModComponents;
 import dev.bettercoppers.registry.ModItems;
@@ -11,9 +13,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -83,15 +83,8 @@ public final class MinerInteractions {
 
 	private static InteractionResult givePickaxe(Player player, Level level, CopperGolem golem, ItemStack held) {
 		if (!level.isClientSide()) {
-			ItemStack current = golem.getMainHandItem();
-			if (!current.isEmpty()) {
-				BehaviorUtils.throwItem(golem, current, player.position());
-			}
-			golem.setItemSlot(EquipmentSlot.MAINHAND, held.copyWithCount(1));
-			golem.setGuaranteedDrop(EquipmentSlot.MAINHAND);
-			held.consume(1, player);
+			WorkerInteractions.giveTool(player, golem, held);
 			MinerData data = MinerData.getOrCreate(golem);
-			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET);
 			if (data.plan() == null) {
 				player.sendOverlayMessage(Component.translatable("message.bettercoppers.needs_plan"));
 			}
@@ -100,13 +93,16 @@ public final class MinerInteractions {
 	}
 
 	private static void returnPlan(Player player, CopperGolem golem, MinerData data) {
-		ItemStack stack = new ItemStack(ModItems.MINESHAFT_PLAN);
-		stack.set(ModComponents.MINE_PLAN, data.plan());
+		ItemStack stack = planStack(data.plan());
 		data.setPlan(null);
-		if (!player.getInventory().add(stack)) {
-			player.spawnAtLocation((ServerLevel) player.level(), stack);
-		}
+		Inventories.giveOrDrop(player, stack);
 		golem.playSound(SoundEvents.BOOK_PAGE_TURN);
+	}
+
+	private static ItemStack planStack(@Nullable MinePlan plan) {
+		ItemStack stack = new ItemStack(ModItems.MINESHAFT_PLAN);
+		stack.set(ModComponents.MINE_PLAN, plan);
+		return stack;
 	}
 
 	/** Drops the plan, pouch and supplies with the golem. */
@@ -119,9 +115,7 @@ public final class MinerInteractions {
 			return;
 		}
 		if (data.plan() != null) {
-			ItemStack plan = new ItemStack(ModItems.MINESHAFT_PLAN);
-			plan.set(ModComponents.MINE_PLAN, data.plan());
-			golem.spawnAtLocation(level, plan);
+			golem.spawnAtLocation(level, planStack(data.plan()));
 		}
 		data.loot().forEach(stack -> golem.spawnAtLocation(level, stack));
 		data.supplies().forEach(stack -> golem.spawnAtLocation(level, stack));

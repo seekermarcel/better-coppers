@@ -48,9 +48,7 @@ public final class Sorter {
 			if (!level.isClientSide()) {
 				ItemStack bundle = golem.getOffhandItem();
 				golem.setItemSlot(EquipmentSlot.OFFHAND, ItemStack.EMPTY);
-				if (!player.getInventory().add(bundle)) {
-					golem.spawnAtLocation((net.minecraft.server.level.ServerLevel) level, bundle);
-				}
+				Inventories.giveOrDrop(player, bundle);
 				golem.playSound(SoundEvents.BUNDLE_REMOVE_ONE);
 			}
 			return InteractionResult.SUCCESS;

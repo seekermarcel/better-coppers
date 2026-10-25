@@ -1,8 +1,8 @@
 package dev.bettercoppers.job;
 
-import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.golem.CartChaining;
 import dev.bettercoppers.golem.Inventories;
+import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.upkeep.Upkeep;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -61,7 +61,7 @@ public class KeeperBehavior extends JobBehavior<KeeperBehavior.Feeding> {
 				continue;
 			}
 			Animal animal = ready.stream().min(Comparator.comparingDouble(golem::distanceToSqr)).orElseThrow();
-			if (this.findFood(golem, data, animal).isEmpty()) {
+			if (Inventories.find(List.of(data.supplies()), CartChaining.findCart(golem), animal::isFood).isEmpty()) {
 				foodAtHome |= homeHasFood(level, home, animal);
 				continue;
 			}
@@ -96,7 +96,7 @@ public class KeeperBehavior extends JobBehavior<KeeperBehavior.Feeding> {
 		if (this.workTicks < slowed(golem, FEED_TICKS)) {
 			return false;
 		}
-		ItemStack food = this.takeFood(golem, data, animal);
+		ItemStack food = Inventories.takeOne(List.of(data.supplies()), CartChaining.findCart(golem), animal::isFood);
 		if (!food.isEmpty()) {
 			animal.setInLove(null);
 			level.sendParticles(ParticleTypes.HEART, animal.getX(), animal.getY() + animal.getBbHeight(), animal.getZ(), 3, 0.3, 0.2, 0.3, 0.0);
@@ -111,34 +111,8 @@ public class KeeperBehavior extends JobBehavior<KeeperBehavior.Feeding> {
 		return !animal.isBaby() && animal.getAge() == 0 && animal.canFallInLove() && !animal.isInLove();
 	}
 
-	private ItemStack findFood(CopperGolem golem, WorkerData data, Animal animal) {
-		for (ItemStack stack : data.supplies()) {
-			if (!stack.isEmpty() && animal.isFood(stack)) {
-				return stack;
-			}
-		}
-		CopperChestMinecart cart = CartChaining.findCart(golem);
-		if (cart != null) {
-			for (ItemStack stack : cart) {
-				if (!stack.isEmpty() && animal.isFood(stack)) {
-					return stack;
-				}
-			}
-		}
-		return ItemStack.EMPTY;
-	}
-
-	private ItemStack takeFood(CopperGolem golem, WorkerData data, Animal animal) {
-		ItemStack food = WorkerData.takeOne(data.supplies(), animal::isFood);
-		if (food.isEmpty()) {
-			CopperChestMinecart cart = CartChaining.findCart(golem);
-			food = cart == null ? ItemStack.EMPTY : Inventories.takeFirst(cart, 1, animal::isFood);
-		}
-		return food;
-	}
-
 	private static boolean homeHasFood(ServerLevel level, BlockPos home, Animal animal) {
-		Container chest = homeContainer(level, home);
+		Container chest = Homes.container(level, home);
 		return chest != null && Inventories.contains(chest, animal::isFood);
 	}
 
@@ -152,9 +126,9 @@ public class KeeperBehavior extends JobBehavior<KeeperBehavior.Feeding> {
 			if (stack.isEmpty() || animals.stream().noneMatch(animal -> animal.isFood(stack))) {
 				continue;
 			}
-			int missing = FOOD_RESERVE - WorkerData.countOf(data.supplies(), other -> other.is(stack.getItem()));
+			int missing = FOOD_RESERVE - Inventories.count(data.supplies(), other -> other.is(stack.getItem()));
 			if (missing > 0) {
-				WorkerData.addTo(data.supplies(), chest.removeItem(slot, Math.min(missing, stack.getCount())));
+				Inventories.addTo(data.supplies(), chest.removeItem(slot, Math.min(missing, stack.getCount())));
 			}
 		}
 		chest.setChanged();

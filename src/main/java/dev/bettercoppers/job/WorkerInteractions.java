@@ -1,5 +1,6 @@
 package dev.bettercoppers.job;
 
+import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.upkeep.Upkeep;
@@ -36,7 +37,7 @@ public final class WorkerInteractions {
 		ItemStack held = player.getItemInHand(hand);
 		if (FarmBehavior.isSeed(held) && WorkerData.job(golem) == Job.FARMER) {
 			if (!level.isClientSide()) {
-				WorkerData.addTo(WorkerData.getOrCreate(golem).supplies(), held.copy());
+				Inventories.addTo(WorkerData.getOrCreate(golem).supplies(), held);
 				held.consume(held.getCount(), player);
 				golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET);
 			}
@@ -51,15 +52,8 @@ public final class WorkerInteractions {
 			return InteractionResult.PASS;
 		}
 		if (level instanceof ServerLevel serverLevel) {
-			ItemStack current = golem.getMainHandItem();
-			if (!current.isEmpty()) {
-				BehaviorUtils.throwItem(golem, current, player.position());
-			}
-			golem.setItemSlot(EquipmentSlot.MAINHAND, held.copyWithCount(1));
-			golem.setGuaranteedDrop(EquipmentSlot.MAINHAND);
-			held.consume(1, player);
-			WorkerData data = WorkerData.getOrCreate(golem);
-			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET);
+			giveTool(player, golem, held);
+			WorkerData.getOrCreate(golem);
 			Component jobName = Component.translatable("job.bettercoppers." + job.id());
 			player.sendOverlayMessage(
 				Homes.get(golem) == null
@@ -68,6 +62,18 @@ public final class WorkerInteractions {
 			);
 		}
 		return InteractionResult.SUCCESS;
+	}
+
+	/** Puts one of {@code held} in the golem's hand; whatever it held before is thrown to the player. */
+	public static void giveTool(Player player, CopperGolem golem, ItemStack held) {
+		ItemStack current = golem.getMainHandItem();
+		if (!current.isEmpty()) {
+			BehaviorUtils.throwItem(golem, current, player.position());
+		}
+		golem.setItemSlot(EquipmentSlot.MAINHAND, held.copyWithCount(1));
+		golem.setGuaranteedDrop(EquipmentSlot.MAINHAND);
+		held.consume(1, player);
+		golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET);
 	}
 
 	public static void dropAll(CopperGolem golem) {

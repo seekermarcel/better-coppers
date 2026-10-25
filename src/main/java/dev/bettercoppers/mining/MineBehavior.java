@@ -3,6 +3,7 @@ package dev.bettercoppers.mining;
 import com.google.common.collect.ImmutableMap;
 import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.golem.CartChaining;
+import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.golem.TravelWatch;
 import dev.bettercoppers.home.Homes;
@@ -67,7 +68,6 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	private static final int MIN_DIG_TICKS = 10;
 	private static final int MAX_DIG_TICKS = 400;
 	private static final int PLACE_TICKS = 20;
-	private static final int MAX_TRAVEL_TICKS = 300;
 	private static final int ORE_BUDGET = 16;
 	private static final int RECENT_DIGS = 32;
 	private static final int HOME_SEARCH_RADIUS = 12;
@@ -222,7 +222,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		while (!this.oreDigs.isEmpty()) {
 			MineLayout.Step ore = this.oreDigs.poll();
 			if (level.isLoaded(ore.pos()) && isOre(level.getBlockState(ore.pos())) && this.canDig(level, golem, ore.pos())) {
-				if (JobBehavior.isFull(golem, data.lootCount(), MinerData.LOOT_LIMIT)) {
+				if (JobBehavior.isFull(golem, data.lootCount(), Golems.POUCH_LIMIT)) {
 					this.oreDigs.addFirst(ore);
 					this.startReturn(level, golem, data, false);
 					return false;
@@ -252,7 +252,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 				plan = this.advance(data, plan);
 				continue;
 			}
-			if (step.action() == MineLayout.Action.DIG && JobBehavior.isFull(golem, data.lootCount(), MinerData.LOOT_LIMIT)) {
+			if (step.action() == MineLayout.Action.DIG && JobBehavior.isFull(golem, data.lootCount(), Golems.POUCH_LIMIT)) {
 				this.startReturn(level, golem, data, false);
 				return false;
 			}
@@ -262,7 +262,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 					if (!this.hasSliceMaterials(golem, data, slice, null)) {
 						// No supports, no digging. Fetch them, or wait at home until someone fills the chest.
 						BlockPos homePos = Homes.valid(level, golem);
-						Container homeChest = homePos == null ? null : homeContainer(level, homePos);
+						Container homeChest = Homes.container(level, homePos);
 						boolean available = homeChest != null && this.hasSliceMaterials(golem, data, slice, homeChest);
 						this.startReturn(level, golem, data, !available);
 						return false;
@@ -345,7 +345,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		// Sight only matters for digging, and only on the way: from its standing spot the block is always meant to be
 		// within reach, even if a fence post or beam is in the way of the view.
 		boolean blocked = step.action() == MineLayout.Action.DIG && !isAtStand(golem, step.stand()) && !canSee(level, golem, pos);
-		if (!this.isInReach(golem, pos) || blocked) {
+		if (!Golems.isInReach(golem, pos) || blocked) {
 			// Something fell into the tunnel behind the golem (gravel, sand)? Every few seconds of walking, check and clear
 			// that first, then try again.
 			int stalled = this.travel.tick(golem, Vec3.atBottomCenterOf(step.stand()));
@@ -356,7 +356,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 					return;
 				}
 			}
-			if (stalled > MAX_TRAVEL_TICKS) {
+			if (stalled > Golems.MAX_TRAVEL_TICKS) {
 				// Clumsy, but not stubborn: give up on this one.
 				this.unreachable.add(pos);
 				level.destroyBlockProgress(golem.getId(), pos, -1);
@@ -366,7 +366,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			BehaviorUtils.setWalkAndLookTargetMemories(golem, step.stand(), WALK_SPEED * Upkeep.speed(golem), 0);
 			return;
 		}
-		stopInPlace(golem);
+		Golems.stopInPlace(golem);
 		golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(pos));
 
 		if (step.action() == MineLayout.Action.DIG) {
@@ -396,7 +396,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			if (!this.hesitated) {
 				// Now and then it stops, looks at the wall, shakes its head, then gets on with it.
 				this.hesitated = true;
-				this.pauseTicks = JobBehavior.hesitation(golem);
+				this.pauseTicks = Golems.hesitate(golem);
 				if (this.pauseTicks > 0) {
 					return;
 				}
@@ -603,26 +603,12 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	}
 
 	private boolean hasMaterial(CopperGolem golem, MinerData data, Predicate<ItemStack> material) {
-		if (data.supplies().stream().anyMatch(material) || data.loot().stream().anyMatch(material)) {
-			return true;
-		}
-		CopperChestMinecart cart = CartChaining.findCart(golem);
-		return cart != null && Inventories.contains(cart, material);
+		return !Inventories.find(List.of(data.supplies(), data.loot()), CartChaining.findCart(golem), material).isEmpty();
 	}
 
 	/** Takes one matching item from the supplies, the pouch or the cart. */
 	private ItemStack takeMaterial(CopperGolem golem, MinerData data, Predicate<ItemStack> material) {
-		for (List<ItemStack> pouch : List.of(data.supplies(), data.loot())) {
-			for (ItemStack stack : pouch) {
-				if (!stack.isEmpty() && material.test(stack)) {
-					ItemStack one = stack.split(1);
-					pouch.removeIf(ItemStack::isEmpty);
-					return one;
-				}
-			}
-		}
-		CopperChestMinecart cart = CartChaining.findCart(golem);
-		return cart == null ? ItemStack.EMPTY : Inventories.takeFirst(cart, 1, material);
+		return Inventories.takeOne(List.of(data.supplies(), data.loot()), CartChaining.findCart(golem), material);
 	}
 
 	// --- going home ---
@@ -648,7 +634,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	}
 
 	private void tickReturn(ServerLevel level, CopperGolem golem, MinerData data) {
-		Container chest = this.home == null ? null : homeContainer(level, this.home);
+		Container chest = Homes.container(level, this.home);
 		if (chest == null) {
 			// No copper chest at the entrance: leave everything at the golem's feet.
 			for (ItemStack stack : data.loot()) {
@@ -659,7 +645,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			return;
 		}
 		this.workTicks = JobBehavior.tickReturn(golem, this.home, chest, this.workTicks, WALK_SPEED);
-		if (this.workTicks >= JobBehavior.HOME_INTERACTION_TICKS) {
+		if (this.workTicks >= Golems.INTERACTION_TICKS) {
 			// Keep some plain stone back for plugging leaks and patching floors.
 			JobBehavior.unload(level, golem, data.loot(), data.supplies(), stack -> isFiller(stack) ? FILLER_RESERVE - countFillers(data) : 0, chest);
 			MinePlan plan = data.plan();
@@ -674,7 +660,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	}
 
 	private static int countFillers(MinerData data) {
-		return data.supplies().stream().filter(MineBehavior::isFiller).mapToInt(ItemStack::getCount).sum();
+		return Inventories.count(data.supplies(), MineBehavior::isFiller);
 	}
 
 	private void restock(MinerData data, MinePlan plan, Container chest) {
@@ -697,36 +683,31 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	}
 
 	private int countCarried(CopperGolem golem, MinerData data, @Nullable Container chest, Predicate<ItemStack> material) {
-		int count = data.supplies().stream().filter(material).mapToInt(ItemStack::getCount).sum()
-			+ data.loot().stream().filter(material).mapToInt(ItemStack::getCount).sum();
+		int count = Inventories.count(data.supplies(), material) + Inventories.count(data.loot(), material);
 		CopperChestMinecart cart = CartChaining.findCart(golem);
 		for (Container container : Arrays.asList(cart, chest)) {
 			if (container != null) {
-				for (ItemStack stack : container) {
-					if (material.test(stack)) {
-						count += stack.getCount();
-					}
-				}
+				count += Inventories.count(container, material);
 			}
 		}
 		return count;
 	}
 
 	private void restockOne(MinerData data, Container chest, Predicate<ItemStack> material, int target) {
-		int have = data.supplies().stream().filter(material).mapToInt(ItemStack::getCount).sum();
+		int have = Inventories.count(data.supplies(), material);
 		while (have < target) {
 			ItemStack taken = Inventories.takeFirst(chest, target - have, material);
 			if (taken.isEmpty()) {
 				return;
 			}
 			have += taken.getCount();
-			MinerData.addTo(data.supplies(), taken);
+			Inventories.addTo(data.supplies(), taken);
 		}
 	}
 
 	private boolean homeHas(ServerLevel level, CopperGolem golem, Predicate<ItemStack> material) {
 		BlockPos pos = Homes.valid(level, golem);
-		Container chest = pos == null ? null : homeContainer(level, pos);
+		Container chest = Homes.container(level, pos);
 		return chest != null && Inventories.contains(chest, material);
 	}
 
@@ -751,15 +732,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		return homes;
 	}
 
-	private static @Nullable Container homeContainer(ServerLevel level, BlockPos pos) {
-		return Homes.container(level, pos);
-	}
-
 	// --- movement ---
-
-	private boolean isInReach(CopperGolem golem, BlockPos pos) {
-		return new AABB(pos).inflate(1.0, 1.5, 1.0).intersects(golem.getBoundingBox());
-	}
 
 	private static boolean isAtStand(CopperGolem golem, BlockPos stand) {
 		return golem.blockPosition().equals(stand) || golem.position().distanceToSqr(Vec3.atBottomCenterOf(stand)) < 0.8;
@@ -776,14 +749,5 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			}
 		}
 		return false;
-	}
-
-	private static void stopInPlace(CopperGolem golem) {
-		golem.getNavigation().stop();
-		golem.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
-		golem.setXxa(0.0F);
-		golem.setYya(0.0F);
-		golem.setSpeed(0.0F);
-		golem.setDeltaMovement(0.0, golem.getDeltaMovement().y, 0.0);
 	}
 }

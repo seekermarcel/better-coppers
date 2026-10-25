@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.golem.CartChaining;
+import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.golem.TravelWatch;
 import dev.bettercoppers.upkeep.Upkeep;
@@ -28,7 +29,6 @@ import net.minecraft.world.entity.animal.golem.CopperGolemState;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
@@ -40,12 +40,7 @@ import org.jspecify.annotations.Nullable;
  * @param <T> what a single task looks like for this job
  */
 public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
-	protected static final int MAX_TRAVEL_TICKS = 300;
-	public static final int HOME_INTERACTION_TICKS = 60;
 	private static final int IDLE_COOLDOWN = 200;
-	private static final int IGNORE_TICKS = 600;
-	private static final float HESITATE_CHANCE = 0.08F;
-	private static final float WALK_SPEED = 0.8F;
 
 	protected final Job job;
 	private @Nullable T task;
@@ -83,7 +78,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 
 	/** Pouch size before going home. */
 	protected int pouchLimit() {
-		return 64;
+		return Golems.POUCH_LIMIT;
 	}
 
 	// --- conditions ---
@@ -193,32 +188,32 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 
 	/** Walks towards {@code pos} until in reach. Gives up (and skips that spot for a while) after some time. */
 	protected boolean reach(ServerLevel level, CopperGolem golem, BlockPos pos) {
-		if (isInReach(golem, pos)) {
-			stopInPlace(golem);
+		if (Golems.isInReach(golem, pos)) {
+			Golems.stopInPlace(golem);
 			golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(pos));
 			return true;
 		}
-		if (this.travel.tick(golem, Vec3.atCenterOf(pos)) > MAX_TRAVEL_TICKS) {
+		if (this.travel.tick(golem, Vec3.atCenterOf(pos)) > Golems.MAX_TRAVEL_TICKS) {
 			this.ignore(level, pos);
 			this.task = null;
 			return false;
 		}
-		BehaviorUtils.setWalkAndLookTargetMemories(golem, pos, WALK_SPEED * Upkeep.speed(golem), 1);
+		BehaviorUtils.setWalkAndLookTargetMemories(golem, pos, Golems.WALK_SPEED * Upkeep.speed(golem), 1);
 		return false;
 	}
 
 	/** Like {@link #reach(ServerLevel, CopperGolem, BlockPos)} for a moving target. */
 	protected boolean reach(ServerLevel level, CopperGolem golem, Entity target) {
-		if (golem.distanceToSqr(target) < 2.5 * 2.5) {
-			stopInPlace(golem);
+		if (golem.distanceToSqr(target) < Golems.REACH_SQR) {
+			Golems.stopInPlace(golem);
 			golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new EntityTracker(target, true));
 			return true;
 		}
-		if (this.travel.tick(golem, target.position()) > MAX_TRAVEL_TICKS) {
+		if (this.travel.tick(golem, target.position()) > Golems.MAX_TRAVEL_TICKS) {
 			this.task = null;
 			return false;
 		}
-		BehaviorUtils.setWalkAndLookTargetMemories(golem, target, WALK_SPEED * Upkeep.speed(golem), 1);
+		BehaviorUtils.setWalkAndLookTargetMemories(golem, target, Golems.WALK_SPEED * Upkeep.speed(golem), 1);
 		return false;
 	}
 
@@ -228,18 +223,8 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 			return false;
 		}
 		this.hesitated = true;
-		this.pauseTicks = hesitation(golem);
+		this.pauseTicks = Golems.hesitate(golem);
 		return this.pauseTicks > 0;
-	}
-
-	/** Rolls for a head shake; if it happens, starts it and returns how long to pause, else 0. */
-	public static int hesitation(CopperGolem golem) {
-		if (golem.getRandom().nextFloat() >= HESITATE_CHANCE) {
-			return 0;
-		}
-		golem.setState(CopperGolemState.GETTING_NO_ITEM);
-		golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_NO_GET);
-		return 30 + golem.getRandom().nextInt(30);
 	}
 
 	/** Work durations stretched by rust. */
@@ -268,7 +253,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 	}
 
 	protected void ignore(ServerLevel level, BlockPos pos) {
-		this.ignoredUntil.put(pos, level.getGameTime() + IGNORE_TICKS);
+		this.ignoredUntil.put(pos, level.getGameTime() + Golems.IGNORE_TICKS);
 	}
 
 	protected boolean isIgnored(ServerLevel level, BlockPos pos) {
@@ -288,7 +273,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 			rest = Inventories.insert(cart, rest);
 		}
 		if (!rest.isEmpty()) {
-			WorkerData.addTo(pouch, rest);
+			Inventories.addTo(pouch, rest);
 		}
 	}
 
@@ -306,13 +291,13 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 	// --- home ---
 
 	private void tickReturn(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos home) {
-		Container chest = homeContainer(level, home);
+		Container chest = Homes.container(level, home);
 		if (chest == null) {
 			this.returning = false;
 			return;
 		}
-		this.homeTicks = tickReturn(golem, home, chest, this.homeTicks, WALK_SPEED);
-		if (this.homeTicks >= HOME_INTERACTION_TICKS) {
+		this.homeTicks = tickReturn(golem, home, chest, this.homeTicks, Golems.WALK_SPEED);
+		if (this.homeTicks >= Golems.INTERACTION_TICKS) {
 			unload(level, golem, data.pouch(), data.supplies(), stack -> this.keepOnUnload(data, stack), chest);
 			if (this.job.isTool(golem.getMainHandItem())) {
 				this.restock(level, golem, data, chest);
@@ -332,14 +317,14 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 
 	/**
 	 * Walks to the home chest, then opens it and counts up the time spent there. Returns the new count; the visit is
-	 * over once it reaches {@link #HOME_INTERACTION_TICKS}.
+	 * over once it reaches {@link Golems#INTERACTION_TICKS}.
 	 */
 	public static int tickReturn(CopperGolem golem, BlockPos home, Container chest, int ticks, float walkSpeed) {
-		if (!isInReach(golem, home)) {
+		if (!Golems.isInReach(golem, home)) {
 			BehaviorUtils.setWalkAndLookTargetMemories(golem, home, walkSpeed * Upkeep.speed(golem), 1);
 			return ticks;
 		}
-		stopInPlace(golem);
+		Golems.stopInPlace(golem);
 		golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(home));
 		ticks++;
 		if (ticks == 1) {
@@ -347,7 +332,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 			golem.setOpenedChestPos(home);
 			golem.setState(CopperGolemState.DROPPING_ITEM);
 		}
-		if (ticks == 9) {
+		if (ticks == Golems.SOUND_TICK) {
 			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_DROP);
 		}
 		return ticks;
@@ -361,7 +346,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 		for (ItemStack stack : pouch) {
 			int kept = Math.min(stack.getCount(), keep.applyAsInt(stack));
 			if (kept > 0) {
-				WorkerData.addTo(supplies, stack.split(kept));
+				Inventories.addTo(supplies, stack.split(kept));
 			}
 			ItemStack rest = Inventories.insert(chest, stack);
 			if (!rest.isEmpty()) {
@@ -378,22 +363,5 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 				}
 			}
 		}
-	}
-
-	protected static @Nullable Container homeContainer(ServerLevel level, BlockPos pos) {
-		return Homes.container(level, pos);
-	}
-
-	protected static boolean isInReach(CopperGolem golem, BlockPos pos) {
-		return new AABB(pos).inflate(1.0, 1.5, 1.0).intersects(golem.getBoundingBox());
-	}
-
-	protected static void stopInPlace(CopperGolem golem) {
-		golem.getNavigation().stop();
-		golem.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
-		golem.setXxa(0.0F);
-		golem.setYya(0.0F);
-		golem.setSpeed(0.0F);
-		golem.setDeltaMovement(0.0, golem.getDeltaMovement().y, 0.0);
 	}
 }
