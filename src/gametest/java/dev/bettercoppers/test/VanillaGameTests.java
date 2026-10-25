@@ -5,7 +5,9 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
+import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
@@ -40,5 +42,14 @@ public class VanillaGameTests {
 		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
 		Homes.set(golem, h.absolutePos(SOURCE));
 		h.succeedWhen(() -> h.assertTrue(target.countItem(Items.COBBLESTONE) == 5, "cobblestone not sorted yet"));
+	}
+
+	@GameTest(maxTicks = 300)
+	public void zombie_ignores_jobless_golem(GameTestHelper h) {
+		Zombie zombie = h.spawn(EntityTypes.ZOMBIE, new BlockPos(1, 1, 1));
+		zombie.setPersistenceRequired();
+		GameTests.golem(h, new BlockPos(5, 1, 1));
+		h.onEachTick(() -> h.assertTrue(!(zombie.getTarget() instanceof CopperGolem), "zombie targets a jobless golem"));
+		h.runAfterDelay(200, h::succeed);
 	}
 }

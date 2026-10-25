@@ -1,9 +1,8 @@
 package dev.bettercoppers.combat;
 
-import dev.bettercoppers.courier.Couriers;
-import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.mixin.MobAccessor;
 import dev.bettercoppers.mixin.NearestAttackableTargetGoalAccessor;
+import dev.bettercoppers.upkeep.Upkeep;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
@@ -30,9 +29,9 @@ public final class GolemGuards {
 		}
 	}
 
-	/** Copper golems with a home or a route are worth guarding; strays wander off anyway. */
+	/** Only golems with a job are worth hunting or guarding; the rest stay vanilla. */
 	public static boolean isSettled(CopperGolem golem) {
-		return golem.isAlive() && (Homes.get(golem) != null || Couriers.isCourier(golem));
+		return golem.isAlive() && Upkeep.hasJob(golem);
 	}
 
 	private static void addHuntGoal(Mob mob) {
@@ -51,7 +50,8 @@ public final class GolemGuards {
 			}
 		}
 		if (priority >= 0) {
-			targets.addGoal(priority, new NearestAttackableTargetGoal<>(mob, CopperGolem.class, true));
+			targets.addGoal(priority, new NearestAttackableTargetGoal<>(mob, CopperGolem.class, true,
+				(target, level) -> target instanceof CopperGolem golem && isSettled(golem)));
 		}
 	}
 
