@@ -14,8 +14,9 @@ import net.minecraft.world.entity.animal.golem.IronGolem;
 import net.minecraft.world.entity.npc.villager.AbstractVillager;
 
 /**
- * Copper golems are prey now: every monster that hunts villagers or iron golems hunts copper golems too. Iron golems
- * in turn stay close to the copper golems that live somewhere and go for whatever attacks them.
+ * Copper golems with a job are prey now: every monster that hunts villagers or iron golems hunts them too. Iron golems
+ * in turn stay close to the copper golems with a job that live somewhere and go for whatever attacks them. Jobless
+ * golems are left alone, as in vanilla.
  */
 public final class GolemGuards {
 	private GolemGuards() {

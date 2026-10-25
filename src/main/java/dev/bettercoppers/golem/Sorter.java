@@ -17,7 +17,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * A golem only sorts once it is given a bundle (kept in its off hand, since the main hand carries the items). Without
- * one it just idles. Right-clicking a sorter with an empty hand, while it carries nothing, takes the bundle back.
+ * one it sorts like vanilla. Right-clicking a sorter with an empty hand, while it carries nothing, takes the bundle back.
  */
 public final class Sorter {
 	private Sorter() {

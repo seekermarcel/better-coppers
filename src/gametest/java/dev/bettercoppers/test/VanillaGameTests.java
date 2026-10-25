@@ -56,7 +56,10 @@ public class VanillaGameTests {
 		zombie.setPersistenceRequired();
 		GameTests.golem(h, new BlockPos(5, 1, 1));
 		h.onEachTick(() -> h.assertTrue(!(zombie.getTarget() instanceof CopperGolem), "zombie targets a jobless golem"));
-		h.runAfterDelay(200, h::succeed);
+		h.runAfterDelay(200, () -> {
+			h.assertTrue(zombie.isAlive(), "zombie died");
+			h.succeed();
+		});
 	}
 
 	/** Dispenser with an iron axe facing east, powered one tick after the golem (if any) stands in front. */

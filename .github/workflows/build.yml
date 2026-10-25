@@ -19,4 +19,4 @@ jobs:
           name: test-logs
           path: |
             build/reports
-            run/logs
+            build/run/gameTest/logs

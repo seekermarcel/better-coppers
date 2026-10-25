@@ -24,7 +24,7 @@ Everything runs in the flake dev shell:
 Adding a job: one `Job` entry, one `JobBehavior` subclass registered in `GolemBrain.modBehaviours()`, lang keys in en_us and de_de (key-identical), one gametest.
 
 ## The vanilla rule
-Anything that happens automatically to a golem no player touched is exactly vanilla. Mod behaviour starts only after a deliberate player action (job item, route, home link, chain, trim). "Without a job" is `!Upkeep.hasJob(golem)`.
+Anything that happens automatically to a golem no player touched is exactly vanilla. Mod behaviour starts only after a deliberate player action (job item, route, home link, chain, trim). "Without a job" is `!Upkeep.hasJob(golem)`, even if the golem has a home: a golem with only a home (no job item, no route) still sorts like vanilla.
 
 ## Conventions
 Tabs, short Javadocs, English. Conventional commit messages. Never commit `docs/superpowers/` (gitignored).

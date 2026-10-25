@@ -28,7 +28,7 @@ A golem without any of these sorts its copper chest exactly like in vanilla.
 On top of the jobs:
 - **Copper Chest Minecart:** a golem can tow one on an iron chain to carry much more.
 - **Minecarts and boats:** golems ride them on long trips.
-- **Monsters and guards:** monsters hunt copper golems, iron golems guard them, and copper golems repair iron golems.
+- **Monsters and guards:** monsters hunt copper golems that have a job, iron golems guard them, and copper golems repair iron golems.
 - **Armour trims:** golems can wear them, just for looks.
 - **Running costs:** working golems need redstone energy, rust from work, and wear out their tools.
 
@@ -124,8 +124,8 @@ A golem towing a chained cart always walks.
 
 ## Danger and protection
 
-- **Monsters hunt copper golems.** Every monster that goes after villagers or iron golems now goes after copper golems too: zombies, skeletons, spiders, illagers and more. A copper golem has only 12 health.
-- **Iron golems guard them.** An iron golem stays near the copper golems that live around it and attacks any monster that hunts or hits one. Creepers are excepted, as in vanilla.
+- **Monsters hunt working copper golems.** Every monster that goes after villagers or iron golems now goes after copper golems that have a job too: zombies, skeletons, spiders, illagers and more. Jobless golems are left alone, as in vanilla. A copper golem has only 12 health.
+- **Iron golems guard them.** An iron golem stays near the copper golems with a job that live around it and attacks any monster that hunts or hits one. Creepers are excepted, as in vanilla.
 - **Copper golems repair iron golems.** When an iron golem nearby is badly hurt, a copper golem drops what it is doing, takes **iron ingots** from its home chest (or the nearest chest with iron) and repairs it, 25 health per ingot.
 
 So keep some iron in your chests, and build an iron golem for every work site.
@@ -148,7 +148,7 @@ Sorters and couriers are free. Every other job costs something:
 - **Energy:** work uses energy. At night, or when empty, the golem stands on a **redstone-powered block** near its home to recharge. A block of redstone works, and so does any block powered by a lever, torch or dust. Build one pad per golem.
 - **Rust:** steady work makes golems rust one stage every few days. Exposed golems work at 85 % speed and weathered ones at 70 %. Fully oxidized or waxed golems don't work at all.
 - **Scraping:** use an axe by hand, or put an **axe in a dispenser**: each redstone pulse scrapes the golem in front of it by one stage.
-- **Tools** wear out and break.
+- **Tools** wear out and break. When its tool breaks or is taken away and its pouch is empty, a golem goes back to vanilla sorting until it gets a new tool, and it may pick up a job tool from a copper chest by itself.
 
 ---
 
@@ -184,10 +184,10 @@ $env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot"
 
 ```
 src/main/java/dev/bettercoppers/
-  golem/     SortItemsBehavior (sorting AI), RideBehavior (minecarts and boats), ItemFamilies (what counts as related), CartChaining, Inventories
+  golem/     GolemBrain, Golems, Sorter, SortItemsBehavior (sorting AI), RideBehavior (minecarts and boats), ItemFamilies (what counts as related), CartChaining, Inventories, Errands
   courier/   CourierBehavior, Couriers (routes, chunk tickets), CourierRoute
-  combat/    GolemGuards (monsters hunt copper golems, iron golems guard them) and the iron golem goals
-  repair/    RepairBehavior (iron golem repairs), Errands
+  combat/    GolemGuards (monsters hunt copper golems with a job, iron golems guard them) and the iron golem goals
+  repair/    RepairBehavior (iron golem repairs)
   trim/      GolemTrims (trim templates and materials)
   mining/    MineBehavior (mining AI), MineLayout, MinePlan, MinerData, MinerInteractions
   job/       JobBehavior (shared home-chest routine), Farm-/Forest-/Fish-/Keeper-/CraftBehavior, WorkerData
@@ -195,7 +195,7 @@ src/main/java/dev/bettercoppers/
   home/      Homes, HomeLinking (linking homes and routes), HomeDisplay (particle lines)
   block/, menu/  Survey Table and its menu
   entity/, item/  Copper Chest Minecart
-  mixin/     swaps in the new golem AI, goal accessors
+  mixin/     adds the mod's behaviours in front of vanilla's golem AI (vanilla AI kept), goal accessors
 src/client/java/dev/bettercoppers/client/
   render/    cart renderer with the iron chain, GolemTrimLayer
 tools/       TrimGen.java (golem trim textures from the vanilla armour trims), SurveyGen.java (Survey Table textures)
