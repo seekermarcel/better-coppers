@@ -3,9 +3,14 @@
 	"id": "bettercoppers",
 	"version": "${version}",
 	"name": "Better Coppers",
-	"description": "Smarter Copper Golems: they know where items belong and can tow a copper chest minecart on an iron chain.",
-	"authors": [],
-	"license": "All-Rights-Reserved",
+	"description": "Copper Golems that do real work: sorting, mining, farming, fishing, couriering and more.",
+	"authors": ["Marcel Meier"],
+	"contact": {
+		"homepage": "https://github.com/seekermarcel/better-coppers",
+		"sources": "https://github.com/seekermarcel/better-coppers",
+		"issues": "https://github.com/seekermarcel/better-coppers/issues"
+	},
+	"license": "LGPL-3.0-only",
 	"environment": "*",
 	"entrypoints": {
 		"main": [

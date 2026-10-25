@@ -1,5 +1,9 @@
 # Better Coppers
 
+[![build](https://github.com/seekermarcel/better-coppers/actions/workflows/build.yml/badge.svg)](https://github.com/seekermarcel/better-coppers/actions/workflows/build.yml)
+[![release](https://img.shields.io/github/v/release/seekermarcel/better-coppers)](https://github.com/seekermarcel/better-coppers/releases/latest)
+[![license](https://img.shields.io/badge/license-LGPL--3.0-blue)](LICENSE)
+
 **Copper Golems that do real work.** A Fabric mod for **Minecraft 26.3** that turns the copper golem from a chest shuffler into a small, slightly clumsy worker. It sorts your storage, digs mineshafts, farms and fishes, carries goods across the world, rides minecarts and boats, and gets hunted by monsters. It also needs iron golems to keep it safe, and it patches those iron golems up with your iron.
 
 Everything is meant to feel vanilla: golems are slow, sometimes shake their head and try again, and every job costs something.
@@ -27,6 +31,14 @@ On top of the jobs:
 - **Monsters and guards:** monsters hunt copper golems, iron golems guard them, and copper golems repair iron golems.
 - **Armour trims:** golems can wear them, just for looks.
 - **Running costs:** working golems need redstone energy, rust from work, and wear out their tools.
+
+---
+
+## Installation
+
+1. Install **Minecraft 26.3** with **Fabric Loader** 0.20.1 or newer.
+2. Add [Fabric API](https://modrinth.com/mod/fabric-api).
+3. Download the jar from the [latest release](https://github.com/seekermarcel/better-coppers/releases/latest) into your `mods/` folder.
 
 ---
 
@@ -156,9 +168,11 @@ Sorters and couriers are free. Every other job costs something:
 
 ---
 
-## Building and running
+## Building from source
 
-Needs **Java 25**, Fabric Loader and Fabric API.
+Run `nix develop` (or use any JDK 25), then `./gradlew build`. The jar lands in `build/libs/`. `./gradlew runClient` starts the game with the mod.
+
+On Windows without Nix:
 
 ```powershell
 $env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot"
@@ -170,9 +184,8 @@ $env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot"
 
 ```
 src/main/java/dev/bettercoppers/
-  golem/     SortItemsBehavior (sorting AI), ItemFamilies (what counts as related), CartChaining, Inventories
+  golem/     SortItemsBehavior (sorting AI), RideBehavior (minecarts and boats), ItemFamilies (what counts as related), CartChaining, Inventories
   courier/   CourierBehavior, Couriers (routes, chunk tickets), CourierRoute
-  travel/    RideBehavior (minecarts and boats)
   combat/    GolemGuards (monsters hunt copper golems, iron golems guard them) and the iron golem goals
   repair/    RepairBehavior (iron golem repairs), Errands
   trim/      GolemTrims (trim templates and materials)
@@ -187,3 +200,7 @@ src/client/java/dev/bettercoppers/client/
   render/    cart renderer with the iron chain, GolemTrimLayer
 tools/       TrimGen.java (golem trim textures from the vanilla armour trims), SurveyGen.java (Survey Table textures)
 ```
+
+## License
+
+[LGPL-3.0](LICENSE)
