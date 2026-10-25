@@ -177,8 +177,7 @@ src/main/java/dev/bettercoppers/
   repair/    RepairBehavior (iron golem repairs), Errands
   trim/      GolemTrims (trim templates and materials)
   mining/    MineBehavior (mining AI), MineLayout, MinePlan, MinerData, MinerInteractions
-  job/       JobBehavior (shared home-chest routine), Forest-/Fish-/Keeper-/CraftBehavior, WorkerData
-  farming/   FarmBehavior, FarmerData, FarmerInteractions
+  job/       JobBehavior (shared home-chest routine), Farm-/Forest-/Fish-/Keeper-/CraftBehavior, WorkerData
   upkeep/    Upkeep (energy, rust, scraping), ChargeBehavior, AxeDispenseBehavior
   home/      Homes, HomeLinking (linking homes and routes), HomeDisplay (particle lines)
   block/, menu/  Survey Table and its menu

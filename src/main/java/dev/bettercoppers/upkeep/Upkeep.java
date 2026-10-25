@@ -2,8 +2,6 @@ package dev.bettercoppers.upkeep;
 
 import dev.bettercoppers.courier.CourierRoute;
 import dev.bettercoppers.courier.Couriers;
-import dev.bettercoppers.farming.FarmerData;
-import dev.bettercoppers.farming.FarmerInteractions;
 import dev.bettercoppers.golem.Sorter;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.Job;
@@ -48,7 +46,7 @@ public final class Upkeep {
 
 	/** Golems a player gave a job; only these have running costs. */
 	public static boolean isJobGolem(CopperGolem golem) {
-		return MinerData.isMiner(golem) || FarmerData.isFarmer(golem) || WorkerData.isWorker(golem);
+		return MinerData.isMiner(golem) || WorkerData.isWorker(golem);
 	}
 
 	public static boolean isWaxed(CopperGolem golem) {
@@ -147,9 +145,6 @@ public final class Upkeep {
 		if (MinerData.isMiner(golem)) {
 			return "miner";
 		}
-		if (FarmerData.isFarmer(golem)) {
-			return "farmer";
-		}
 		Job job = WorkerData.job(golem);
 		if (job != null) {
 			return job.id();
@@ -167,7 +162,6 @@ public final class Upkeep {
 	/** Drops everything a working golem carries for its job (on death or when turning into a statue). */
 	public static void dropJobItems(CopperGolem golem) {
 		MinerInteractions.dropAll(golem);
-		FarmerInteractions.dropAll(golem);
 		WorkerInteractions.dropAll(golem);
 		if (golem.level() instanceof ServerLevel level) {
 			RepairBehavior.dropCarried(level, golem);

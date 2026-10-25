@@ -109,7 +109,7 @@ public class FishBehavior extends JobBehavior<FishBehavior.Spot> {
 			.create(LootContextParamSets.FISHING);
 		LootTable table = level.getServer().reloadableRegistries().getLootTable(BuiltInLootTables.FISHING);
 		List<ItemStack> catches = table.getRandomItems(params);
-		catches.forEach(stack -> stash(golem, data, stack));
+		catches.forEach(stack -> stash(golem, data.pouch(), stack));
 		level.sendParticles(ParticleTypes.SPLASH, bobber.x, bobber.y, bobber.z, 12, 0.2, 0.1, 0.2, 0.0);
 		level.playSound(null, bobber.x, bobber.y, bobber.z, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.NEUTRAL, 0.5F, 1.0F);
 		golem.setState(CopperGolemState.GETTING_ITEM);

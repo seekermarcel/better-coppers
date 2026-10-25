@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Home chest, pouch and supplies of a forester, fisher, animal keeper or crafter golem, plus a few remembered places
+ * Home chest, pouch and supplies of a farmer, forester, fisher, animal keeper or crafter golem, plus a few remembered places
  * (the forester's tree stumps waiting for a sapling). Stored on the golem as a Fabric attachment.
  */
 public final class WorkerData {

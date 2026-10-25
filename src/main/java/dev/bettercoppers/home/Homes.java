@@ -1,6 +1,5 @@
 package dev.bettercoppers.home;
 
-import dev.bettercoppers.farming.FarmerData;
 import dev.bettercoppers.job.WorkerData;
 import dev.bettercoppers.registry.ModAttachments;
 import net.minecraft.core.BlockPos;
@@ -27,9 +26,8 @@ public final class Homes {
 		if (home != null) {
 			return home;
 		}
-		FarmerData farmer = FarmerData.get(golem);
 		WorkerData worker = WorkerData.get(golem);
-		BlockPos legacy = farmer != null && farmer.home() != null ? farmer.home() : worker != null ? worker.home() : null;
+		BlockPos legacy = worker != null ? worker.home() : null;
 		if (legacy != null) {
 			set(golem, legacy);
 		}
@@ -43,10 +41,6 @@ public final class Homes {
 			golem.setAttached(ModAttachments.HOME, home);
 		}
 		// Clear the old per-job fields so they cannot come back.
-		FarmerData farmer = FarmerData.get(golem);
-		if (farmer != null) {
-			farmer.setHome(null);
-		}
 		WorkerData worker = WorkerData.get(golem);
 		if (worker != null) {
 			worker.setHome(null);

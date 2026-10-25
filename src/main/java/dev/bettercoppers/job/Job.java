@@ -11,7 +11,8 @@ public enum Job {
 	FORESTER("forester", stack -> stack.is(ItemTags.AXES)),
 	FISHER("fisher", stack -> stack.is(Items.FISHING_ROD)),
 	KEEPER("keeper", stack -> stack.is(Items.BRUSH)),
-	CRAFTER("crafter", stack -> stack.is(Items.CRAFTING_TABLE));
+	CRAFTER("crafter", stack -> stack.is(Items.CRAFTING_TABLE)),
+	FARMER("farmer", stack -> stack.is(ItemTags.HOES));
 
 	private final String name;
 	private final Predicate<ItemStack> tool;

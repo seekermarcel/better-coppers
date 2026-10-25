@@ -119,7 +119,7 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 		if (!this.reach(level, golem, item)) {
 			return false;
 		}
-		stash(golem, data, item.getItem().copy());
+		stash(golem, data.pouch(), item.getItem().copy());
 		item.discard();
 		golem.setState(CopperGolemState.GETTING_ITEM);
 		golem.playSound(net.minecraft.sounds.SoundEvents.ITEM_PICKUP, 0.3F, 1.0F);
@@ -191,7 +191,7 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 				break;
 			}
 			BlockState state = level.getBlockState(log);
-			Block.getDrops(state, level, log, null, golem, axe).forEach(drop -> stash(golem, data, drop));
+			Block.getDrops(state, level, log, null, golem, axe).forEach(drop -> stash(golem, data.pouch(), drop));
 			level.destroyBlock(log, false, golem);
 			axe.hurtAndBreak(1, golem, EquipmentSlot.MAINHAND);
 			Upkeep.spend(golem, ENERGY_PER_LOG);

@@ -20,8 +20,9 @@ import net.minecraft.world.phys.EntityHitResult;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Handing a copper golem its job tool: an axe (forester), a fishing rod (fisher), a brush (animal keeper) or a crafting
- * table (crafter). An axe only becomes a tool for a clean golem; on a rusty or waxed one it scrapes, as in vanilla.
+ * Handing a copper golem its job tool: a hoe (farmer), an axe (forester), a fishing rod (fisher), a brush (animal keeper)
+ * or a crafting table (crafter). An axe only becomes a tool for a clean golem; on a rusty or waxed one it scrapes, as in
+ * vanilla. Seeds handed to a farmer go into its supplies.
  * Sneak + right-click with an empty hand shows any working golem's energy and rust.
  */
 public final class WorkerInteractions {
@@ -33,6 +34,14 @@ public final class WorkerInteractions {
 			return InteractionResult.PASS;
 		}
 		ItemStack held = player.getItemInHand(hand);
+		if (FarmBehavior.isSeed(held) && WorkerData.job(golem) == Job.FARMER) {
+			if (!level.isClientSide()) {
+				WorkerData.addTo(WorkerData.getOrCreate(golem).supplies(), held.copy());
+				held.consume(held.getCount(), player);
+				golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET);
+			}
+			return InteractionResult.SUCCESS;
+		}
 		Job job = Job.forTool(held);
 		if (job == null) {
 			return InteractionResult.PASS;

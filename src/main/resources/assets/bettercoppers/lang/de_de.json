@@ -18,8 +18,6 @@
   "message.bettercoppers.plan_unmarked": "Erst den Eingang markieren: Plan auf den Boden anwenden, wo die Mine beginnen soll",
   "message.bettercoppers.needs_pickaxe": "Der Golem studiert den Plan. Jetzt braucht er eine Spitzhacke.",
   "message.bettercoppers.needs_plan": "Der Golem hält die Spitzhacke. Jetzt gib ihm einen Minenplan.",
-  "message.bettercoppers.farmer_ready": "Der Golem ist jetzt Bauer und kümmert sich um die Felder rund um seine Kupfertruhe.",
-  "message.bettercoppers.farmer_no_chest": "Der Golem ist jetzt Bauer. Verbinde ihn mit seiner Kupfertruhe: Schleichen + Rechtsklick auf den Golem, dann Rechtsklick auf die Truhe.",
   "message.bettercoppers.worker_ready": "Der Golem ist jetzt %s und arbeitet rund um seine Kupfertruhe.",
   "message.bettercoppers.worker_no_chest": "Der Golem ist jetzt %s. Verbinde ihn mit seiner Kupfertruhe: Schleichen + Rechtsklick auf den Golem, dann Rechtsklick auf die Truhe.",
   "message.bettercoppers.sorter_ready": "Der Golem ist jetzt Sortierer und leert seine Kupfertruhe.",

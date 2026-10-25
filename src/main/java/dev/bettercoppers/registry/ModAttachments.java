@@ -3,7 +3,6 @@ package dev.bettercoppers.registry;
 import com.mojang.serialization.Codec;
 import dev.bettercoppers.BetterCoppers;
 import dev.bettercoppers.courier.CourierRoute;
-import dev.bettercoppers.farming.FarmerData;
 import dev.bettercoppers.job.WorkerData;
 import dev.bettercoppers.mining.MinerData;
 import dev.bettercoppers.upkeep.GolemUpkeep;
@@ -20,12 +19,7 @@ public final class ModAttachments {
 		BetterCoppers.id("miner"), builder -> builder.persistent(MinerData.CODEC).initializer(MinerData::new)
 	);
 
-	/** Home chest, harvest pouch and seeds of a copper golem that was handed a hoe. */
-	public static final AttachmentType<FarmerData> FARMER = AttachmentRegistry.create(
-		BetterCoppers.id("farmer"), builder -> builder.persistent(FarmerData.CODEC).initializer(FarmerData::new)
-	);
-
-	/** Home chest, pouch and supplies of a forester, fisher, animal keeper or crafter golem. */
+	/** Home chest, pouch and supplies of a farmer, forester, fisher, animal keeper or crafter golem. */
 	public static final AttachmentType<WorkerData> WORKER = AttachmentRegistry.create(
 		BetterCoppers.id("worker"), builder -> builder.persistent(WorkerData.CODEC).initializer(WorkerData::new)
 	);

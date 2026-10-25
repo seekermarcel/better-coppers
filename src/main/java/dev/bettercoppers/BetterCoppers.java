@@ -2,7 +2,6 @@ package dev.bettercoppers;
 
 import dev.bettercoppers.combat.GolemGuards;
 import dev.bettercoppers.courier.Couriers;
-import dev.bettercoppers.farming.FarmerInteractions;
 import dev.bettercoppers.golem.CartChaining;
 import dev.bettercoppers.golem.Sorter;
 import dev.bettercoppers.home.HomeDisplay;
@@ -49,7 +48,6 @@ public class BetterCoppers implements ModInitializer {
 		UseEntityCallback.EVENT.register(HomeLinking::onUseEntity);
 		UseEntityCallback.EVENT.register(GolemTrims::onUseEntity);
 		UseEntityCallback.EVENT.register(MinerInteractions::onUseEntity);
-		UseEntityCallback.EVENT.register(FarmerInteractions::onUseEntity);
 		UseEntityCallback.EVENT.register(WorkerInteractions::onUseEntity);
 		UseEntityCallback.EVENT.register(CartChaining::onUseEntity);
 		UseEntityCallback.EVENT.register(Sorter::onUseEntity);

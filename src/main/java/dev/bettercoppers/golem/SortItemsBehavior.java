@@ -6,10 +6,9 @@ import com.mojang.datafixers.util.Pair;
 import dev.bettercoppers.courier.CourierBehavior;
 import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.entity.CopperChestMinecart;
-import dev.bettercoppers.farming.FarmBehavior;
-import dev.bettercoppers.farming.FarmerData;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.CraftBehavior;
+import dev.bettercoppers.job.FarmBehavior;
 import dev.bettercoppers.job.FishBehavior;
 import dev.bettercoppers.job.ForestBehavior;
 import dev.bettercoppers.job.KeeperBehavior;
@@ -444,7 +443,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 		}
 		if (this.farmerHomes.contains(source)) {
 			// A farm chest keeps a few of every seed so its farmer can always replant.
-			return stack -> !FarmerData.isSeed(stack) || countOf(container, stack) > SEED_RESERVE;
+			return stack -> !FarmBehavior.isSeed(stack) || countOf(container, stack) > SEED_RESERVE;
 		}
 		return stack -> true;
 	}

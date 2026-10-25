@@ -145,6 +145,8 @@ public class JobGameTests {
 		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
 		give(h, golem, new ItemStack(Items.IRON_AXE));
 		h.assertValueEqual(WorkerData.job(golem), Job.FORESTER, "job");
+		give(h, golem, new ItemStack(Items.IRON_HOE));
+		h.assertValueEqual(WorkerData.job(golem), Job.FARMER, "job");
 		h.succeed();
 	}
 }

@@ -18,8 +18,6 @@
   "message.bettercoppers.plan_unmarked": "Mark the entrance first: use the plan on the ground where the mine should start",
   "message.bettercoppers.needs_pickaxe": "The golem studies the plan. Now it needs a pickaxe.",
   "message.bettercoppers.needs_plan": "The golem holds the pickaxe. Now give it a mineshaft plan.",
-  "message.bettercoppers.farmer_ready": "The golem is now a farmer and looks after the fields around its copper chest.",
-  "message.bettercoppers.farmer_no_chest": "The golem is now a farmer. Link it to its copper chest: sneak + right-click the golem, then right-click the chest.",
   "message.bettercoppers.worker_ready": "The golem is now a %s and works around its copper chest.",
   "message.bettercoppers.worker_no_chest": "The golem is now a %s. Link it to its copper chest: sneak + right-click the golem, then right-click the chest.",
   "message.bettercoppers.sorter_ready": "The golem is now a sorter and empties its copper chest.",

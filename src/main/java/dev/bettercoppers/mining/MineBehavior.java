@@ -6,6 +6,7 @@ import dev.bettercoppers.golem.CartChaining;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.golem.TravelWatch;
 import dev.bettercoppers.home.Homes;
+import dev.bettercoppers.job.JobBehavior;
 import dev.bettercoppers.registry.ModTags;
 import dev.bettercoppers.upkeep.Upkeep;
 import java.util.ArrayDeque;
@@ -18,7 +19,6 @@ import net.fabricmc.fabric.api.tag.convention.v2.ConventionalBlockTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
@@ -68,8 +68,6 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	private static final int MAX_DIG_TICKS = 400;
 	private static final int PLACE_TICKS = 20;
 	private static final int MAX_TRAVEL_TICKS = 300;
-	private static final int HOME_INTERACTION_TICKS = 60;
-	private static final float HESITATE_CHANCE = 0.08F;
 	private static final int ORE_BUDGET = 16;
 	private static final int RECENT_DIGS = 32;
 	private static final int HOME_SEARCH_RADIUS = 12;
@@ -95,7 +93,6 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	private MineLayout.@Nullable Step work;
 	private boolean extraWork;
 	private boolean hesitated;
-	private int travelTicks;
 	private final TravelWatch travel = new TravelWatch();
 	private int workTicks;
 	private int digTicks;
@@ -225,7 +222,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		while (!this.oreDigs.isEmpty()) {
 			MineLayout.Step ore = this.oreDigs.poll();
 			if (level.isLoaded(ore.pos()) && isOre(level.getBlockState(ore.pos())) && this.canDig(level, golem, ore.pos())) {
-				if (this.isLootFull(golem, data)) {
+				if (JobBehavior.isFull(golem, data.lootCount(), MinerData.LOOT_LIMIT)) {
 					this.oreDigs.addFirst(ore);
 					this.startReturn(level, golem, data, false);
 					return false;
@@ -255,7 +252,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 				plan = this.advance(data, plan);
 				continue;
 			}
-			if (step.action() == MineLayout.Action.DIG && this.isLootFull(golem, data)) {
+			if (step.action() == MineLayout.Action.DIG && JobBehavior.isFull(golem, data.lootCount(), MinerData.LOOT_LIMIT)) {
 				this.startReturn(level, golem, data, false);
 				return false;
 			}
@@ -293,7 +290,6 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		this.work = step;
 		this.extraWork = extra;
 		this.hesitated = false;
-		this.travelTicks = 0;
 		this.travel.reset();
 		this.workTicks = 0;
 		this.digTicks = 0;
@@ -397,13 +393,13 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			if (!this.sealFluids(level, golem, data, pos)) {
 				return;
 			}
-			if (!this.hesitated && golem.getRandom().nextFloat() < HESITATE_CHANCE) {
-				// Stops, looks at the wall, shakes its head, then gets on with it.
+			if (!this.hesitated) {
+				// Now and then it stops, looks at the wall, shakes its head, then gets on with it.
 				this.hesitated = true;
-				golem.setState(CopperGolemState.GETTING_NO_ITEM);
-				golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_NO_GET);
-				this.pauseTicks = 30 + golem.getRandom().nextInt(30);
-				return;
+				this.pauseTicks = JobBehavior.hesitation(golem);
+				if (this.pauseTicks > 0) {
+					return;
+				}
 			}
 			this.digTicks = this.digDuration(level, golem, pos);
 			golem.setState(CopperGolemState.GETTING_ITEM);
@@ -446,7 +442,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		}
 		Upkeep.spend(golem, ENERGY_PER_DIG);
 		for (ItemStack drop : drops) {
-			this.stash(golem, data, drop);
+			JobBehavior.stash(golem, data.loot(), drop);
 		}
 
 		this.recentDigs.addLast(step);
@@ -506,23 +502,6 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			stand = stand.below();
 		}
 		return stand;
-	}
-
-	private void stash(CopperGolem golem, MinerData data, ItemStack stack) {
-		ItemStack rest = stack;
-		CopperChestMinecart cart = CartChaining.findCart(golem);
-		if (cart != null) {
-			rest = Inventories.insert(cart, rest);
-		}
-		if (!rest.isEmpty()) {
-			MinerData.addTo(data.loot(), rest);
-		}
-	}
-
-	private boolean isLootFull(CopperGolem golem, MinerData data) {
-		CopperChestMinecart cart = CartChaining.findCart(golem);
-		boolean cartFull = cart == null || !Inventories.hasEmptySlot(cart);
-		return cartFull && data.lootCount() >= MinerData.LOOT_LIMIT;
 	}
 
 	/**
@@ -651,7 +630,6 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	private void startReturn(ServerLevel level, CopperGolem golem, MinerData data, boolean stopAfter) {
 		this.mode = Mode.RETURNING;
 		this.stopAfterReturn = stopAfter;
-		this.travelTicks = 0;
 		this.workTicks = 0;
 		MinePlan plan = data.plan();
 		this.home = Homes.valid(level, golem);
@@ -680,24 +658,10 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			this.endReturn(golem);
 			return;
 		}
-		if (!this.isInReach(golem, this.home)) {
-			this.travelTicks++;
-			BehaviorUtils.setWalkAndLookTargetMemories(golem, this.home, WALK_SPEED * Upkeep.speed(golem), 1);
-			return;
-		}
-		stopInPlace(golem);
-		golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(this.home));
-		this.workTicks++;
-		if (this.workTicks == 1) {
-			chest.startOpen(golem);
-			golem.setOpenedChestPos(this.home);
-			golem.setState(CopperGolemState.DROPPING_ITEM);
-		}
-		if (this.workTicks == 9) {
-			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_DROP);
-		}
-		if (this.workTicks >= HOME_INTERACTION_TICKS) {
-			this.unload(level, golem, data, chest);
+		this.workTicks = JobBehavior.tickReturn(golem, this.home, chest, this.workTicks, WALK_SPEED);
+		if (this.workTicks >= JobBehavior.HOME_INTERACTION_TICKS) {
+			// Keep some plain stone back for plugging leaks and patching floors.
+			JobBehavior.unload(level, golem, data.loot(), data.supplies(), stack -> isFiller(stack) ? FILLER_RESERVE - countFillers(data) : 0, chest);
 			MinePlan plan = data.plan();
 			if (plan != null && !this.stopAfterReturn) {
 				this.restock(data, plan, chest);
@@ -709,30 +673,8 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		}
 	}
 
-	private void unload(ServerLevel level, CopperGolem golem, MinerData data, Container chest) {
-		// Keep some plain stone back for plugging leaks and patching floors.
-		int reserve = data.supplies().stream().filter(MineBehavior::isFiller).mapToInt(ItemStack::getCount).sum();
-		for (ItemStack stack : data.loot()) {
-			if (reserve < FILLER_RESERVE && isFiller(stack)) {
-				ItemStack kept = stack.split(FILLER_RESERVE - reserve);
-				reserve += kept.getCount();
-				MinerData.addTo(data.supplies(), kept);
-			}
-			ItemStack rest = Inventories.insert(chest, stack);
-			if (!rest.isEmpty()) {
-				golem.spawnAtLocation(level, rest);
-			}
-		}
-		data.loot().clear();
-		CopperChestMinecart cart = CartChaining.findCart(golem);
-		if (cart != null) {
-			for (int slot = 0; slot < cart.getContainerSize(); slot++) {
-				ItemStack stack = cart.getItem(slot);
-				if (!stack.isEmpty()) {
-					cart.setItem(slot, Inventories.insert(chest, stack));
-				}
-			}
-		}
+	private static int countFillers(MinerData data) {
+		return data.supplies().stream().filter(MineBehavior::isFiller).mapToInt(ItemStack::getCount).sum();
 	}
 
 	private void restock(MinerData data, MinePlan plan, Container chest) {

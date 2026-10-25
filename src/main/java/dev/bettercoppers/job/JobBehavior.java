@@ -8,7 +8,9 @@ import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.golem.TravelWatch;
 import dev.bettercoppers.upkeep.Upkeep;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.ToIntFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -31,7 +33,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 /**
- * What the forester, fisher, animal keeper and crafter have in common: a home copper chest, a pouch that is brought
+ * What the farmer, forester, fisher, animal keeper and crafter have in common: a home copper chest, a pouch that is brought
  * home when full (or when there is nothing else to do), supplies restocked there, clumsy pauses, and the running costs
  * of {@link Upkeep}. Subclasses only decide what to do next and how to do it.
  *
@@ -39,7 +41,7 @@ import org.jspecify.annotations.Nullable;
  */
 public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 	protected static final int MAX_TRAVEL_TICKS = 300;
-	private static final int HOME_INTERACTION_TICKS = 60;
+	public static final int HOME_INTERACTION_TICKS = 60;
 	private static final int IDLE_COOLDOWN = 200;
 	private static final int IGNORE_TICKS = 600;
 	private static final float HESITATE_CHANCE = 0.08F;
@@ -156,7 +158,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 			return;
 		}
 		if (this.task == null) {
-			if (this.isFull(golem, data)) {
+			if (isFull(golem, data.pouchCount(), this.pouchLimit())) {
 				this.requestReturn();
 				return;
 			}
@@ -222,15 +224,22 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 
 	/** Now and then the golem stops, shakes its head and only then gets on with it. Call once a task is in reach. */
 	protected boolean hesitate(CopperGolem golem) {
-		if (this.hesitated || golem.getRandom().nextFloat() >= HESITATE_CHANCE) {
-			this.hesitated = true;
+		if (this.hesitated) {
 			return false;
 		}
 		this.hesitated = true;
+		this.pauseTicks = hesitation(golem);
+		return this.pauseTicks > 0;
+	}
+
+	/** Rolls for a head shake; if it happens, starts it and returns how long to pause, else 0. */
+	public static int hesitation(CopperGolem golem) {
+		if (golem.getRandom().nextFloat() >= HESITATE_CHANCE) {
+			return 0;
+		}
 		golem.setState(CopperGolemState.GETTING_NO_ITEM);
 		golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_NO_GET);
-		this.pauseTicks = 30 + golem.getRandom().nextInt(30);
-		return true;
+		return 30 + golem.getRandom().nextInt(30);
 	}
 
 	/** Work durations stretched by rust. */
@@ -272,20 +281,21 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 	}
 
 	/** Puts something the golem got into the chained cart, or else its pouch. */
-	protected static void stash(CopperGolem golem, WorkerData data, ItemStack stack) {
+	public static void stash(CopperGolem golem, List<ItemStack> pouch, ItemStack stack) {
 		ItemStack rest = stack;
 		CopperChestMinecart cart = CartChaining.findCart(golem);
 		if (cart != null) {
 			rest = Inventories.insert(cart, rest);
 		}
 		if (!rest.isEmpty()) {
-			WorkerData.addTo(data.pouch(), rest);
+			WorkerData.addTo(pouch, rest);
 		}
 	}
 
-	private boolean isFull(CopperGolem golem, WorkerData data) {
+	/** No room left in the chained cart (or none chained) and {@code carried} reached {@code limit}. */
+	public static boolean isFull(CopperGolem golem, int carried, int limit) {
 		CopperChestMinecart cart = CartChaining.findCart(golem);
-		return (cart == null || !Inventories.hasEmptySlot(cart)) && data.pouchCount() >= this.pouchLimit();
+		return (cart == null || !Inventories.hasEmptySlot(cart)) && carried >= limit;
 	}
 
 	private void idle(CopperGolem golem) {
@@ -301,23 +311,9 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 			this.returning = false;
 			return;
 		}
-		if (!isInReach(golem, home)) {
-			BehaviorUtils.setWalkAndLookTargetMemories(golem, home, WALK_SPEED * Upkeep.speed(golem), 1);
-			return;
-		}
-		stopInPlace(golem);
-		golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(home));
-		this.homeTicks++;
-		if (this.homeTicks == 1) {
-			chest.startOpen(golem);
-			golem.setOpenedChestPos(home);
-			golem.setState(CopperGolemState.DROPPING_ITEM);
-		}
-		if (this.homeTicks == 9) {
-			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_DROP);
-		}
+		this.homeTicks = tickReturn(golem, home, chest, this.homeTicks, WALK_SPEED);
 		if (this.homeTicks >= HOME_INTERACTION_TICKS) {
-			this.unload(level, golem, data, chest);
+			unload(level, golem, data.pouch(), data.supplies(), stack -> this.keepOnUnload(data, stack), chest);
 			if (this.job.isTool(golem.getMainHandItem())) {
 				this.restock(level, golem, data, chest);
 			}
@@ -334,18 +330,45 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 		}
 	}
 
-	private void unload(ServerLevel level, CopperGolem golem, WorkerData data, Container chest) {
-		for (ItemStack stack : data.pouch()) {
-			int keep = Math.min(stack.getCount(), this.keepOnUnload(data, stack));
-			if (keep > 0) {
-				WorkerData.addTo(data.supplies(), stack.split(keep));
+	/**
+	 * Walks to the home chest, then opens it and counts up the time spent there. Returns the new count; the visit is
+	 * over once it reaches {@link #HOME_INTERACTION_TICKS}.
+	 */
+	public static int tickReturn(CopperGolem golem, BlockPos home, Container chest, int ticks, float walkSpeed) {
+		if (!isInReach(golem, home)) {
+			BehaviorUtils.setWalkAndLookTargetMemories(golem, home, walkSpeed * Upkeep.speed(golem), 1);
+			return ticks;
+		}
+		stopInPlace(golem);
+		golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(home));
+		ticks++;
+		if (ticks == 1) {
+			chest.startOpen(golem);
+			golem.setOpenedChestPos(home);
+			golem.setState(CopperGolemState.DROPPING_ITEM);
+		}
+		if (ticks == 9) {
+			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_DROP);
+		}
+		return ticks;
+	}
+
+	/**
+	 * Empties the pouch and the chained cart into the chest, except what {@code keep} says to put in the supplies.
+	 * What does not fit is dropped.
+	 */
+	public static void unload(ServerLevel level, CopperGolem golem, List<ItemStack> pouch, List<ItemStack> supplies, ToIntFunction<ItemStack> keep, Container chest) {
+		for (ItemStack stack : pouch) {
+			int kept = Math.min(stack.getCount(), keep.applyAsInt(stack));
+			if (kept > 0) {
+				WorkerData.addTo(supplies, stack.split(kept));
 			}
 			ItemStack rest = Inventories.insert(chest, stack);
 			if (!rest.isEmpty()) {
 				golem.spawnAtLocation(level, rest);
 			}
 		}
-		data.pouch().clear();
+		pouch.clear();
 		CopperChestMinecart cart = CartChaining.findCart(golem);
 		if (cart != null) {
 			for (int slot = 0; slot < cart.getContainerSize(); slot++) {
