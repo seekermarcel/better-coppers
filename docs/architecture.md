@@ -37,7 +37,7 @@ Other names that differ from `GLOSSARY.md`: `Upkeep` is running costs, `GolemMod
 
 ## A golem with only a home
 
-It sorts like vanilla, and the link also opts it into two things: `HomeStroll` walks it back when it strays, and `RepairBehavior` lets it repair iron golems. Sorters and couriers finish a delivery before starting a repair.
+It sorts like vanilla, and the link also opts it into two things: `HomeStroll` walks it back when it strays, and `RepairBehavior` lets it repair iron golems. Sorters and couriers finish a delivery before starting a repair, and so does a home-only golem holding anything but iron ingots. Iron ingots in its main hand (vanilla lifts them from its copper chest) count as supply: the repair moves them into `CARRIED_IRON` without visiting a chest, and leftover iron goes back to the hand, or to the home chest if the hand is full, when the repair ends.
 
 ## State
 

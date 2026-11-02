@@ -21,6 +21,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
@@ -40,7 +41,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * Any copper golem with a home (or a courier route) looks after the iron golems around it: when one is badly hurt, it
  * drops what it is doing, takes iron ingots from its home chest (or the nearest chest or barrel that has some) and
- * patches the iron golem up, 25 health per ingot, like a player would. Only one copper golem tends each iron golem.
+ * patches the iron golem up, 25 health per ingot, like a player would. A golem with only a home also uses iron ingots
+ * already in its hand. Only one copper golem tends each iron golem.
  */
 public class RepairBehavior extends Behavior<CopperGolem> {
 	private static final double PATIENT_RANGE = 16.0;
@@ -71,15 +73,16 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 			return false;
 		}
 		// A sorter or courier finishes its delivery first; the hand of a job golem only holds its tool.
-		if (!golem.getMainHandItem().isEmpty() && !Jobs.isPaying(golem)) {
+		if (!golem.getMainHandItem().isEmpty() && !Jobs.isPaying(golem) && !holdsIron(golem)) {
 			return false;
 		}
 		IronGolem found = findPatient(level, golem);
 		if (found == null) {
 			return false;
 		}
-		BlockPos chest = carried(golem) > 0 ? null : findSupply(level, golem);
-		if (carried(golem) == 0 && chest == null) {
+		boolean supplied = carried(golem) > 0 || holdsIron(golem);
+		BlockPos chest = supplied ? null : findSupply(level, golem);
+		if (!supplied && chest == null) {
 			return false;
 		}
 		this.patient = found;
@@ -104,6 +107,12 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 		this.ticks = 0;
 		this.travel.reset();
 		golem.getBrain().eraseMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS);
+		if (holdsIron(golem)) {
+			ItemStack hand = golem.getMainHandItem();
+			int moved = Math.min(hand.getCount(), wanted(this.patient));
+			hand.shrink(moved);
+			setCarried(golem, carried(golem) + moved);
+		}
 	}
 
 	@Override
@@ -115,6 +124,9 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 		this.closeChest(level, golem);
 		this.patient = null;
 		this.supply = null;
+		if (!Jobs.has(golem)) {
+			this.returnLeftovers(level, golem);
+		}
 		golem.setState(CopperGolemState.IDLE);
 		golem.getNavigation().stop();
 		golem.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
@@ -166,8 +178,7 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 		if (this.ticks < CHEST_TICKS) {
 			return;
 		}
-		// Rounded, matching when repairs stop (half an ingot's worth of damage left), so nothing is left over.
-		int wanted = Mth.clamp(Math.round((target.getMaxHealth() - target.getHealth()) / HEAL_PER_INGOT), 1, MAX_INGOTS_PER_TRIP);
+		int wanted = wanted(target);
 		int taken = 0;
 		for (int slot = 0; slot < chest.getContainerSize() && taken < wanted; slot++) {
 			ItemStack stack = chest.getItem(slot);
@@ -184,6 +195,35 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 		this.travel.reset();
 		if (taken == 0) {
 			this.supply = null;
+		}
+	}
+
+	/** Rounded, matching when repairs stop (half an ingot's worth of damage left), so nothing is left over. */
+	private static int wanted(IronGolem target) {
+		return Mth.clamp(Math.round((target.getMaxHealth() - target.getHealth()) / HEAL_PER_INGOT), 1, MAX_INGOTS_PER_TRIP);
+	}
+
+	/** A golem with only a home counts iron ingots in its hand (vanilla may have lifted them from its chest) as supply. */
+	private static boolean holdsIron(CopperGolem golem) {
+		return golem.getMainHandItem().is(Items.IRON_INGOT) && !Jobs.has(golem) && Homes.get(golem) != null;
+	}
+
+	/** Iron a jobless golem has left over goes back to its empty hand, else to the home chest, so it is not stranded. */
+	private void returnLeftovers(ServerLevel level, CopperGolem golem) {
+		int count = carried(golem);
+		if (count == 0) {
+			return;
+		}
+		ItemStack iron = new ItemStack(Items.IRON_INGOT, count);
+		if (golem.getMainHandItem().isEmpty()) {
+			golem.setItemSlot(EquipmentSlot.MAINHAND, iron);
+			setCarried(golem, 0);
+			return;
+		}
+		BlockPos homePos = Homes.get(golem);
+		Container home = homePos == null ? null : Homes.containerAt(level, homePos);
+		if (home != null) {
+			setCarried(golem, Inventories.insert(home, iron).getCount());
 		}
 	}
 
