@@ -153,6 +153,8 @@ public class MinerGameTests {
 	@GameTest(maxTicks = 3600)
 	public void miner_digs_ore_vein_and_carries_on(GameTestHelper h) {
 		Scene s = scene(h, true, START);
+		// A nearly full pouch, so the trip home does not wait on how fast it digs: 64 items fill it, and it returns on its own.
+		Load.of(s.golem()).stash(new ItemStack(Items.COBBLESTONE, 56));
 		h.setBlock(WALL, Blocks.COAL_ORE);
 		h.succeedWhen(() -> {
 			h.assertTrue(h.getBlockState(WALL).isAir(), "ore not dug yet");
