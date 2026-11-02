@@ -1,5 +1,6 @@
 package dev.bettercoppers.automatisation.registry;
 
+import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.automatisation.Automatisation;
 import dev.bettercoppers.automatisation.item.WrenchItem;
 import java.util.function.Function;
@@ -8,9 +9,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
 
 public final class AutoItems {
 	public static final Item COPPER_WRENCH = register("copper_wrench", WrenchItem::new, new Item.Properties().stacksTo(1));
@@ -33,32 +32,29 @@ public final class AutoItems {
 		return Registry.register(BuiltInRegistries.ITEM, key, factory.apply(properties.setId(key)));
 	}
 
+	/** Everything goes into the Better Coppers tab; the key works whichever mod initialises first. */
 	public static void init() {
-		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(output -> output.insertAfter(Items.BRUSH, COPPER_WRENCH));
-		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.INGREDIENTS).register(output -> {
-			output.insertAfter(Items.COPPER_INGOT, COPPER_SHEET);
-			output.insertAfter(Items.IRON_INGOT, IRON_SHEET);
-			output.insertAfter(Items.GOLD_INGOT, GOLD_SHEET);
-			output.insertAfter(COPPER_SHEET, COPPER_GEAR);
-			output.insertAfter(GOLD_SHEET, GOLD_GEAR);
-		});
-		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(output -> {
-			output.insertAfter(COPPER_WRENCH, IRON_PLATING);
-			output.insertAfter(IRON_PLATING, COPPER_COATING);
-			output.insertAfter(COPPER_COATING, GOLD_GEARWORK);
-			output.insertAfter(GOLD_GEARWORK, COPPER_SATCHEL);
-			output.insertAfter(COPPER_SATCHEL, CART_EXTENSION);
-		});
-		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.REDSTONE_BLOCKS).register(output -> {
-			output.insertAfter(Items.HOPPER, AutoBlocks.CONVEYOR_BELT);
-			output.insertAfter(AutoBlocks.CONVEYOR_BELT, AutoBlocks.BELT_DRIVE);
-			output.insertAfter(AutoBlocks.BELT_DRIVE, AutoBlocks.FUNNEL);
-			output.insertAfter(AutoBlocks.FUNNEL, AutoBlocks.CHUTE);
-			output.insertAfter(AutoBlocks.CHUTE, AutoBlocks.PRESS);
-			output.insertAfter(AutoBlocks.PRESS, AutoBlocks.SAW);
-			output.insertAfter(AutoBlocks.SAW, AutoBlocks.GRABBER_ARM);
-			output.insertAfter(AutoBlocks.GRABBER_ARM, AutoBlocks.GOLEM_ASSEMBLER);
-			output.insertAfter(AutoBlocks.GOLEM_ASSEMBLER, AutoBlocks.CHARGING_STATION);
+		CreativeModeTabEvents.modifyOutputEvent(BetterCoppersApi.CREATIVE_TAB).register(output -> {
+			output.accept(COPPER_WRENCH);
+			output.accept(AutoBlocks.CONVEYOR_BELT);
+			output.accept(AutoBlocks.BELT_DRIVE);
+			output.accept(AutoBlocks.FUNNEL);
+			output.accept(AutoBlocks.CHUTE);
+			output.accept(AutoBlocks.PRESS);
+			output.accept(AutoBlocks.SAW);
+			output.accept(AutoBlocks.GRABBER_ARM);
+			output.accept(AutoBlocks.GOLEM_ASSEMBLER);
+			output.accept(AutoBlocks.CHARGING_STATION);
+			output.accept(COPPER_SHEET);
+			output.accept(IRON_SHEET);
+			output.accept(GOLD_SHEET);
+			output.accept(COPPER_GEAR);
+			output.accept(GOLD_GEAR);
+			output.accept(IRON_PLATING);
+			output.accept(COPPER_COATING);
+			output.accept(GOLD_GEARWORK);
+			output.accept(COPPER_SATCHEL);
+			output.accept(CART_EXTENSION);
 		});
 	}
 }

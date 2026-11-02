@@ -128,5 +128,6 @@
   "message.bettercoppers.eyes_set": "Die Augen des Golems leuchten: Er arbeitet jetzt %s %% so weit von zu Hause.",
   "status.bettercoppers.lost_tool": "sucht Ersatz: %s",
   "status.bettercoppers.eyes": "Augen %s %%",
-  "entity.bettercoppers.golem_bobber": "Golem-Schwimmer"
+  "entity.bettercoppers.golem_bobber": "Golem-Schwimmer",
+  "itemGroup.bettercoppers.main": "Better Coppers"
 }

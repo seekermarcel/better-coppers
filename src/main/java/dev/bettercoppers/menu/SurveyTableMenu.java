@@ -28,8 +28,7 @@ public class SurveyTableMenu extends AbstractContainerMenu {
 	public static final int BUTTON_SHORTER = 2;
 	public static final int BUTTON_LONGER = 3;
 	private static final int LENGTH_STEP = 8;
-	private static final int DEFAULT_LENGTH = 32;
-
+	
 	private final ContainerLevelAccess access;
 	private final Container input = new SimpleContainer(1) {
 		@Override
@@ -70,7 +69,7 @@ public class SurveyTableMenu extends AbstractContainerMenu {
 			}
 		});
 		this.addStandardInventorySlots(inventory, 8, 84);
-		this.length.set(DEFAULT_LENGTH);
+		this.length.set(MinePlan.DEFAULT_LENGTH);
 		this.addDataSlot(this.length);
 	}
 

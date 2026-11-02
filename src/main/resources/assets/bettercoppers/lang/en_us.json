@@ -128,5 +128,6 @@
   "message.bettercoppers.eyes_set": "The golem's eyes glow: it now works %s%% as far from home.",
   "status.bettercoppers.lost_tool": "looking for a new %s",
   "status.bettercoppers.eyes": "eyes %s%%",
-  "entity.bettercoppers.golem_bobber": "Golem Bobber"
+  "entity.bettercoppers.golem_bobber": "Golem Bobber",
+  "itemGroup.bettercoppers.main": "Better Coppers"
 }
