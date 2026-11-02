@@ -3,6 +3,10 @@ package dev.bettercoppers.golem;
 import com.google.common.collect.ImmutableMap;
 import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.courier.Couriers;
+import dev.bettercoppers.golem.SortingDestinations.Found;
+import dev.bettercoppers.golem.SortingDestinations.Kind;
+import dev.bettercoppers.golem.SortingDestinations.Spot;
+import dev.bettercoppers.golem.SortingDestinations.Tier;
 import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.FarmBehavior;
@@ -12,7 +16,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,7 +26,6 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
-import net.minecraft.util.Util;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.behavior.Behavior;
@@ -61,17 +63,9 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 	private static final int IDLE_COOLDOWN = 140;
 	private static final int MAX_TRAVEL_TICKS = 600;
 	private static final int MAX_DECOYS = 3;
-	/** Decoys are picked from this many containers closest to the real destination. */
-	private static final int DECOY_CANDIDATES = 6;
 	private static final int MAX_PATH_ATTEMPTS = 4;
 	private static final double QUEUE_DISTANCE = 3.0;
 	private static final double KEEP_INTERACTING_DISTANCE = 2.0;
-
-	private enum Kind {
-		SOURCE,
-		CHEST,
-		BARREL
-	}
 
 	private enum Purpose {
 		PICKUP,
@@ -79,41 +73,11 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 		DELIVER
 	}
 
-	/**
-	 * Where an item may go, in order of preference. A chest or barrel with item frames on it is reserved: it takes the
-	 * items its frames show, and nothing else.
-	 */
-	private enum Tier {
-		FRAMED,
-		MATCHING_CHEST,
-		BARREL,
-		EMPTY_CHEST;
-
-		boolean accepts(Spot spot, ItemStack item) {
-			if (this == FRAMED) {
-				return spot.kind != Kind.SOURCE && showsItem(spot.frames, item) && Inventories.hasRoom(spot.container, item);
-			}
-			if (!spot.frames.isEmpty()) {
-				return false;
-			}
-			return switch (this) {
-				case MATCHING_CHEST -> spot.kind == Kind.CHEST && Inventories.containsItem(spot.container, item) && Inventories.hasRoom(spot.container, item);
-				case BARREL -> spot.kind == Kind.BARREL && Inventories.hasRoom(spot.container, item);
-				case EMPTY_CHEST -> spot.kind == Kind.CHEST && spot.container.isEmpty();
-				case FRAMED -> false;
-			};
-		}
-	}
-
-	/** {@code frames}: the items shown in item frames hung on this container (either half of a double chest). */
-	private record Spot(BlockPos pos, Kind kind, Container container, List<ItemStack> frames) {
-	}
-
 	private @Nullable BlockPos target;
 	private Purpose purpose = Purpose.PICKUP;
 	private Tier tier = Tier.MATCHING_CHEST;
-	/** What the frames on the current delivery target show. */
-	private List<ItemStack> targetFrames = List.of();
+	/** The current delivery target, with the frames on it. */
+	private @Nullable Spot targetSpot;
 	private boolean interacting;
 	private int ticks;
 	private final ArrayDeque<BlockPos> decoys = new ArrayDeque<>();
@@ -220,35 +184,29 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 			this.deliveryPrepared = false;
 			this.minerHomes = MineBehavior.minerHomesNear(level, golem.blockPosition());
 			this.farmerHomes = FarmBehavior.farmerHomesNear(level, golem.blockPosition());
-			return this.targetNearestReachable(
-				level, golem, now, spots, spot -> spot.kind == Kind.SOURCE && isOwnChest(level, golem, spot.pos) && Inventories.contains(spot.container, this.sortableIn(spot.pos, spot.container)), Purpose.PICKUP
-			);
+			List<Spot> sources = spots.stream().filter(spot -> spot.kind() == Kind.SOURCE && isOwnChest(level, golem, spot.pos()) && Inventories.contains(spot.container(), this.sortableIn(spot.pos(), spot.container()))).toList();
+			return this.targetNearestReachable(level, golem, now, sources, Purpose.PICKUP);
 		}
 
-		ItemStack item = hand;
-		for (Tier tier : Tier.values()) {
-			Spot destination = nearest(golem, spots, spot -> tier.accepts(spot, item));
-			if (destination == null) {
-				continue;
-			}
-			if (!this.deliveryPrepared) {
-				this.deliveryPrepared = true;
-				this.planDecoys(level.getRandom(), golem, spots, destination, item, cart != null && !cart.isEmpty());
-			}
-			while (!this.decoys.isEmpty()) {
-				BlockPos decoy = this.decoys.poll();
-				if (Homes.containerAt(level, decoy) != null && this.canReach(level, golem, decoy)) {
-					this.setTarget(golem, decoy, Purpose.DECOY);
-					return true;
-				}
-			}
-			this.tier = tier;
-			boolean found = this.targetNearestReachable(level, golem, now, spots, spot -> tier.accepts(spot, item), Purpose.DELIVER);
-			BlockPos target = this.target;
-			this.targetFrames = spots.stream().filter(spot -> spot.pos.equals(target)).findFirst().map(Spot::frames).orElse(List.of());
-			return found;
+		Found found = SortingDestinations.find(spots, hand, golem.position());
+		if (found == null) {
+			return false;
 		}
-		return false;
+		if (!this.deliveryPrepared) {
+			this.deliveryPrepared = true;
+			this.planDecoys(level.getRandom(), golem, spots, found.spots().get(0), hand, cart != null && !cart.isEmpty());
+		}
+		while (!this.decoys.isEmpty()) {
+			BlockPos decoy = this.decoys.poll();
+			if (Homes.containerAt(level, decoy) != null && this.canReach(level, golem, decoy)) {
+				this.setTarget(golem, decoy, Purpose.DECOY);
+				return true;
+			}
+		}
+		this.tier = found.tier();
+		boolean reached = this.targetNearestReachable(level, golem, now, found.spots(), Purpose.DELIVER);
+		this.targetSpot = reached ? found.spots().stream().filter(spot -> spot.pos().equals(this.target)).findFirst().orElse(null) : null;
+		return reached;
 	}
 
 	/**
@@ -258,41 +216,14 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 		this.decoys.clear();
 		int count = moreDeliveriesAfter ? random.nextInt(this.decoyBudget + 1) : this.decoyBudget;
 		this.decoyBudget -= count;
-		if (count == 0) {
-			return;
-		}
-
-		Set<BlockPos> excluded = new HashSet<>(Homes.sameContainer(golem.level(), destination.pos));
-		List<Spot> candidates = new ArrayList<>();
-		for (Spot spot : spots) {
-			if (spot.kind != Kind.SOURCE && !excluded.contains(spot.pos) && !Inventories.containsItem(spot.container, item)) {
-				candidates.add(spot);
-			}
-		}
-		candidates.sort(Comparator.comparingDouble(spot -> spot.pos.distSqr(destination.pos)));
-		List<Spot> pool = new ArrayList<>(candidates.subList(0, Math.min(DECOY_CANDIDATES, candidates.size())));
-		Util.shuffle(pool, random);
-
-		List<BlockPos> chosen = new ArrayList<>();
-		for (Spot spot : pool) {
-			if (chosen.size() >= count) {
-				break;
-			}
-			if (excluded.contains(spot.pos)) {
-				continue;
-			}
-			chosen.add(spot.pos);
-			excluded.addAll(Homes.sameContainer(golem.level(), spot.pos));
-		}
-		chosen.sort(Comparator.comparingDouble(pos -> pos.distToCenterSqr(golem.position())));
-		this.decoys.addAll(chosen);
+		this.decoys.addAll(SortingDestinations.decoys(spots, destination, item, count, golem.position(), random));
 	}
 
-	private boolean targetNearestReachable(ServerLevel level, CopperGolem golem, long now, List<Spot> spots, Predicate<Spot> filter, Purpose purpose) {
-		List<Spot> candidates = new ArrayList<>(spots.stream().filter(filter).toList());
-		candidates.sort(Comparator.comparingDouble(spot -> spot.pos.distToCenterSqr(golem.position())));
+	private boolean targetNearestReachable(ServerLevel level, CopperGolem golem, long now, List<Spot> spots, Purpose purpose) {
+		List<Spot> candidates = new ArrayList<>(spots);
+		candidates.sort(Comparator.comparingDouble(spot -> spot.pos().distToCenterSqr(golem.position())));
 		for (int i = 0; i < Math.min(MAX_PATH_ATTEMPTS, candidates.size()); i++) {
-			BlockPos pos = candidates.get(i).pos;
+			BlockPos pos = candidates.get(i).pos();
 			if (this.canReach(level, golem, pos)) {
 				this.setTarget(golem, pos, purpose);
 				return true;
@@ -458,8 +389,6 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 	private void deliver(CopperGolem golem, Container destination, long now) {
 		ItemStack hand = golem.getMainHandItem();
 		ItemStack delivered = hand.copyWithCount(1);
-		boolean matchingChest = this.tier == Tier.MATCHING_CHEST;
-		boolean framed = this.tier == Tier.FRAMED;
 		ItemStack left = Inventories.insert(destination, hand);
 		this.setHandItem(golem, left);
 		this.deliveryPrepared = false;
@@ -469,8 +398,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 			// Unload everything of the same kind, and into a sorted chest also anything else it already holds.
 			for (int slot = 0; slot < cart.getContainerSize(); slot++) {
 				ItemStack stack = cart.getItem(slot);
-				boolean belongs = framed ? showsItem(this.targetFrames, stack) : ItemStack.isSameItem(stack, delivered) || matchingChest && Inventories.containsItem(destination, stack);
-				if (!stack.isEmpty() && belongs) {
+				if (!stack.isEmpty() && this.targetSpot != null && SortingDestinations.belongs(stack, delivered, this.targetSpot, this.tier)) {
 					cart.setItem(slot, Inventories.insert(destination, stack));
 				}
 			}
@@ -509,19 +437,10 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 				for (BlockPos part : Homes.sameContainer(level, pos)) {
 					shown.addAll(frames.getOrDefault(part, List.of()));
 				}
-				spots.add(new Spot(pos, kind, container, shown));
+				spots.add(new Spot(pos, kind, container, shown, Set.copyOf(Homes.sameContainer(level, pos))));
 			}
 		});
 		return spots;
-	}
-
-	private static boolean showsItem(List<ItemStack> frames, ItemStack item) {
-		for (ItemStack shown : frames) {
-			if (ItemStack.isSameItem(shown, item)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private static @Nullable Kind kindOf(BlockState state) {
@@ -532,10 +451,6 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 			return Kind.CHEST;
 		}
 		return state.is(Blocks.BARREL) ? Kind.BARREL : null;
-	}
-
-	private static @Nullable Spot nearest(CopperGolem golem, List<Spot> spots, Predicate<Spot> filter) {
-		return spots.stream().filter(filter).min(Comparator.comparingDouble(spot -> spot.pos.distToCenterSqr(golem.position()))).orElse(null);
 	}
 
 	private static boolean isOpenedByOthers(Container container, CopperGolem golem) {
