@@ -9,7 +9,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -118,19 +117,14 @@ public class KeeperBehavior extends JobBehavior<KeeperBehavior.Feeding> {
 		return chest != null && Inventories.contains(chest, animal::isFood);
 	}
 
-	/** What the animals around the keeper eat: its restocking rule, also used for the sorter's working stock. */
-	public static Predicate<ItemStack> foodFor(ServerLevel level, CopperGolem golem) {
-		List<Animal> animals = level.getEntitiesOfClass(Animal.class, new AABB(golem.blockPosition()).inflate(Eyes.radius(golem, RADIUS) + 4, 4, Eyes.radius(golem, RADIUS) + 4), Animal::isAlive);
-		return stack -> animals.stream().anyMatch(animal -> animal.isFood(stack));
-	}
-
 	/** Takes food for the animals around: up to a stack's worth of each kind they eat. */
 	@Override
 	protected void restock(ServerLevel level, CopperGolem golem, Load load, Container chest) {
-		Predicate<ItemStack> food = foodFor(level, golem);
+		BlockPos home = golem.blockPosition();
+		List<Animal> animals = level.getEntitiesOfClass(Animal.class, new AABB(home).inflate(Eyes.radius(golem, RADIUS) + 4, 4, Eyes.radius(golem, RADIUS) + 4), Animal::isAlive);
 		for (int slot = 0; slot < chest.getContainerSize(); slot++) {
 			ItemStack stack = chest.getItem(slot);
-			if (stack.isEmpty() || !food.test(stack)) {
+			if (stack.isEmpty() || animals.stream().noneMatch(animal -> animal.isFood(stack))) {
 				continue;
 			}
 			int missing = FOOD_RESERVE - load.suppliesCount(other -> other.is(stack.getItem()));

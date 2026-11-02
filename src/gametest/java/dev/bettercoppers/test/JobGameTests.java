@@ -652,4 +652,47 @@ public class JobGameTests {
 		chest.setItem(1, new ItemStack(Items.COBBLESTONE, 4));
 		stockStays(h, home, home, new ItemStack(Items.COPPER_HOE), Items.COPPER_HOE);
 	}
+
+	@GameTest(maxTicks = 2400)
+	public void keeper_keeps_food_without_animals(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.WHEAT, Golems.SEED_RESERVE));
+		chest.setItem(1, new ItemStack(Items.COBBLESTONE, 4));
+		stockStays(h, home, home, new ItemStack(Items.BRUSH), Items.WHEAT);
+	}
+
+	/** A sorter takes only the seeds above the reserve, from a stack of this size, in hand and cart alike. */
+	private static void reserveHolds(GameTestHelper h, int seeds, boolean withCart) {
+		scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.WHEAT_SEEDS, seeds));
+		Container destination = GameTests.chest(h, new BlockPos(6, 1, 4), Blocks.CHEST);
+		CopperGolem sorter = GameTests.golem(h, new BlockPos(4, 1, 4));
+		GameTests.energize(sorter);
+		give(h, sorter, new ItemStack(Items.BUNDLE));
+		Homes.set(sorter, h.absolutePos(home));
+		if (withCart) {
+			cart(h, sorter, new BlockPos(5, 1, 3));
+		}
+		CopperGolem farmer = GameTests.golem(h, new BlockPos(3, 1, 3));
+		give(h, farmer, new ItemStack(Items.COPPER_HOE));
+		Homes.set(farmer, h.absolutePos(home));
+		h.succeedWhen(() -> {
+			h.assertTrue(count(destination, Items.WHEAT_SEEDS) == seeds - Golems.SEED_RESERVE, "surplus not delivered yet");
+			h.assertTrue(count(chest, Items.WHEAT_SEEDS) == Golems.SEED_RESERVE, "the reserve is not what is left");
+		});
+	}
+
+	@GameTest(maxTicks = 2400)
+	public void sorter_takes_only_seeds_above_reserve(GameTestHelper h) {
+		reserveHolds(h, Golems.SEED_RESERVE + 4, false);
+	}
+
+	@GameTest(maxTicks = 2400)
+	public void sorter_with_cart_takes_only_seeds_above_reserve(GameTestHelper h) {
+		reserveHolds(h, 64, true);
+	}
 }

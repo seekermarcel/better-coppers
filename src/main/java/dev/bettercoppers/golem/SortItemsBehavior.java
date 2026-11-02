@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -340,28 +340,38 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 	}
 
 	private void pickUp(ServerLevel level, CopperGolem golem, Container source) {
-		Predicate<ItemStack> sortable = WorkingStock.sortableIn(level, this.target, source);
+		ToIntFunction<ItemStack> mayLeave = WorkingStock.surplusIn(level, this.target, source);
 		ItemStack kind = ItemStack.EMPTY;
-		for (ItemStack stack : source) {
-			if (!stack.isEmpty() && sortable.test(stack)) {
+		ItemStack hand = ItemStack.EMPTY;
+		for (int slot = 0; slot < source.getContainerSize(); slot++) {
+			ItemStack stack = source.getItem(slot);
+			int amount = stack.isEmpty() ? 0 : Math.min(Math.min(stack.getCount(), BetterCoppersApi.carryLimit(golem, Golems.HAND_LIMIT)), mayLeave.applyAsInt(stack));
+			if (amount > 0) {
 				kind = stack.copy();
+				hand = source.removeItem(slot, amount);
 				break;
 			}
 		}
 		if (kind.isEmpty()) {
 			return;
 		}
-		ItemStack hand = Inventories.takeFirst(source, BetterCoppersApi.carryLimit(golem, Golems.HAND_LIMIT), sortable);
 		CopperChestMinecart cart = CartChaining.findCart(golem);
 		if (cart != null) {
 			for (int slot = 0; slot < source.getContainerSize(); slot++) {
 				ItemStack stack = source.getItem(slot);
-				if (!stack.isEmpty() && sortable.test(stack) && ItemFamilies.related(kind, stack)) {
-					source.setItem(slot, Inventories.insert(cart, stack));
+				// Only the surplus above the working stock moves, never a whole stack.
+				int amount = stack.isEmpty() || !ItemFamilies.related(kind, stack) ? 0 : Math.min(stack.getCount(), mayLeave.applyAsInt(stack));
+				if (amount > 0) {
+					ItemStack left = Inventories.insert(cart, stack.copyWithCount(amount));
+					stack.shrink(amount - left.getCount());
+					if (stack.isEmpty()) {
+						source.setItem(slot, ItemStack.EMPTY);
+					}
 				}
 			}
 			cart.setChanged();
 		}
+		source.setChanged();
 		this.setHandItem(golem, hand);
 		this.decoyBudget = level.getRandom().nextInt(MAX_DECOYS + 1);
 		this.deliveryPrepared = false;
