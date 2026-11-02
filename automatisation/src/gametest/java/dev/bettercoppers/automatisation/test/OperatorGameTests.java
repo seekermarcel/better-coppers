@@ -28,6 +28,9 @@ public class OperatorGameTests {
 		return (Container) h.getBlockEntity(rel, BlockEntity.class);
 	}
 
+	/** Far enough apart to be separate presses. */
+	private static final int PRESS = 6;
+
 	private static void floor(GameTestHelper h) {
 		for (int x = 0; x < 8; x++) {
 			for (int z = 0; z < 8; z++) {
@@ -68,10 +71,10 @@ public class OperatorGameTests {
 		give(h, player, golem, AutoItems.COPPER_WRENCH);
 		h.assertTrue(Operators.isOperator(golem), "the wrench gave no job");
 		golem.setAttached(AutoAttachments.MACHINE, h.absolutePos(new BlockPos(1, 1, 1)));
-		click(h, player, golem, true, ItemStack.EMPTY);
 		h.startSequence()
-			// Far enough apart to count as a second press.
-			.thenExecuteAfter(6, () -> {
+			// Far enough apart to count as separate presses.
+			.thenExecuteAfter(PRESS, () -> click(h, player, golem, true, ItemStack.EMPTY))
+			.thenExecuteAfter(PRESS, () -> {
 				click(h, player, golem, true, ItemStack.EMPTY);
 				h.assertTrue(player.getInventory().countItem(AutoItems.COPPER_WRENCH) == 1, "wrench not back");
 				h.assertFalse(golem.hasAttached(AutoAttachments.OPERATOR), "operator marker left");
@@ -89,9 +92,9 @@ public class OperatorGameTests {
 		Player player = h.makeMockPlayer(GameType.SURVIVAL);
 		CopperGolem golem = h.spawn(EntityTypes.COPPER_GOLEM, new BlockPos(4, 1, 4));
 		give(h, player, golem, AutoItems.COPPER_WRENCH);
-		click(h, player, golem, true, ItemStack.EMPTY);
 		h.startSequence()
-			.thenExecuteAfter(6, () -> click(h, player, golem, true, ItemStack.EMPTY))
+			.thenExecuteAfter(PRESS, () -> click(h, player, golem, true, ItemStack.EMPTY))
+			.thenExecuteAfter(PRESS, () -> click(h, player, golem, true, ItemStack.EMPTY))
 			.thenExecuteAfter(4, () -> {
 				h.assertTrue(player.getMainHandItem().is(AutoItems.COPPER_WRENCH), "the wrench is not in the selected hand");
 				click(h, player, golem, true, player.getMainHandItem());
@@ -106,17 +109,22 @@ public class OperatorGameTests {
 		Player player = h.makeMockPlayer(GameType.SURVIVAL);
 		CopperGolem golem = h.spawn(EntityTypes.COPPER_GOLEM, new BlockPos(4, 1, 4));
 		give(h, player, golem, Items.COPPER_HOE);
-		click(h, player, golem, true, new ItemStack(Items.WHEAT_SEEDS, 4));
-		give(h, player, golem, AutoItems.COPPER_WRENCH);
-		h.assertTrue(Operators.isOperator(golem), "no operator");
-		h.assertTrue(player.getInventory().countItem(Items.COPPER_HOE) == 1, "hoe not back");
-		h.assertTrue(player.getInventory().countItem(Items.WHEAT_SEEDS) == 4, "supplies not back");
-		// And the other way: the farmer's hoe ends the operator's job.
-		give(h, player, golem, Items.COPPER_HOE);
-		h.assertTrue(BetterCoppersApi.jobOf(golem) == null, "still an operator");
-		h.assertFalse(golem.hasAttached(AutoAttachments.OPERATOR), "operator marker left");
-		h.assertTrue(player.getInventory().countItem(AutoItems.COPPER_WRENCH) == 1, "wrench not back");
-		h.succeed();
+		h.startSequence()
+			.thenExecuteAfter(PRESS, () -> click(h, player, golem, true, new ItemStack(Items.WHEAT_SEEDS, 4)))
+			.thenExecuteAfter(PRESS, () -> {
+				give(h, player, golem, AutoItems.COPPER_WRENCH);
+				h.assertTrue(Operators.isOperator(golem), "no operator");
+				h.assertTrue(player.getInventory().countItem(Items.COPPER_HOE) == 1, "hoe not back");
+				h.assertTrue(player.getInventory().countItem(Items.WHEAT_SEEDS) == 4, "supplies not back");
+			})
+			// And the other way: the farmer's hoe ends the operator's job.
+			.thenExecuteAfter(PRESS, () -> {
+				give(h, player, golem, Items.COPPER_HOE);
+				h.assertTrue(BetterCoppersApi.jobOf(golem) == null, "still an operator");
+				h.assertFalse(golem.hasAttached(AutoAttachments.OPERATOR), "operator marker left");
+				h.assertTrue(player.getInventory().countItem(AutoItems.COPPER_WRENCH) == 1, "wrench not back");
+			})
+			.thenSucceed();
 	}
 
 	@GameTest

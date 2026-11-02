@@ -5,6 +5,7 @@ import dev.bettercoppers.courier.CourierRoute;
 import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.golem.Sorter;
+import dev.bettercoppers.home.HomeLinking;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.golem.Errands;
 import dev.bettercoppers.job.Job;
@@ -58,8 +59,20 @@ public class HandoverGameTests {
 		return player;
 	}
 
-	/** A right-click: the main hand, and the off hand too if that did nothing, each through the callbacks and then vanilla. */
+	/** A new press: the clicks of the last one are over, though the test is still in the same tick. */
 	private static void click(GameTestHelper h, Player player, CopperGolem golem, boolean sneak, ItemStack held) {
+		try {
+			java.lang.reflect.Field presses = HomeLinking.class.getDeclaredField("HANDOVER_PRESSES");
+			presses.setAccessible(true);
+			((java.util.Map<?, ?>) presses.get(null)).remove(player.getUUID());
+		} catch (ReflectiveOperationException e) {
+			throw new IllegalStateException(e);
+		}
+		repeat(h, player, golem, sneak, held);
+	}
+
+	/** A right-click: the main hand, and the off hand too if that did nothing, each through the callbacks and then vanilla. Also a held button's repeat. */
+	private static void repeat(GameTestHelper h, Player player, CopperGolem golem, boolean sneak, ItemStack held) {
 		player.setShiftKeyDown(sneak);
 		player.setItemInHand(InteractionHand.MAIN_HAND, held);
 		for (InteractionHand hand : InteractionHand.values()) {
@@ -275,8 +288,8 @@ public class HandoverGameTests {
 		Player player = player(h);
 		CopperGolem golem = GameTests.golem(h, GOLEM);
 		give(h, player, golem, Items.COPPER_HOE);
-		Runnable sneakClick = () -> click(h, player, golem, true, ItemStack.EMPTY);
-		sneakClick.run();
+		Runnable sneakClick = () -> repeat(h, player, golem, true, ItemStack.EMPTY);
+		click(h, player, golem, true, ItemStack.EMPTY);
 		h.startSequence()
 			.thenExecuteAfter(4, () -> {
 				sneakClick.run();
@@ -301,7 +314,7 @@ public class HandoverGameTests {
 		CopperGolem golem = GameTests.golem(h, GOLEM);
 		give(h, player, golem, Items.COPPER_HOE);
 		Runnable repeat = () -> {
-			click(h, player, golem, true, player.getMainHandItem());
+			repeat(h, player, golem, true, player.getMainHandItem());
 			h.assertFalse(Jobs.has(golem), "the repeat gave the job back");
 			h.assertTrue(player.getMainHandItem().is(Items.COPPER_HOE), "the repeat took the hoe");
 		};
@@ -343,10 +356,37 @@ public class HandoverGameTests {
 		CopperGolem golem = GameTests.golem(h, GOLEM);
 		give(h, player, golem, Items.COPPER_HOE);
 		h.startSequence()
-			.thenExecuteAfter(4, () -> click(h, player, golem, true, ItemStack.EMPTY))
+			.thenExecuteAfter(4, () -> repeat(h, player, golem, true, ItemStack.EMPTY))
 			.thenExecuteAfter(4, () -> {
-				click(h, player, golem, true, ItemStack.EMPTY);
+				repeat(h, player, golem, true, ItemStack.EMPTY);
 				h.assertTrue(Jobs.has(golem), "ended while the button was held");
+			})
+			.thenSucceed();
+	}
+
+	/** The hoe that comes back lands in the selected hand, and a held button must not give it straight back. */
+	@GameTest(maxTicks = 100)
+	public void held_button_does_not_flip_a_job_switch_back(GameTestHelper h) {
+		JobGameTests.scene(h);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		give(h, player, golem, Items.COPPER_HOE);
+		Runnable repeat = () -> {
+			repeat(h, player, golem, true, player.getMainHandItem());
+			h.assertValueEqual(Jobs.of(golem), JobKind.MINER, "the repeat switched the job");
+			h.assertTrue(player.getMainHandItem().is(Items.COPPER_HOE), "the repeat took the hoe");
+		};
+		h.startSequence()
+			.thenExecuteAfter(NEW_PRESS, () -> {
+				click(h, player, golem, true, new ItemStack(Items.COPPER_PICKAXE));
+				h.assertValueEqual(Jobs.of(golem), JobKind.MINER, "not switched");
+				h.assertTrue(player.getMainHandItem().is(Items.COPPER_HOE), "the hoe is not in the selected hand");
+			})
+			.thenExecuteAfter(4, repeat)
+			.thenExecuteAfter(4, repeat)
+			.thenExecuteAfter(12, () -> {
+				click(h, player, golem, true, player.getMainHandItem());
+				h.assertValueEqual(Jobs.of(golem), JobKind.WORKER, "a new press did not switch");
 			})
 			.thenSucceed();
 	}
@@ -575,10 +615,14 @@ public class HandoverGameTests {
 		BetterCoppersApi.giveTool(player, worker, new ItemStack(Items.STICK));
 		assertFarmerGaveEverything(h, player, worker);
 		JobGameTests.ADDON_WORKPLACES.put(worker.getUUID(), null);
-		give(h, player, worker, Items.COPPER_HOE);
-		h.assertFalse(JobGameTests.ADDON_WORKPLACES.containsKey(worker.getUUID()), "add-on job not told it ended");
-		h.assertValueEqual(Jobs.of(worker), JobKind.WORKER, "job");
-		h.succeed();
+		// The api call was a press of its own: a new one comes later.
+		h.startSequence()
+			.thenExecuteAfter(NEW_PRESS, () -> {
+				give(h, player, worker, Items.COPPER_HOE);
+				h.assertFalse(JobGameTests.ADDON_WORKPLACES.containsKey(worker.getUUID()), "add-on job not told it ended");
+				h.assertValueEqual(Jobs.of(worker), JobKind.WORKER, "job");
+			})
+			.thenSucceed();
 	}
 
 	// --- refusals ---

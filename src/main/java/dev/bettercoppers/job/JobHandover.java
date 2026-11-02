@@ -30,6 +30,7 @@ public final class JobHandover {
 	/** Puts one of {@code held} in the golem's hand, ending any other job. The same job with a new tool only swaps tools. The cart stays chained. */
 	public static void giveTool(Player player, CopperGolem golem, ItemStack held) {
 		ItemStack tool = held.copyWithCount(1);
+		HomeLinking.markHandover(player, golem);
 		// First, so what comes back can use the slot.
 		held.consume(1, player);
 		if (isSameJob(golem, tool)) {
@@ -46,6 +47,7 @@ public final class JobHandover {
 
 	/** Ends the job and leaves the golem with empty hands. The cart stays chained; a sorter's new bundle goes in after this. */
 	public static void clear(Player player, CopperGolem golem) {
+		HomeLinking.markHandover(player, golem);
 		giveBack(player, golem, EquipmentSlot.MAINHAND);
 		giveBack(player, golem, EquipmentSlot.OFFHAND);
 		Load.of(golem).handOver(stack -> Inventories.giveOrDrop(player, stack));

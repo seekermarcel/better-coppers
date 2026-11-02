@@ -49,9 +49,9 @@ public class BetterCoppers implements ModInitializer {
 		ModMenus.init();
 		Couriers.init();
 		// In a phase of its own, as an add-on's handlers can register before these: mod load order varies.
-		Identifier endingPress = id("ending_press");
-		UseEntityCallback.EVENT.addPhaseOrdering(endingPress, Event.DEFAULT_PHASE);
-		UseEntityCallback.EVENT.register(endingPress, HomeLinking::onEndingPress);
+		Identifier handoverPress = id("handover_press");
+		UseEntityCallback.EVENT.addPhaseOrdering(handoverPress, Event.DEFAULT_PHASE);
+		UseEntityCallback.EVENT.register(handoverPress, HomeLinking::onHandoverPress);
 		// First of the rest, so non-copper tools are refused before any job takes them.
 		UseEntityCallback.EVENT.register(Tools::onUseEntity);
 		// Before HomeLinking, which stops every other plain empty-hand click on a golem with a job.
