@@ -9,6 +9,7 @@ import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.api.TravelWatch;
 import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.home.Homes;
+import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.upkeep.Upkeep;
 import java.util.HashMap;
@@ -69,7 +70,7 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 			return false;
 		}
 		// A sorter or courier finishes its delivery first; the hand of a job golem only holds its tool.
-		if (!golem.getMainHandItem().isEmpty() && !Upkeep.isJobGolem(golem)) {
+		if (!golem.getMainHandItem().isEmpty() && !Jobs.isPaying(golem)) {
 			return false;
 		}
 		IronGolem found = findPatient(level, golem);

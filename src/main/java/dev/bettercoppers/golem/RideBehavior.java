@@ -2,7 +2,7 @@ package dev.bettercoppers.golem;
 
 import com.google.common.collect.ImmutableMap;
 import dev.bettercoppers.guide.Guide;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.job.Jobs;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -79,7 +79,7 @@ public class RideBehavior extends Behavior<CopperGolem> {
 			current.setDeltaMovement(Vec3.ZERO);
 			return false;
 		}
-		if ((level.getGameTime() + golem.getId()) % SEARCH_INTERVAL != 0 || golem.isLeashed() || !Upkeep.hasJob(golem) || CartChaining.findCart(golem) != null) {
+		if ((level.getGameTime() + golem.getId()) % SEARCH_INTERVAL != 0 || golem.isLeashed() || !Jobs.has(golem) || CartChaining.findCart(golem) != null) {
 			// Golems without a job walk, as in vanilla. A golem towing a chained cart stays on foot: the cart would not keep up.
 			return false;
 		}
@@ -91,7 +91,7 @@ public class RideBehavior extends Behavior<CopperGolem> {
 		if (current != null) {
 			// A working golem that ended up alone in a cart or boat by bumping into it uses it if it goes the right
 			// way, or else climbs out and walks. Golems without a job may stay parked in a boat, as in vanilla.
-			if (!(current instanceof Minecart || current instanceof AbstractBoat) || current.getPassengers().size() != 1 || !Upkeep.hasJob(golem)) {
+			if (!(current instanceof Minecart || current instanceof AbstractBoat) || current.getPassengers().size() != 1 || !Jobs.has(golem)) {
 				return false;
 			}
 			if (far && leadsTowards(level, current, goal.subtract(golem.position()).multiply(1.0, 0.0, 1.0).normalize())) {

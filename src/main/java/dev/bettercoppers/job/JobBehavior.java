@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.api.TravelWatch;
-import dev.bettercoppers.mining.MinerData;
 import dev.bettercoppers.upkeep.Upkeep;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,15 +88,15 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 	}
 
 	private boolean hasWork(CopperGolem golem) {
-		if (golem.isLeashed() || WorkerData.get(golem) == null || Homes.get(golem) == null) {
+		if (golem.isLeashed() || WorkerData.get(golem) == null || Homes.get(golem) == null || Jobs.of(golem) != Jobs.JobKind.WORKER) {
 			return false;
 		}
 		if (this.job.isTool(golem.getMainHandItem())) {
 			return true;
 		}
-		// Tool broke: its own job takes the load home. Tool taken away: the first job does, unless the miner's job will.
+		// Tool broke: its own job takes the load home. Tool taken away: the first job does.
 		Job current = WorkerData.job(golem);
-		boolean takesLoadHome = current == this.job || current == null && this.job == Job.values()[0] && MinerData.get(golem) == null;
+		boolean takesLoadHome = current == this.job || current == null && this.job == Job.values()[0];
 		return takesLoadHome && !Load.of(golem).hasNothingToBringHome();
 	}
 

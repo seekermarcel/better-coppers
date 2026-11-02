@@ -1,7 +1,7 @@
 package dev.bettercoppers.mixin;
 
 import dev.bettercoppers.golem.Errands;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.job.Jobs;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.behavior.TransportItemsBetweenContainers;
@@ -29,6 +29,6 @@ public abstract class TransportItemsBetweenContainersMixin {
 	}
 
 	private static boolean isBlocked(PathfinderMob mob) {
-		return mob instanceof CopperGolem golem && (Upkeep.hasJob(golem) || Errands.isBusy(golem));
+		return mob instanceof CopperGolem golem && (Jobs.has(golem) || Errands.isBusy(golem));
 	}
 }

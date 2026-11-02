@@ -2,7 +2,6 @@ package dev.bettercoppers.golem;
 
 import com.google.common.collect.ImmutableMap;
 import dev.bettercoppers.api.BetterCoppersApi;
-import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.golem.SortingDestinations.Found;
 import dev.bettercoppers.golem.SortingDestinations.Kind;
 import dev.bettercoppers.golem.SortingDestinations.Spot;
@@ -10,8 +9,8 @@ import dev.bettercoppers.golem.SortingDestinations.Tier;
 import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.FarmBehavior;
+import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.mining.MineBehavior;
-import dev.bettercoppers.upkeep.Upkeep;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -93,11 +92,12 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 
 	@Override
 	protected boolean checkExtraStartConditions(ServerLevel level, CopperGolem golem) {
-		if (Couriers.isCourier(golem) || BetterCoppersApi.jobOf(golem) != null) {
+		Jobs.JobKind kind = Jobs.of(golem);
+		if (kind == Jobs.JobKind.COURIER || kind == Jobs.JobKind.ADDON) {
 			// Their own behaviours decide when they rest; the idle cooldown below would stop them.
 			return false;
 		}
-		if (!Upkeep.hasJob(golem)) {
+		if (kind == Jobs.JobKind.NONE) {
 			// Vanilla transport handles golems without a job; a cooldown here would block it.
 			return false;
 		}
@@ -116,9 +116,9 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 		return golem.getBrain().getMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS).isEmpty() && !golem.isPanicking() && !golem.isLeashed() && isActiveSorter(level, golem);
 	}
 
-	/** Holds a bundle, has a home, and has no other job. */
+	/** Its job is sorting, and it has a home. */
 	private static boolean isActiveSorter(ServerLevel level, CopperGolem golem) {
-		return Sorter.isSorter(golem) && !Upkeep.isJobGolem(golem) && !Couriers.isCourier(golem) && !Errands.isBusy(golem) && Homes.valid(level, golem) != null;
+		return Jobs.of(golem) == Jobs.JobKind.SORTER && !Errands.isBusy(golem) && Homes.valid(level, golem) != null;
 	}
 
 	/** A sorter only empties its own copper chest (either half, if it is a double chest). */

@@ -1,5 +1,6 @@
 package dev.bettercoppers.combat;
 
+import dev.bettercoppers.job.Jobs;
 import java.util.EnumSet;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
@@ -28,7 +29,7 @@ public class GuardCopperGolemsGoal extends Goal {
 		}
 		CopperGolem nearest = null;
 		double nearestDistance = Double.MAX_VALUE;
-		for (CopperGolem candidate : this.golem.level().getEntitiesOfClass(CopperGolem.class, this.golem.getBoundingBox().inflate(SEARCH_RANGE), GolemGuards::isSettled)) {
+		for (CopperGolem candidate : this.golem.level().getEntitiesOfClass(CopperGolem.class, this.golem.getBoundingBox().inflate(SEARCH_RANGE), candidate -> candidate.isAlive() && Jobs.has(candidate))) {
 			double distance = this.golem.distanceToSqr(candidate);
 			if (distance < nearestDistance) {
 				nearest = candidate;

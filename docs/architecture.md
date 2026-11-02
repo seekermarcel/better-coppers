@@ -6,7 +6,7 @@ The flows and traps that no single file shows. Vocabulary is in [`GLOSSARY.md`](
 
 `CopperGolemAiMixin` puts `GolemBrain.modBehaviours()` in front of vanilla's idle activity. Vanilla's behaviours stay in the list, and `TransportItemsBetweenContainersMixin` blocks vanilla transport for a golem with a job or on an errand.
 
-Each behaviour decides for itself whether it applies, in its start conditions, and order in `modBehaviours()` matters:
+Each behaviour decides for itself whether it applies, in its start conditions, which ask `Jobs.of`. Order in `modBehaviours()` matters:
 - `RideBehavior` is last among priority 0, so it sees the walk target the job behaviours just set.
 - `HomeStroll` is priority 1, so it runs after every job and stops vanilla's stroll from starting.
 - Add-on behaviours from the API come after the base jobs and before `RideBehavior`.
@@ -19,15 +19,9 @@ Right-clicks run through the `UseEntityCallback` handlers in the order `BetterCo
 
 A job is derived from what the golem holds and which data it has, with no stored job field. Miners and the `Job` enum's jobs need both the tool and a player-created attachment, which is what stops an untouched golem from gaining a job by picking up a tool. A sorter holds its bundle in the off hand, which vanilla transport leaves alone, and a courier is defined by its route.
 
-Several method names are narrower or older than they sound:
+`Jobs` answers from those facts. When a golem seems to have two jobs the first match wins: route, add-on job, job tool in hand or lost, a load left after the tool was taken (miner first, until ending a job clears it), bundle. So a courier carrying a hoe is a courier and a sorter handed a hoe is a worker. `Jobs.has` is the vanilla rule's predicate and runs for every golem, so it must stay free of entity searches for an untouched golem. `Jobs.place` is the workplace, then the home, which stays linked underneath.
 
-| Method | Actually means |
-|---|---|
-| `Upkeep.hasJob` | Has any job. This is the vanilla rule's predicate. |
-| `Upkeep.isJobGolem` | Has a paying job, so not sorter or courier. |
-| `WorkerData.isWorker` | Has one of the `Job` enum's jobs, or worker data and a load to bring home, so not miner. |
-| `GolemGuards.isSettled` | Alive and has a job. It says nothing about a home. |
-| `Upkeep.homeOf` | Home, else workplace, else the golem's current position. |
+`WorkerData.job` is narrower than it sounds: it names the job of the tool, given worker data, and also answers for a courier carrying that tool. Ask `Jobs.of` what the golem's job is.
 
 The `Job` enum holds only the five jobs that share `JobBehavior`. Miner, sorter and courier have their own code, and add-on jobs are `GolemJob`s.
 

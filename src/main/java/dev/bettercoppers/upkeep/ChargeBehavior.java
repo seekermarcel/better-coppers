@@ -6,6 +6,7 @@ import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.block.ChargingPadBlock;
 import dev.bettercoppers.golem.Errands;
 import dev.bettercoppers.guide.Guide;
+import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.registry.ModBlocks;
 import java.util.HashSet;
 import java.util.Set;
@@ -62,7 +63,7 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 	}
 
 	private static boolean wantsCharge(ServerLevel level, CopperGolem golem) {
-		if (golem.isLeashed() || !Upkeep.isJobGolem(golem) || Errands.isBusy(golem)) {
+		if (golem.isLeashed() || !Jobs.isPaying(golem) || Errands.isBusy(golem)) {
 			return false;
 		}
 		int energy = Upkeep.get(golem).energy();
@@ -85,7 +86,7 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 				return;
 			}
 			this.searchCooldown = RESEARCH_TICKS;
-			this.pad = findPad(level, Upkeep.homeOf(golem), golem, Set.of());
+			this.pad = findPad(level, searchCentre(golem), golem, Set.of());
 			this.travelTicks = 0;
 			if (this.pad == null) {
 				return;
@@ -124,17 +125,22 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 	 */
 	public static void rechargeOvernight(ServerLevel level) {
 		Set<BlockPos> claimed = new HashSet<>();
-		for (CopperGolem golem : level.getEntities(EntityTypeTest.forClass(CopperGolem.class), golem -> golem.isAlive() && Upkeep.isJobGolem(golem))) {
+		for (CopperGolem golem : level.getEntities(EntityTypeTest.forClass(CopperGolem.class), golem -> golem.isAlive() && Jobs.isPaying(golem))) {
 			GolemUpkeep upkeep = Upkeep.get(golem);
 			if (upkeep.energy() >= GolemUpkeep.MAX_ENERGY) {
 				continue;
 			}
-			BlockPos pad = findPad(level, Upkeep.homeOf(golem), golem, claimed);
+			BlockPos pad = findPad(level, searchCentre(golem), golem, claimed);
 			if (pad != null) {
 				claimed.add(pad);
 				upkeep.setEnergy(GolemUpkeep.MAX_ENERGY);
 			}
 		}
+	}
+
+	private static BlockPos searchCentre(CopperGolem golem) {
+		BlockPos place = Jobs.place(golem);
+		return place != null ? place : golem.blockPosition();
 	}
 
 	private static @Nullable BlockPos findPad(ServerLevel level, BlockPos around, CopperGolem golem, Set<BlockPos> claimed) {

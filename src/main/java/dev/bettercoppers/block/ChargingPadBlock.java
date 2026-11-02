@@ -1,6 +1,7 @@
 package dev.bettercoppers.block;
 
 import dev.bettercoppers.guide.Guide;
+import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.upkeep.GolemUpkeep;
 import dev.bettercoppers.upkeep.Upkeep;
 import net.minecraft.core.BlockPos;
@@ -75,7 +76,7 @@ public class ChargingPadBlock extends Block {
 	/** Charges every working golem standing on the pad. */
 	private static void pulse(ServerLevel level, BlockPos pos) {
 		for (CopperGolem golem : level.getEntitiesOfClass(CopperGolem.class, new AABB(pos.above()))) {
-			if (!Upkeep.isJobGolem(golem)) {
+			if (!Jobs.isPaying(golem)) {
 				continue;
 			}
 			GolemUpkeep upkeep = Upkeep.get(golem);

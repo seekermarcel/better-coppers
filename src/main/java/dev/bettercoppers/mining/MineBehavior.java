@@ -8,9 +8,9 @@ import dev.bettercoppers.api.TravelWatch;
 import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.JobBehavior;
+import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.job.Load;
 import dev.bettercoppers.job.Tools;
-import dev.bettercoppers.job.WorkerData;
 import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.registry.ModTags;
 import dev.bettercoppers.upkeep.Upkeep;
@@ -123,11 +123,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 
 	private boolean hasWork(ServerLevel level, CopperGolem golem) {
 		MinerData data = MinerData.get(golem);
-		if (golem.isLeashed() || data == null || Homes.get(golem) == null) {
-			return false;
-		}
-		// Left over from an earlier job: the load now belongs to the worker's job.
-		if (WorkerData.job(golem) != null) {
+		if (golem.isLeashed() || data == null || Homes.get(golem) == null || Jobs.of(golem) != Jobs.JobKind.MINER) {
 			return false;
 		}
 		MinePlan plan = data.plan();
@@ -746,7 +742,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		for (CopperGolem golem : level.getEntitiesOfClass(CopperGolem.class, new AABB(pos).inflate(MINER_HOME_SEARCH_RADIUS))) {
 			MinerData data = MinerData.get(golem);
 			MinePlan plan = data == null ? null : data.plan();
-			if (plan != null && plan.isMarked()) {
+			if (plan != null && plan.isMarked() && Jobs.of(golem) == Jobs.JobKind.MINER) {
 				BlockPos home = Homes.get(golem);
 				if (home != null) {
 					homes.add(home);

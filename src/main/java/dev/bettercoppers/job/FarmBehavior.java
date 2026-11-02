@@ -283,7 +283,7 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 		Set<BlockPos> homes = new HashSet<>();
 		for (CopperGolem golem : level.getEntitiesOfClass(CopperGolem.class, new AABB(pos).inflate(64))) {
 			BlockPos home = Homes.get(golem);
-			if (home != null && Job.FARMER.isTool(golem.getMainHandItem())) {
+			if (home != null && WorkerData.job(golem) == Job.FARMER && Jobs.of(golem) == Jobs.JobKind.WORKER) {
 				homes.add(home);
 			}
 		}

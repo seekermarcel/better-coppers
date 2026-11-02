@@ -1,10 +1,8 @@
 package dev.bettercoppers.home;
 
-import dev.bettercoppers.api.GolemJob;
-import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.courier.CourierRoute;
 import dev.bettercoppers.courier.Couriers;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.job.Jobs;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -39,20 +37,16 @@ public final class HomeDisplay {
 			}
 			for (CopperGolem golem : level.getEntitiesOfClass(CopperGolem.class, player.getBoundingBox().inflate(RANGE))) {
 				CourierRoute route = Couriers.route(golem);
-				BlockPos home = Homes.get(golem);
-				GolemJob addonJob = BetterCoppersApi.jobOf(golem);
-				BlockPos workplace = addonJob == null ? null : addonJob.workplace(golem);
-				if (workplace != null) {
-					drawLine(level, golem, workplace, player);
-				} else if (route != null) {
+				BlockPos place = Jobs.place(golem);
+				if (route != null) {
 					for (BlockPos end : new BlockPos[] {route.from(), route.to()}) {
 						if (end.closerToCenterThan(golem.position(), ROUTE_LINE_RANGE)) {
 							drawLine(level, golem, end, player);
 						}
 					}
-				} else if (home != null) {
-					drawLine(level, golem, home, player);
-				} else if (Upkeep.hasJob(golem)) {
+				} else if (place != null) {
+					drawLine(level, golem, place, player);
+				} else if (Jobs.has(golem)) {
 					level.sendParticles(player, ParticleTypes.SMOKE, false, true, golem.getX(), golem.getY() + 1.2, golem.getZ(), 3, 0.1, 0.1, 0.1, 0.0);
 				}
 			}

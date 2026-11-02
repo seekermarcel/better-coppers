@@ -1,29 +1,53 @@
 package dev.bettercoppers.test;
 
+import dev.bettercoppers.api.BetterCoppersApi;
+import dev.bettercoppers.api.GolemJob;
 import dev.bettercoppers.courier.CourierRoute;
 import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.entity.CopperChestMinecart;
+import dev.bettercoppers.golem.SortItemsBehavior;
 import dev.bettercoppers.home.Homes;
+import dev.bettercoppers.job.CraftBehavior;
+import dev.bettercoppers.job.FarmBehavior;
+import dev.bettercoppers.job.FishBehavior;
+import dev.bettercoppers.job.ForestBehavior;
 import dev.bettercoppers.job.Job;
+import dev.bettercoppers.job.Jobs;
+import dev.bettercoppers.job.Jobs.JobKind;
+import dev.bettercoppers.job.KeeperBehavior;
 import dev.bettercoppers.job.Load;
+import dev.bettercoppers.job.ToolFetchBehavior;
 import dev.bettercoppers.job.Tools;
 import dev.bettercoppers.job.WorkerData;
+import dev.bettercoppers.mining.MineBehavior;
 import dev.bettercoppers.mining.MineLayout;
 import dev.bettercoppers.mining.MinePattern;
 import dev.bettercoppers.mining.MinePlan;
+import dev.bettercoppers.mining.MinerData;
 import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.registry.ModComponents;
 import dev.bettercoppers.registry.ModEntities;
 import dev.bettercoppers.registry.ModItems;
-import dev.bettercoppers.upkeep.Upkeep;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.behavior.Behavior;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.player.Player;
@@ -34,6 +58,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
+import org.jspecify.annotations.Nullable;
 
 /** One game test per job: each builds a small scene, hands the golem its tool the way a player would, and waits. */
 public class JobGameTests {
@@ -59,6 +84,267 @@ public class JobGameTests {
 
 	private static int count(Container container, Item item) {
 		return container.countItem(item);
+	}
+
+	/** Stands in for an add-on's job, for the golems put in this map. */
+	private static final Map<UUID, BlockPos> ADDON_WORKPLACES = new HashMap<>();
+
+	static {
+		BetterCoppersApi.registerJob(new GolemJob() {
+			@Override
+			public boolean has(CopperGolem golem) {
+				return ADDON_WORKPLACES.containsKey(golem.getUUID());
+			}
+
+			@Override
+			public Component name() {
+				return Component.literal("test job");
+			}
+
+			@Override
+			public @Nullable BlockPos workplace(CopperGolem golem) {
+				return ADDON_WORKPLACES.get(golem.getUUID());
+			}
+		});
+	}
+
+	private static void hold(CopperGolem golem, Item item) {
+		golem.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(item));
+	}
+
+	private static void loseTool(CopperGolem golem, Item item) {
+		golem.setAttached(ModAttachments.LOST_TOOL, item);
+	}
+
+	private static void pouch(CopperGolem golem) {
+		Load.of(golem).stash(new ItemStack(Items.COBBLESTONE));
+	}
+
+	private record OrderRow(String name, JobKind expected, Consumer<CopperGolem> setup) {
+	}
+
+	@GameTest
+	public void job_order_table(GameTestHelper h) {
+		scene(h);
+		ItemStack bundle = new ItemStack(Items.BUNDLE);
+		CourierRoute route = new CourierRoute(h.absolutePos(new BlockPos(1, 1, 1)), h.absolutePos(new BlockPos(6, 1, 6)));
+		BlockPos home = h.absolutePos(new BlockPos(2, 1, 2));
+		List<OrderRow> rows = List.of(
+			new OrderRow("untouched", JobKind.NONE, g -> {
+			}),
+			new OrderRow("only a home", JobKind.NONE, g -> Homes.set(g, home)),
+			new OrderRow("only a home, holding a hoe", JobKind.NONE, g -> {
+				Homes.set(g, home);
+				hold(g, Items.COPPER_HOE);
+			}),
+			new OrderRow("holding a pickaxe it picked up", JobKind.NONE, g -> hold(g, Items.COPPER_PICKAXE)),
+			new OrderRow("load but no data", JobKind.NONE, JobGameTests::pouch),
+			new OrderRow("miner data, holding a hoe", JobKind.NONE, g -> {
+				MinerData.getOrCreate(g);
+				hold(g, Items.COPPER_HOE);
+			}),
+			new OrderRow("worker data, nothing else", JobKind.NONE, WorkerData::getOrCreate),
+			new OrderRow("worker data and only supplies", JobKind.NONE, g -> {
+				WorkerData.getOrCreate(g);
+				Load.of(g).addSupplies(new ItemStack(Items.WHEAT_SEEDS));
+			}),
+			new OrderRow("farmer", JobKind.WORKER, g -> give(h, g, new ItemStack(Items.COPPER_HOE))),
+			new OrderRow("miner", JobKind.MINER, g -> give(h, g, new ItemStack(Items.COPPER_PICKAXE))),
+			new OrderRow("farmer with a lost tool", JobKind.WORKER, g -> {
+				WorkerData.getOrCreate(g);
+				loseTool(g, Items.COPPER_HOE);
+			}),
+			new OrderRow("miner with a lost tool", JobKind.MINER, g -> {
+				MinerData.getOrCreate(g);
+				loseTool(g, Items.COPPER_PICKAXE);
+			}),
+			new OrderRow("lost tool beats bundle", JobKind.WORKER, g -> {
+				WorkerData.getOrCreate(g);
+				loseTool(g, Items.COPPER_HOE);
+				give(h, g, bundle.copy());
+			}),
+			new OrderRow("both datas, hoe in hand", JobKind.WORKER, g -> {
+				MinerData.getOrCreate(g);
+				give(h, g, new ItemStack(Items.COPPER_HOE));
+			}),
+			new OrderRow("both datas, pickaxe in hand", JobKind.MINER, g -> {
+				WorkerData.getOrCreate(g);
+				give(h, g, new ItemStack(Items.COPPER_PICKAXE));
+			}),
+			new OrderRow("tool taken, worker load", JobKind.WORKER, g -> {
+				WorkerData.getOrCreate(g);
+				pouch(g);
+			}),
+			new OrderRow("tool taken, miner load", JobKind.MINER, g -> {
+				MinerData.getOrCreate(g);
+				pouch(g);
+			}),
+			new OrderRow("tool taken, both datas: miner first", JobKind.MINER, g -> {
+				WorkerData.getOrCreate(g);
+				MinerData.getOrCreate(g);
+				pouch(g);
+			}),
+			new OrderRow("load beats bundle", JobKind.WORKER, g -> {
+				WorkerData.getOrCreate(g);
+				pouch(g);
+				give(h, g, bundle.copy());
+			}),
+			new OrderRow("sorter", JobKind.SORTER, g -> give(h, g, bundle.copy())),
+			new OrderRow("sorter carrying a hoe it picked up", JobKind.SORTER, g -> {
+				give(h, g, bundle.copy());
+				hold(g, Items.COPPER_HOE);
+			}),
+			new OrderRow("sorter with stale data", JobKind.SORTER, g -> {
+				WorkerData.getOrCreate(g);
+				give(h, g, bundle.copy());
+			}),
+			new OrderRow("sorter handed a hoe", JobKind.WORKER, g -> {
+				give(h, g, bundle.copy());
+				give(h, g, new ItemStack(Items.COPPER_HOE));
+			}),
+			new OrderRow("courier", JobKind.COURIER, g -> Couriers.setRoute(g, route)),
+			new OrderRow("courier carrying a hoe, stale data", JobKind.COURIER, g -> {
+				give(h, g, new ItemStack(Items.COPPER_HOE));
+				Couriers.setRoute(g, route);
+			}),
+			new OrderRow("courier with a bundle", JobKind.COURIER, g -> {
+				give(h, g, bundle.copy());
+				Couriers.setRoute(g, route);
+			}),
+			new OrderRow("add-on job", JobKind.ADDON, g -> ADDON_WORKPLACES.put(g.getUUID(), null)),
+			new OrderRow("add-on job beats a tool", JobKind.ADDON, g -> {
+				give(h, g, new ItemStack(Items.COPPER_HOE));
+				ADDON_WORKPLACES.put(g.getUUID(), null);
+			}),
+			new OrderRow("route beats add-on job", JobKind.COURIER, g -> {
+				ADDON_WORKPLACES.put(g.getUUID(), null);
+				Couriers.setRoute(g, route);
+			})
+		);
+		for (OrderRow row : rows) {
+			CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
+			row.setup().accept(golem);
+			h.assertValueEqual(Jobs.of(golem), row.expected(), row.name());
+			h.assertValueEqual(Jobs.has(golem), row.expected() != JobKind.NONE, row.name() + ": has");
+			boolean paying = row.expected() == JobKind.MINER || row.expected() == JobKind.WORKER || row.expected() == JobKind.ADDON;
+			h.assertValueEqual(Jobs.isPaying(golem), paying, row.name() + ": paying");
+			ADDON_WORKPLACES.remove(golem.getUUID());
+			golem.discard();
+		}
+		h.succeed();
+	}
+
+	@GameTest
+	public void place_is_workplace_then_home(GameTestHelper h) {
+		scene(h);
+		BlockPos home = h.absolutePos(new BlockPos(2, 1, 2));
+		BlockPos workplace = h.absolutePos(new BlockPos(6, 1, 6));
+		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
+		h.assertTrue(Jobs.place(golem) == null, "untouched golem has a place");
+		Homes.set(golem, home);
+		h.assertValueEqual(Jobs.place(golem), home, "home");
+		ADDON_WORKPLACES.put(golem.getUUID(), workplace);
+		h.assertValueEqual(Jobs.place(golem), workplace, "workplace");
+		ADDON_WORKPLACES.remove(golem.getUUID());
+		h.assertValueEqual(Jobs.place(golem), home, "home again when the job ends");
+		Couriers.setRoute(golem, new CourierRoute(home, workplace));
+		h.assertTrue(Jobs.place(golem) == null, "courier has a place");
+		h.succeed();
+	}
+
+	private record StartRow(String name, Set<String> expected, Consumer<CopperGolem> setup) {
+	}
+
+	/** Who starts for a golem that may seem to have two jobs: a shared load has exactly one behaviour taking it home. */
+	@GameTest
+	public void exactly_one_behaviour_starts(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(2, 1, 2);
+		GameTests.chest(h, home, COPPER_CHEST);
+		Map<String, Supplier<? extends Behavior<CopperGolem>>> behaviours = Map.of(
+			"mine", MineBehavior::new,
+			"forest", ForestBehavior::new,
+			"fish", FishBehavior::new,
+			"keep", KeeperBehavior::new,
+			"craft", CraftBehavior::new,
+			"farm", FarmBehavior::new,
+			"sort", SortItemsBehavior::new,
+			"fetch", ToolFetchBehavior::new
+		);
+		CourierRoute route = new CourierRoute(h.absolutePos(new BlockPos(1, 1, 1)), h.absolutePos(new BlockPos(6, 1, 6)));
+		List<StartRow> rows = List.of(
+			new StartRow("tool taken, both datas", Set.of("mine"), g -> {
+				WorkerData.getOrCreate(g);
+				MinerData.getOrCreate(g);
+				pouch(g);
+			}),
+			new StartRow("tool taken, worker data", Set.of("forest"), g -> {
+				WorkerData.getOrCreate(g);
+				pouch(g);
+			}),
+			new StartRow("tool taken, miner data", Set.of("mine"), g -> {
+				MinerData.getOrCreate(g);
+				pouch(g);
+			}),
+			new StartRow("broken hoe, both datas, load", Set.of("farm"), g -> {
+				WorkerData.getOrCreate(g);
+				MinerData.getOrCreate(g);
+				loseTool(g, Items.COPPER_HOE);
+				pouch(g);
+			}),
+			new StartRow("broken pickaxe, both datas, load", Set.of("mine"), g -> {
+				WorkerData.getOrCreate(g);
+				MinerData.getOrCreate(g);
+				loseTool(g, Items.COPPER_PICKAXE);
+				pouch(g);
+			}),
+			new StartRow("hoe, both datas, load", Set.of("farm"), g -> {
+				MinerData.getOrCreate(g);
+				give(h, g, new ItemStack(Items.COPPER_HOE));
+				pouch(g);
+			}),
+			new StartRow("pickaxe, both datas, load", Set.of("mine"), g -> {
+				WorkerData.getOrCreate(g);
+				give(h, g, new ItemStack(Items.COPPER_PICKAXE));
+				pouch(g);
+			}),
+			new StartRow("broken hoe, no load, goes for a new one", Set.of("fetch"), g -> {
+				WorkerData.getOrCreate(g);
+				loseTool(g, Items.COPPER_HOE);
+			}),
+			new StartRow("sorter", Set.of("sort"), g -> give(h, g, new ItemStack(Items.BUNDLE))),
+			new StartRow("sorter with stale data and a load", Set.of("forest"), g -> {
+				WorkerData.getOrCreate(g);
+				pouch(g);
+				give(h, g, new ItemStack(Items.BUNDLE));
+			}),
+			new StartRow("untouched, holding a hoe", Set.of(), g -> hold(g, Items.COPPER_HOE)),
+			new StartRow("courier carrying a hoe, stale data and a load", Set.of(), g -> {
+				give(h, g, new ItemStack(Items.COPPER_HOE));
+				MinerData.getOrCreate(g);
+				pouch(g);
+				loseTool(g, Items.COPPER_HOE);
+				Couriers.setRoute(g, route);
+				Homes.set(g, h.absolutePos(home));
+			})
+		);
+		for (StartRow row : rows) {
+			Set<String> started = new TreeSet<>();
+			behaviours.forEach((name, behaviour) -> {
+				CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
+				GameTests.energize(golem);
+				Homes.set(golem, h.absolutePos(home));
+				row.setup().accept(golem);
+				// A new golem starts on a random cooldown, and it would refuse every start.
+				golem.getBrain().eraseMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS);
+				if (behaviour.get().tryStart(h.getLevel(), golem, 0L)) {
+					started.add(name);
+				}
+				golem.discard();
+			});
+			h.assertValueEqual(started, new TreeSet<>(row.expected()), row.name());
+		}
+		h.succeed();
 	}
 
 	@GameTest(maxTicks = 1200)
@@ -163,7 +449,7 @@ public class JobGameTests {
 		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
 		give(h, golem, new ItemStack(Items.IRON_HOE));
 		h.assertTrue(golem.getMainHandItem().isEmpty(), "golem took an iron hoe");
-		h.assertTrue(!Upkeep.hasJob(golem), "golem got a job from an iron hoe");
+		h.assertTrue(!Jobs.has(golem), "golem got a job from an iron hoe");
 		h.succeed();
 	}
 

@@ -11,7 +11,7 @@ Everything runs in the flake dev shell:
 ## Package map (`src/main/java/dev/bettercoppers/`)
 - `api`: BetterCoppersApi, TravelWatch, hooks for add-ons (jobs, behaviours, link targets, modifiers, pads, handbook)
 - `golem`: GolemBrain (registers behaviours), Golems, Inventories, ItemFamilies, Sorter, SortItemsBehavior, Errands, RideBehavior, CartChaining, Eyes, HomeStroll
-- `job`: Job enum, JobBehavior, WorkerData, WorkerInteractions, Tools, ToolFetchBehavior, Farm/Forest/Fish/Keeper/CraftBehavior
+- `job`: Jobs (what a golem's job is and where it belongs), Load (what it carries), Job enum, JobBehavior, WorkerData, WorkerInteractions, Tools, ToolFetchBehavior, Farm/Forest/Fish/Keeper/CraftBehavior
 - `guide`: Golem Handbook, guide advancements
 - `mining`: miner job, mine layout and plan
 - `courier`: routes and chunk tickets
@@ -30,7 +30,7 @@ Everything runs in the flake dev shell:
 - `CONTRIBUTING.md`: the steps for adding a job and for releases.
 
 ## The vanilla rule
-Anything that happens automatically to a golem no player touched is exactly vanilla. Mod behaviour starts only after a deliberate player action (job item, route, home link, chain, trim, eyes). "Without a job" is `!Upkeep.hasJob(golem)`, even if the golem has a home: a golem with only a home (no job item, no route) still sorts like vanilla. The one exception is the axe dispenser, which scrapes any golem in front of it, because the player built it on purpose.
+Anything that happens automatically to a golem no player touched is exactly vanilla. Mod behaviour starts only after a deliberate player action (job item, route, home link, chain, trim, eyes). "Without a job" is `!Jobs.has(golem)`, even if the golem has a home: a golem with only a home (no job item, no route) still sorts like vanilla. The one exception is the axe dispenser, which scrapes any golem in front of it, because the player built it on purpose.
 
 ## Conventions
 Tabs, short Javadocs, English. Conventional commit messages. Never commit `docs/superpowers/` (gitignored). Only the latest Minecraft version is supported (ADR 0005).

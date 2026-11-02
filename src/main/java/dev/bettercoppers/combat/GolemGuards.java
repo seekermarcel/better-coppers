@@ -1,8 +1,8 @@
 package dev.bettercoppers.combat;
 
+import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.mixin.MobAccessor;
 import dev.bettercoppers.mixin.NearestAttackableTargetGoalAccessor;
-import dev.bettercoppers.upkeep.Upkeep;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
@@ -30,11 +30,6 @@ public final class GolemGuards {
 		}
 	}
 
-	/** Only golems with a job are worth hunting or guarding; the rest stay vanilla. */
-	public static boolean isSettled(CopperGolem golem) {
-		return golem.isAlive() && Upkeep.hasJob(golem);
-	}
-
 	private static void addHuntGoal(Mob mob) {
 		GoalSelector targets = ((MobAccessor) mob).bettercoppers$getTargetSelector();
 		int priority = -1;
@@ -52,7 +47,7 @@ public final class GolemGuards {
 		}
 		if (priority >= 0) {
 			targets.addGoal(priority, new NearestAttackableTargetGoal<>(mob, CopperGolem.class, true,
-				(target, level) -> target instanceof CopperGolem golem && isSettled(golem)));
+				(target, level) -> target instanceof CopperGolem golem && golem.isAlive() && Jobs.has(golem)));
 		}
 	}
 
