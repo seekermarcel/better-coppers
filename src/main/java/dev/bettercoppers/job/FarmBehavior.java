@@ -29,7 +29,6 @@ import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -276,17 +275,5 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 				load.addSupplies(Inventories.takeFirst(chest, missing, stack -> stack.is(seed)));
 			}
 		}
-	}
-
-	/** Home chests of the farmer golems around {@code pos}. */
-	public static Set<BlockPos> farmerHomesNear(ServerLevel level, BlockPos pos) {
-		Set<BlockPos> homes = new HashSet<>();
-		for (CopperGolem golem : level.getEntitiesOfClass(CopperGolem.class, new AABB(pos).inflate(64))) {
-			BlockPos home = Homes.get(golem);
-			if (home != null && WorkerData.job(golem) == Job.FARMER && Jobs.of(golem) == Jobs.JobKind.WORKER) {
-				homes.add(home);
-			}
-		}
-		return homes;
 	}
 }

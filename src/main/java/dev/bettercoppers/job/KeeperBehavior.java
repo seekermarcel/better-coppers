@@ -30,7 +30,7 @@ import org.jspecify.annotations.Nullable;
 public class KeeperBehavior extends JobBehavior<KeeperBehavior.Feeding> {
 	private static final int RADIUS = 10;
 	private static final int HERD_LIMIT = 16;
-	private static final int FOOD_RESERVE = 16;
+	public static final int FOOD_RESERVE = 16;
 	private static final int FEED_TICKS = 25;
 	private static final int ENERGY_PER_FEED = 10;
 
