@@ -11,7 +11,10 @@ import org.jspecify.annotations.Nullable;
  * show up in the status message, pay the running costs (energy, rust) and drop their job items when they die.
  */
 public interface GolemJob {
-	/** Whether this golem currently has this job. */
+	/**
+	 * Whether this golem currently has this job. An item check alone is not enough: a golem can pick up any item by
+	 * itself, and only a player may give a job. Record the player's act (for example in an attachment) and require it.
+	 */
 	boolean has(CopperGolem golem);
 
 	/** The job's name for the status message. */

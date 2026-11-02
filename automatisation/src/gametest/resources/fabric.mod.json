@@ -1,0 +1,15 @@
+{
+	"schemaVersion": 1,
+	"id": "bettercoppers-automatisation-gametest",
+	"version": "1.0.0",
+	"name": "Better Coppers Automatisation game tests",
+	"environment": "*",
+	"entrypoints": {
+		"fabric-gametest": [
+			"dev.bettercoppers.automatisation.test.OperatorGameTests"
+		]
+	},
+	"depends": {
+		"bettercoppers_automatisation": "*"
+	}
+}

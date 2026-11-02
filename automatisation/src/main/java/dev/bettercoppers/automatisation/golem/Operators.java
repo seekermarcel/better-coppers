@@ -89,7 +89,7 @@ public final class Operators {
 	}
 
 	public static boolean isOperator(CopperGolem golem) {
-		return golem.getMainHandItem().getItem() instanceof WrenchItem;
+		return golem.hasAttached(AutoAttachments.OPERATOR) && golem.getMainHandItem().getItem() instanceof WrenchItem;
 	}
 
 	public static @Nullable BlockPos machine(CopperGolem golem) {
@@ -111,6 +111,7 @@ public final class Operators {
 				BehaviorUtils.throwItem(golem, current, player.position());
 			}
 			golem.setItemSlot(EquipmentSlot.MAINHAND, held.copyWithCount(1));
+			golem.setAttached(AutoAttachments.OPERATOR, true);
 			golem.setGuaranteedDrop(EquipmentSlot.MAINHAND);
 			held.consume(1, player);
 			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET);

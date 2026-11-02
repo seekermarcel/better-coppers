@@ -13,6 +13,11 @@ public final class AutoAttachments {
 		Automatisation.id("machine"), builder -> builder.persistent(BlockPos.CODEC)
 	);
 
+	/** Set when a player handed the golem its wrench; a wrench picked up by vanilla transport does not count. */
+	public static final AttachmentType<Boolean> OPERATOR = AttachmentRegistry.create(
+		Automatisation.id("operator"), builder -> builder.persistent(com.mojang.serialization.Codec.BOOL)
+	);
+
 	/** Plating, coating, gearwork and satchel a golem has been fitted with. */
 	public static final AttachmentType<GolemUpgrades> UPGRADES = AttachmentRegistry.create(
 		Automatisation.id("upgrades"), builder -> builder.persistent(GolemUpgrades.CODEC)
