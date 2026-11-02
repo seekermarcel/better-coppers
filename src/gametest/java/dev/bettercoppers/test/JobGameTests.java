@@ -362,15 +362,15 @@ public class JobGameTests {
 	}
 
 	/** Chests with the item that the sorter cannot reach come first by distance; they must not hide the one it can. */
-	@GameTest(maxTicks = 300, padding = SORTER_PADDING)
+	@GameTest(maxTicks = 1200, padding = SORTER_PADDING)
 	public void sorter_delivers_past_many_unreachable_matching_chests(GameTestHelper h) {
 		scene(h);
 		BlockPos home = new BlockPos(0, 1, 0);
 		GameTests.chest(h, home, COPPER_CHEST).setItem(0, new ItemStack(Items.COBBLESTONE));
-		Container destination = GameTests.chest(h, new BlockPos(7, 1, 1), Blocks.CHEST);
+		Container destination = GameTests.chest(h, new BlockPos(7, 1, 7), Blocks.CHEST);
 		destination.setItem(0, new ItemStack(Items.COBBLESTONE));
-		// Twelve chests on pillars, nearer to the golem than the destination, and too high to reach.
-		for (int x = 3; x <= 5; x++) {
+		// Twenty-four chests on pillars, nearer to the golem than the destination, and too high to reach.
+		for (int x = 2; x <= 7; x++) {
 			for (int z = 2; z <= 5; z++) {
 				h.setBlock(new BlockPos(x, 1, z), Blocks.STONE);
 				h.setBlock(new BlockPos(x, 2, z), Blocks.STONE);

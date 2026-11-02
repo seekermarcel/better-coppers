@@ -59,7 +59,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 	private static final int MAX_QUEUE_TICKS = 600;
 	private static final int MAX_DECOYS = 3;
 	private static final int MAX_PATH_ATTEMPTS = 4;
-	private static final int MAX_DELIVERY_ROUNDS = 4;
+	private static final int MAX_DELIVERY_ROUNDS = 8;
 	private static final double QUEUE_DISTANCE = 3.0;
 	private static final double KEEP_INTERACTING_DISTANCE = 2.0;
 
