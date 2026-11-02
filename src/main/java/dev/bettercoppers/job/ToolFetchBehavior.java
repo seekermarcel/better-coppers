@@ -36,10 +36,12 @@ public class ToolFetchBehavior extends Behavior<CopperGolem> {
 	private static final int SEARCH_RANGE = 16;
 	private static final int RETRY_TICKS = 600;
 	private static final int TAKE_TICKS = 20;
+	private static final int SHAKE_TICKS = 20;
 
 	private @Nullable BlockPos source;
 	private long nextSearch;
 	private int ticks;
+	private int shake;
 	private final TravelWatch travel = new TravelWatch();
 
 	public ToolFetchBehavior() {
@@ -53,7 +55,7 @@ public class ToolFetchBehavior extends Behavior<CopperGolem> {
 
 	@Override
 	protected boolean canStillUse(ServerLevel level, CopperGolem golem, long timestamp) {
-		return this.source != null && this.wantsTool(level, golem);
+		return this.shake > 0 || this.source != null && this.wantsTool(level, golem);
 	}
 
 	@Override
@@ -79,6 +81,7 @@ public class ToolFetchBehavior extends Behavior<CopperGolem> {
 		if (this.source == null) {
 			// Nothing anywhere: a disappointed head shake, then wait.
 			golem.setState(CopperGolemState.GETTING_NO_ITEM);
+			this.shake = SHAKE_TICKS;
 			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_NO_GET);
 			level.sendParticles(ParticleTypes.SMOKE, golem.getX(), golem.getY() + 1.1, golem.getZ(), 4, 0.15, 0.1, 0.15, 0.0);
 			this.nextSearch = level.getGameTime() + RETRY_TICKS;
@@ -89,10 +92,17 @@ public class ToolFetchBehavior extends Behavior<CopperGolem> {
 	protected void stop(ServerLevel level, CopperGolem golem, long timestamp) {
 		ChestVisit.close(golem, this.source != null && this.ticks > 0 ? Homes.containerAt(level, this.source) : null);
 		this.source = null;
+		this.shake = 0;
 	}
 
 	@Override
 	protected void tick(ServerLevel level, CopperGolem golem, long timestamp) {
+		if (this.shake > 0) {
+			// The head shake: stay put and let it play out. The stop that follows leaves it idle.
+			this.shake--;
+			Golems.stopInPlace(golem);
+			return;
+		}
 		BlockPos source = this.source;
 		Item tool = Tools.lostTool(golem);
 		Container container = source == null ? null : container(level, golem, source);

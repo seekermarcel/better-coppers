@@ -370,6 +370,10 @@ public class JobGameTests {
 		h.assertTrue(fetch.tryStart(h.getLevel(), golem, 0L), "fetch did not start");
 		h.assertTrue(golem.getState() == net.minecraft.world.entity.animal.golem.CopperGolemState.GETTING_NO_ITEM, "no head shake");
 		fetch.tickOrStop(h.getLevel(), golem, 1L);
+		h.assertTrue(golem.getState() == net.minecraft.world.entity.animal.golem.CopperGolemState.GETTING_NO_ITEM, "no head shake after a tick");
+		for (long t = 2L; t < 30L; t++) {
+			fetch.tickOrStop(h.getLevel(), golem, t);
+		}
 		h.assertTrue(golem.getState() == net.minecraft.world.entity.animal.golem.CopperGolemState.IDLE, "still shaking its head");
 		h.succeed();
 	}
