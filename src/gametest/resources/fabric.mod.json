@@ -11,7 +11,8 @@
 			"dev.bettercoppers.test.HandoverGameTests",
 			"dev.bettercoppers.test.MinerGameTests",
 			"dev.bettercoppers.test.RepairGameTests",
-			"dev.bettercoppers.test.VanillaGameTests"
+			"dev.bettercoppers.test.VanillaGameTests",
+			"dev.bettercoppers.test.CreativeTabGameTests"
 		]
 	},
 	"depends": {

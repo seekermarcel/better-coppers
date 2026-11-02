@@ -15,6 +15,8 @@ import net.minecraft.network.codec.StreamCodec;
  */
 public record MinePlan(MinePattern pattern, int length, Optional<BlockPos> entrance, Optional<Direction> heading, int progress) {
 	public static final int MIN_LENGTH = 8;
+	/** Length of the plan the Survey Table offers first. */
+	public static final int DEFAULT_LENGTH = 32;
 	public static final int MAX_LENGTH = 128;
 
 	public static final Codec<MinePlan> CODEC = RecordCodecBuilder.create(

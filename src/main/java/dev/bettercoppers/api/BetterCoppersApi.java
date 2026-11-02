@@ -12,7 +12,9 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
@@ -20,6 +22,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
@@ -34,9 +37,15 @@ import org.jspecify.annotations.Nullable;
  * <li>{@link #registerChargePad}: blocks golems recharge on.</li>
  * <li>{@link #registerHandbookChapter}: chapters for the Golem Handbook; {@link #awardGuide} unlocks guide
  * advancements.</li>
+ * <li>{@link #CREATIVE_TAB}: the mod's creative tab. Add items with
+ * {@code CreativeModeTabEvents.modifyOutputEvent(CREATIVE_TAB)}, which works whichever mod initialises first.</li>
  * </ul>
  */
 public final class BetterCoppersApi {
+	/** Key of the "Better Coppers" creative tab. */
+	public static final ResourceKey<CreativeModeTab> CREATIVE_TAB = ResourceKey.create(
+		Registries.CREATIVE_MODE_TAB, Identifier.fromNamespaceAndPath("bettercoppers", "main")
+	);
 	private static final List<GolemJob> JOBS = new ArrayList<>();
 	private static final List<Supplier<? extends Behavior<CopperGolem>>> BEHAVIORS = new ArrayList<>();
 	private static final List<GolemLinkTarget> LINK_TARGETS = new ArrayList<>();
