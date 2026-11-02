@@ -4,7 +4,12 @@
 	"version": "${version}",
 	"name": "Better Coppers Automatisation",
 	"description": "Conveyor belts, funnels, chutes, presses, saws and grabber arms, all worked by copper golems.",
-	"authors": ["Miodnr"],
+	"authors": ["Miodnr", "Marcel Meier"],
+	"contact": {
+		"homepage": "https://github.com/seekermarcel/better-coppers",
+		"sources": "https://github.com/seekermarcel/better-coppers",
+		"issues": "https://github.com/seekermarcel/better-coppers/issues"
+	},
 	"license": "LGPL-3.0-only",
 	"environment": "*",
 	"entrypoints": {
@@ -23,6 +28,6 @@
 		"minecraft": "~26.3",
 		"java": ">=25",
 		"fabric-api": "*",
-		"bettercoppers": "*"
+		"bettercoppers": "${version}"
 	}
 }

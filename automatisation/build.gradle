@@ -42,6 +42,10 @@ processResources {
 	}
 }
 
+jar {
+	from(rootProject.file("COPYING"), rootProject.file("COPYING.LESSER"))
+}
+
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 25
 }

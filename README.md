@@ -2,7 +2,7 @@
 
 [![build](https://github.com/seekermarcel/better-coppers/actions/workflows/build.yml/badge.svg)](https://github.com/seekermarcel/better-coppers/actions/workflows/build.yml)
 [![release](https://img.shields.io/github/v/release/seekermarcel/better-coppers)](https://github.com/seekermarcel/better-coppers/releases/latest)
-[![license](https://img.shields.io/badge/license-LGPL--3.0-blue)](LICENSE)
+[![license](https://img.shields.io/badge/license-LGPL--3.0-blue)](COPYING.LESSER)
 
 **Copper Golems that do real work.** A Fabric mod for **Minecraft 26.3** that turns the copper golem from a chest shuffler into a small, slightly clumsy worker. It sorts your storage, digs mineshafts, farms and fishes, carries goods across the world, rides minecarts and boats, and gets hunted by monsters. It also needs iron golems to keep it safe, and it patches those iron golems up with your iron.
 
@@ -239,6 +239,10 @@ tools/       TrimGen.java (golem trim textures from the vanilla armour trims), S
              gen_guide.py (advancements and handbook texts of both mods)
 ```
 
+## Credits
+
+Better Coppers was started by [Miodnr](https://github.com/Miodnr), who also wrote the add-on API and the Automatisation add-on in [Mios Coppergolems](https://github.com/Miodnr/mios-coppergolems). Miodnr gave permission for their code to be used here under the LGPL-3.0, even though the metadata of that repository says All-Rights-Reserved.
+
 ## License
 
-[LGPL-3.0](LICENSE)
+[LGPL-3.0](COPYING.LESSER), which builds on the [GPL-3.0](COPYING).
