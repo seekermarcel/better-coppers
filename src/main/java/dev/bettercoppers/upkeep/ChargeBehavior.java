@@ -57,7 +57,7 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 	protected boolean canStillUse(ServerLevel level, CopperGolem golem, long timestamp) {
 		// Once it has come to charge because it ran empty, it stays until it is full, not just until it has a spark.
 		return !golem.isPanicking()
-			&& (wantsCharge(level, golem) || this.pad != null && !golem.isLeashed() && Upkeep.get(golem).energy() < GolemUpkeep.MAX_ENERGY);
+			&& (wantsCharge(level, golem) || this.pad != null && !golem.isLeashed() && Jobs.isPaying(golem) && !Errands.isBusy(golem) && Upkeep.get(golem).energy() < GolemUpkeep.MAX_ENERGY);
 	}
 
 	@Override
