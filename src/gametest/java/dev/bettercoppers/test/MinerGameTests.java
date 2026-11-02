@@ -1,6 +1,7 @@
 package dev.bettercoppers.test;
 
 import dev.bettercoppers.home.Homes;
+import dev.bettercoppers.job.Load;
 import dev.bettercoppers.mining.MineLayout;
 import dev.bettercoppers.mining.MinePattern;
 import dev.bettercoppers.mining.MinePlan;
@@ -22,6 +23,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 /** Describes the miner's current behaviour: supplies, ore and fluids. The scene is a stone block with a shaft heading north. */
 public class MinerGameTests {
@@ -92,6 +94,25 @@ public class MinerGameTests {
 			h.assertTrue(s.golem().blockPosition().distManhattan(h.absolutePos(HOME)) <= 4, "not waiting at home: " + s.golem().blockPosition());
 			h.succeed();
 		});
+	}
+
+	@GameTest(maxTicks = 1200)
+	public void chest_broken_keeps_load_and_resumes(GameTestHelper h) {
+		Scene s = scene(h, false);
+		// A full pouch sends it home; the chest goes while it is on the way.
+		Load.of(s.golem()).stash(new ItemStack(Items.COAL, 64));
+		h.startSequence()
+			.thenExecuteAfter(5, () -> h.setBlock(HOME, Blocks.AIR))
+			.thenExecuteAfter(100, () -> {
+				h.assertValueEqual(Load.of(s.golem()).count(stack -> stack.is(Items.COAL)), 64, "coal carried");
+				h.assertValueEqual(GameTests.dropped(h, Items.COAL), 0, "coal dropped");
+				h.setBlock(HOME, COPPER_CHEST);
+			})
+			.thenWaitUntil(() -> {
+				Container chest = (Container) h.getBlockEntity(HOME, BlockEntity.class);
+				h.assertValueEqual(chest.countItem(Items.COAL), 64, "coal in the new chest");
+			})
+			.thenSucceed();
 	}
 
 	@GameTest(maxTicks = 3600)

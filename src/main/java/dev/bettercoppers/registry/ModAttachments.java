@@ -3,6 +3,7 @@ package dev.bettercoppers.registry;
 import com.mojang.serialization.Codec;
 import dev.bettercoppers.BetterCoppers;
 import dev.bettercoppers.courier.CourierRoute;
+import dev.bettercoppers.job.Load;
 import dev.bettercoppers.job.WorkerData;
 import dev.bettercoppers.mining.MinerData;
 import dev.bettercoppers.upkeep.GolemUpkeep;
@@ -17,15 +18,21 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.equipment.trim.ArmorTrim;
 
 public final class ModAttachments {
-	/** Plan, pouch and supplies of a copper golem that was handed a pickaxe. */
+	/** The plan of a copper golem that was handed a pickaxe. Having this says a player made it a miner. */
 	public static final AttachmentType<MinerData> MINER = AttachmentRegistry.create(
 		BetterCoppers.id("miner"), builder -> builder.persistent(MinerData.CODEC).initializer(MinerData::new)
 	);
 
-	/** Pouch and supplies of a farmer, forester, fisher, animal keeper or crafter golem. */
+	/** The forester's marks; having this says a player made the golem a farmer, forester, fisher, animal keeper or crafter. */
 	public static final AttachmentType<WorkerData> WORKER = AttachmentRegistry.create(
 		BetterCoppers.id("worker"), builder -> builder.persistent(WorkerData.CODEC).initializer(WorkerData::new)
 	);
+
+	/** Pouch and supplies of a golem with a paying job. Never the signal that a player gave it the job. */
+	public static final AttachmentType<Load.Stored> LOAD = AttachmentRegistry.create(
+		BetterCoppers.id("load"), builder -> builder.persistent(Load.Stored.CODEC)
+	);
+
 	/** Energy and wear of any working golem. */
 	public static final AttachmentType<GolemUpkeep> UPKEEP = AttachmentRegistry.create(
 		BetterCoppers.id("upkeep"), builder -> builder.persistent(GolemUpkeep.CODEC).initializer(GolemUpkeep::new)

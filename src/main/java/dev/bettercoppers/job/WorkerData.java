@@ -8,31 +8,25 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Pouch and supplies of a farmer, forester, fisher, animal keeper or crafter golem, plus a few remembered places
- * (the forester's tree stumps waiting for a sapling). Stored on the golem as a Fabric attachment.
+ * Says a player made this golem a farmer, forester, fisher, animal keeper or crafter, and holds a few remembered
+ * places (the forester's tree stumps waiting for a sapling). Stored on the golem as a Fabric attachment; what it
+ * carries is its {@link Load}.
  */
 public final class WorkerData {
 	public static final Codec<WorkerData> CODEC = RecordCodecBuilder.create(
 		instance -> instance.group(
-				ItemStack.OPTIONAL_CODEC.listOf().optionalFieldOf("pouch", List.of()).forGetter(data -> data.pouch),
-				ItemStack.OPTIONAL_CODEC.listOf().optionalFieldOf("supplies", List.of()).forGetter(data -> data.supplies),
 				BlockPos.CODEC.listOf().optionalFieldOf("marks", List.of()).forGetter(data -> data.marks)
 			)
-			.apply(instance, (pouch, supplies, marks) -> {
+			.apply(instance, marks -> {
 				WorkerData data = new WorkerData();
-				data.pouch.addAll(pouch.stream().filter(stack -> !stack.isEmpty()).toList());
-				data.supplies.addAll(supplies.stream().filter(stack -> !stack.isEmpty()).toList());
 				data.marks.addAll(marks);
 				return data;
 			})
 	);
 
-	private final List<ItemStack> pouch = new ArrayList<>();
-	private final List<ItemStack> supplies = new ArrayList<>();
 	private final List<BlockPos> marks = new ArrayList<>();
 
 	public static @Nullable WorkerData get(CopperGolem golem) {
@@ -52,25 +46,13 @@ public final class WorkerData {
 		return lost != null ? Job.forTool(lost) : Job.forTool(golem.getMainHandItem());
 	}
 
-	/** Holds a job tool, or still has something in its pouch to bring home. Workers do not sort. */
+	/** Holds a job tool, or still has a load to bring home. Workers do not sort. */
 	public static boolean isWorker(CopperGolem golem) {
 		WorkerData data = get(golem);
-		return data != null && (job(golem) != null || data.pouchCount() > 0);
-	}
-
-	public List<ItemStack> pouch() {
-		return this.pouch;
-	}
-
-	public List<ItemStack> supplies() {
-		return this.supplies;
+		return data != null && (job(golem) != null || !Load.of(golem).isEmpty());
 	}
 
 	public List<BlockPos> marks() {
 		return this.marks;
-	}
-
-	public int pouchCount() {
-		return this.pouch.stream().mapToInt(ItemStack::getCount).sum();
 	}
 }

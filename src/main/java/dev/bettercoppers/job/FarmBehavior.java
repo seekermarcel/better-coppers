@@ -1,6 +1,5 @@
 package dev.bettercoppers.job;
 
-import dev.bettercoppers.golem.CartChaining;
 import dev.bettercoppers.golem.Eyes;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
@@ -68,7 +67,8 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 	// --- finding work ---
 
 	@Override
-	protected @Nullable Task chooseTask(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos home) {
+	protected @Nullable Task chooseTask(ServerLevel level, CopperGolem golem, BlockPos home) {
+		Load load = Load.of(golem);
 		Task best = null;
 		double bestDistance = Double.MAX_VALUE;
 		boolean seedsAtHome = false;
@@ -81,7 +81,7 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 			if (this.isIgnored(level, pos)) {
 				continue;
 			}
-			Task found = this.taskAt(level, golem, data, pos);
+			Task found = this.taskAt(level, load, pos);
 			if (found == null) {
 				if (!seedsAtHome && level.getBlockState(pos).is(Blocks.FARMLAND) && level.getBlockState(pos.above()).isAir()) {
 					Container chest = Homes.container(level, home);
@@ -95,14 +95,14 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 				bestDistance = distance;
 			}
 		}
-		if (best == null && seedsAtHome && this.findSeed(golem, data, stack -> cropOf(stack) instanceof CropBlock).isEmpty()) {
+		if (best == null && seedsAtHome && load.find(stack -> cropOf(stack) instanceof CropBlock).isEmpty()) {
 			// Empty farmland and seeds waiting in the chest: fetch them.
 			this.requestReturn();
 		}
 		return best;
 	}
 
-	private @Nullable Task taskAt(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos pos) {
+	private @Nullable Task taskAt(ServerLevel level, Load load, BlockPos pos) {
 		BlockState state = level.getBlockState(pos);
 		Block block = state.getBlock();
 		if (block instanceof CropBlock crop && crop.isMaxAge(state)) {
@@ -122,11 +122,11 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 			return null;
 		}
 		if (state.is(Blocks.FARMLAND)) {
-			Item seed = this.pickSeed(level, golem, data, above, stack -> cropOf(stack) instanceof CropBlock);
+			Item seed = this.pickSeed(level, load, above, stack -> cropOf(stack) instanceof CropBlock);
 			return seed == null ? null : new Task(Kind.PLANT, above, seed);
 		}
 		if (state.is(Blocks.SOUL_SAND)) {
-			Item seed = this.pickSeed(level, golem, data, above, stack -> cropOf(stack) instanceof NetherWartBlock);
+			Item seed = this.pickSeed(level, load, above, stack -> cropOf(stack) instanceof NetherWartBlock);
 			return seed == null ? null : new Task(Kind.PLANT, above, seed);
 		}
 		return null;
@@ -152,15 +152,15 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 	}
 
 	/** Plants what the neighbours grow, so rows stay tidy; otherwise whatever seed it has. */
-	private @Nullable Item pickSeed(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos pos, Predicate<ItemStack> fits) {
+	private @Nullable Item pickSeed(ServerLevel level, Load load, BlockPos pos, Predicate<ItemStack> fits) {
 		for (Direction direction : Direction.Plane.HORIZONTAL) {
 			Item neighbourSeed = level.getBlockState(pos.relative(direction)).getBlock().asItem();
 			ItemStack sample = new ItemStack(neighbourSeed);
-			if (isSeed(sample) && fits.test(sample) && !this.findSeed(golem, data, stack -> stack.is(neighbourSeed)).isEmpty()) {
+			if (isSeed(sample) && fits.test(sample) && !load.find(stack -> stack.is(neighbourSeed)).isEmpty()) {
 				return neighbourSeed;
 			}
 		}
-		ItemStack any = this.findSeed(golem, data, stack -> isSeed(stack) && fits.test(stack));
+		ItemStack any = load.find(stack -> isSeed(stack) && fits.test(stack));
 		return any.isEmpty() ? null : any.getItem();
 	}
 
@@ -176,13 +176,13 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 	// --- working ---
 
 	@Override
-	protected boolean tickTask(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos home, Task task) {
+	protected boolean tickTask(ServerLevel level, CopperGolem golem, BlockPos home, Task task) {
 		BlockPos pos = task.pos();
 		if (!this.reach(level, golem, pos)) {
 			return false;
 		}
 		if (this.workTicks == 0) {
-			if (this.taskAt(level, golem, data, task.kind() == Kind.PLANT ? pos.below() : pos) == null) {
+			if (this.taskAt(level, Load.of(golem), task.kind() == Kind.PLANT ? pos.below() : pos) == null) {
 				// Someone else got there first.
 				this.giveUp();
 				return false;
@@ -202,31 +202,32 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 			return false;
 		}
 		switch (task.kind()) {
-			case HARVEST_CROP -> this.harvestCrop(level, golem, data, pos);
-			case HARVEST_FRUIT -> harvestBlocks(level, golem, data, List.of(pos));
-			case HARVEST_STALK -> harvestStalk(level, golem, data, pos);
-			case PLANT -> this.plant(level, golem, data, pos, task.seed());
+			case HARVEST_CROP -> this.harvestCrop(level, golem, pos);
+			case HARVEST_FRUIT -> harvestBlocks(level, golem, List.of(pos));
+			case HARVEST_STALK -> harvestStalk(level, golem, pos);
+			case PLANT -> this.plant(level, golem, pos, task.seed());
 		}
 		return true;
 	}
 
-	private void harvestCrop(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos pos) {
+	private void harvestCrop(ServerLevel level, CopperGolem golem, BlockPos pos) {
 		Item seed = level.getBlockState(pos).getBlock().asItem();
-		harvestBlocks(level, golem, data, List.of(pos));
-		this.plant(level, golem, data, pos, seed);
+		harvestBlocks(level, golem, List.of(pos));
+		this.plant(level, golem, pos, seed);
 	}
 
-	private static void harvestStalk(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos bottom) {
+	private static void harvestStalk(ServerLevel level, CopperGolem golem, BlockPos bottom) {
 		List<BlockPos> stalk = new ArrayList<>();
 		for (int up = stalkHeight(level, bottom) - 1; up >= 1; up--) {
 			stalk.add(bottom.above(up));
 		}
-		harvestBlocks(level, golem, data, stalk);
+		harvestBlocks(level, golem, stalk);
 	}
 
 	/** Breaks the blocks (in the given order) and keeps their drops. */
-	private static void harvestBlocks(ServerLevel level, CopperGolem golem, WorkerData data, List<BlockPos> positions) {
+	private static void harvestBlocks(ServerLevel level, CopperGolem golem, List<BlockPos> positions) {
 		ItemStack tool = golem.getMainHandItem();
+		Load load = Load.of(golem);
 		for (BlockPos pos : positions) {
 			BlockState state = level.getBlockState(pos);
 			List<ItemStack> drops = Block.getDrops(state, level, pos, null, golem, tool);
@@ -234,17 +235,17 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 			if (state.getDestroySpeed(level, pos) > 0.0F) {
 				Tools.wear(golem, tool);
 			}
-			drops.forEach(drop -> stash(golem, data.pouch(), drop));
+			drops.forEach(load::stash);
 			Upkeep.spend(golem, ENERGY_PER_ACTION);
 		}
 	}
 
-	private void plant(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos pos, @Nullable Item seed) {
+	private void plant(ServerLevel level, CopperGolem golem, BlockPos pos, @Nullable Item seed) {
 		if (!(seed instanceof BlockItem blockItem)) {
 			return;
 		}
 		BlockState crop = blockItem.getBlock().defaultBlockState();
-		if (!level.getBlockState(pos).isAir() || !crop.canSurvive(level, pos) || Inventories.takeOne(List.of(data.supplies(), data.pouch()), CartChaining.findCart(golem), stack -> stack.is(seed)).isEmpty()) {
+		if (!level.getBlockState(pos).isAir() || !crop.canSurvive(level, pos) || Load.of(golem).takeOne(stack -> stack.is(seed)).isEmpty()) {
 			return;
 		}
 		level.setBlockAndUpdate(pos, crop);
@@ -255,19 +256,14 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 
 	// --- seeds ---
 
-	/** Finds (without taking) a seed in the supplies, the pouch or the cart. */
-	private ItemStack findSeed(CopperGolem golem, WorkerData data, Predicate<ItemStack> filter) {
-		return Inventories.find(List.of(data.supplies(), data.pouch()), CartChaining.findCart(golem), filter);
-	}
-
 	/** Keeps a handful of every seed for replanting, the rest goes in the chest. */
 	@Override
-	protected int keepOnUnload(WorkerData data, ItemStack stack) {
-		return isSeed(stack) ? Math.max(0, Golems.SEED_RESERVE - Inventories.count(data.supplies(), other -> other.is(stack.getItem()))) : 0;
+	protected int keepOnUnload(Load load, ItemStack stack) {
+		return isSeed(stack) ? Math.max(0, Golems.SEED_RESERVE - load.suppliesCount(other -> other.is(stack.getItem()))) : 0;
 	}
 
 	@Override
-	protected void restock(ServerLevel level, CopperGolem golem, WorkerData data, Container chest) {
+	protected void restock(ServerLevel level, CopperGolem golem, Load load, Container chest) {
 		Set<Item> seedTypes = new HashSet<>();
 		for (ItemStack stack : chest) {
 			if (isSeed(stack)) {
@@ -275,9 +271,9 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 			}
 		}
 		for (Item seed : seedTypes) {
-			int missing = Golems.SEED_RESERVE - Inventories.count(data.supplies(), stack -> stack.is(seed));
+			int missing = Golems.SEED_RESERVE - load.suppliesCount(stack -> stack.is(seed));
 			if (missing > 0) {
-				Inventories.addTo(data.supplies(), Inventories.takeFirst(chest, missing, stack -> stack.is(seed)));
+				load.addSupplies(Inventories.takeFirst(chest, missing, stack -> stack.is(seed)));
 			}
 		}
 	}

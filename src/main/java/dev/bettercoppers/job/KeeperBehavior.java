@@ -1,6 +1,5 @@
 package dev.bettercoppers.job;
 
-import dev.bettercoppers.golem.CartChaining;
 import dev.bettercoppers.golem.Eyes;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.home.Homes;
@@ -43,7 +42,8 @@ public class KeeperBehavior extends JobBehavior<KeeperBehavior.Feeding> {
 	}
 
 	@Override
-	protected @Nullable Feeding chooseTask(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos home) {
+	protected @Nullable Feeding chooseTask(ServerLevel level, CopperGolem golem, BlockPos home) {
+		Load load = Load.of(golem);
 		List<Animal> animals = level.getEntitiesOfClass(Animal.class, new AABB(home).inflate(Eyes.radius(golem, RADIUS), 4, Eyes.radius(golem, RADIUS)), Animal::isAlive);
 		Map<EntityType<?>, List<Animal>> herds = new HashMap<>();
 		for (Animal animal : animals) {
@@ -62,7 +62,7 @@ public class KeeperBehavior extends JobBehavior<KeeperBehavior.Feeding> {
 				continue;
 			}
 			Animal animal = ready.stream().min(Comparator.comparingDouble(golem::distanceToSqr)).orElseThrow();
-			if (Inventories.find(List.of(data.supplies()), CartChaining.findCart(golem), animal::isFood).isEmpty()) {
+			if (load.find(animal::isFood).isEmpty()) {
 				foodAtHome |= homeHasFood(level, home, animal);
 				continue;
 			}
@@ -77,7 +77,7 @@ public class KeeperBehavior extends JobBehavior<KeeperBehavior.Feeding> {
 	}
 
 	@Override
-	protected boolean tickTask(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos home, Feeding feeding) {
+	protected boolean tickTask(ServerLevel level, CopperGolem golem, BlockPos home, Feeding feeding) {
 		Animal animal = feeding.animal();
 		if (!animal.isAlive() || !canBeFed(animal)) {
 			return true;
@@ -97,7 +97,7 @@ public class KeeperBehavior extends JobBehavior<KeeperBehavior.Feeding> {
 		if (this.workTicks < slowed(golem, FEED_TICKS)) {
 			return false;
 		}
-		ItemStack food = Inventories.takeOne(List.of(data.supplies()), CartChaining.findCart(golem), animal::isFood);
+		ItemStack food = Load.of(golem).takeOne(animal::isFood);
 		if (!food.isEmpty()) {
 			animal.setInLove(null);
 			level.sendParticles(ParticleTypes.HEART, animal.getX(), animal.getY() + animal.getBbHeight(), animal.getZ(), 3, 0.3, 0.2, 0.3, 0.0);
@@ -119,7 +119,7 @@ public class KeeperBehavior extends JobBehavior<KeeperBehavior.Feeding> {
 
 	/** Takes food for the animals around: up to a stack's worth of each kind they eat. */
 	@Override
-	protected void restock(ServerLevel level, CopperGolem golem, WorkerData data, Container chest) {
+	protected void restock(ServerLevel level, CopperGolem golem, Load load, Container chest) {
 		BlockPos home = golem.blockPosition();
 		List<Animal> animals = level.getEntitiesOfClass(Animal.class, new AABB(home).inflate(Eyes.radius(golem, RADIUS) + 4, 4, Eyes.radius(golem, RADIUS) + 4), Animal::isAlive);
 		for (int slot = 0; slot < chest.getContainerSize(); slot++) {
@@ -127,9 +127,9 @@ public class KeeperBehavior extends JobBehavior<KeeperBehavior.Feeding> {
 			if (stack.isEmpty() || animals.stream().noneMatch(animal -> animal.isFood(stack))) {
 				continue;
 			}
-			int missing = FOOD_RESERVE - Inventories.count(data.supplies(), other -> other.is(stack.getItem()));
+			int missing = FOOD_RESERVE - load.suppliesCount(other -> other.is(stack.getItem()));
 			if (missing > 0) {
-				Inventories.addTo(data.supplies(), chest.removeItem(slot, Math.min(missing, stack.getCount())));
+				load.addSupplies(chest.removeItem(slot, Math.min(missing, stack.getCount())));
 			}
 		}
 		chest.setChanged();

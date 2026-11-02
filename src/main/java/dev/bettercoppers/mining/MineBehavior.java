@@ -1,8 +1,6 @@
 package dev.bettercoppers.mining;
 
 import com.google.common.collect.ImmutableMap;
-import dev.bettercoppers.entity.CopperChestMinecart;
-import dev.bettercoppers.golem.CartChaining;
 import dev.bettercoppers.golem.Eyes;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
@@ -10,12 +8,13 @@ import dev.bettercoppers.api.TravelWatch;
 import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.JobBehavior;
+import dev.bettercoppers.job.Load;
 import dev.bettercoppers.job.Tools;
+import dev.bettercoppers.job.WorkerData;
 import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.registry.ModTags;
 import dev.bettercoppers.upkeep.Upkeep;
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -79,6 +78,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	private static final int ENERGY_PER_BUILD = 1;
 	/** Miners further than this from a sorting golem cannot be the reason to leave a chest alone. */
 	private static final int MINER_HOME_SEARCH_RADIUS = 64;
+	private static final int IDLE_COOLDOWN = 200;
 
 	private enum Mode {
 		WORKING,
@@ -90,7 +90,6 @@ public class MineBehavior extends Behavior<CopperGolem> {
 
 	private Mode mode = Mode.WORKING;
 	private boolean stopAfterReturn;
-	private @Nullable BlockPos home;
 
 	private MineLayout.@Nullable Step work;
 	private boolean extraWork;
@@ -127,19 +126,16 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		if (golem.isLeashed() || data == null || Homes.get(golem) == null) {
 			return false;
 		}
-		if (data.lootCount() > 0) {
-			return true;
-		}
-		MinePlan plan = data.plan();
-		if (plan == null || !plan.isMarked()) {
+		// Left over from an earlier job: the load now belongs to the worker's job.
+		if (WorkerData.job(golem) != null) {
 			return false;
 		}
-		// A loaded cart still has to be driven home, even when the plan is done or the pickaxe broke.
-		CopperChestMinecart cart = CartChaining.findCart(golem);
-		if (cart != null && !cart.isEmpty() && Homes.valid(level, golem) != null) {
+		MinePlan plan = data.plan();
+		if (MinerData.hasPickaxe(golem) && plan != null && plan.isMarked() && plan.progress() < this.steps(level, plan).size()) {
 			return true;
 		}
-		return MinerData.hasPickaxe(golem) && plan.progress() < this.steps(level, plan).size();
+		// A load still has to go home, even when the plan is done or the pickaxe broke.
+		return !Load.of(golem).isEmpty();
 	}
 
 	@Override
@@ -161,7 +157,6 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		}
 		this.work = null;
 		this.mode = Mode.WORKING;
-		this.home = null;
 		golem.clearOpenedChestPos();
 		golem.setState(CopperGolemState.IDLE);
 		golem.getNavigation().stop();
@@ -196,14 +191,20 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		if (data == null) {
 			return;
 		}
+		BlockPos home = Homes.valid(level, golem);
+		if (home == null) {
+			// Chest broken or not loaded: keep the load and look again in a while, like the other paying jobs.
+			golem.getBrain().setMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS, IDLE_COOLDOWN);
+			return;
+		}
 		if (this.mode == Mode.RETURNING) {
-			this.tickReturn(level, golem, data);
+			this.tickReturn(level, golem, data, home);
 			return;
 		}
 		MinePlan plan = data.plan();
 		if (plan == null || !plan.isMarked() || !MinerData.hasPickaxe(golem)) {
 			// Pickaxe gone or plan taken away: just bring the pouch home.
-			this.startReturn(level, golem, data, true);
+			this.startReturn(golem, true);
 			return;
 		}
 		if (isExcited(golem)) {
@@ -212,7 +213,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			}
 			if (this.work == null && this.oreDigs.stream().noneMatch(ore -> isDiamond(level.getBlockState(ore.pos())))) {
 				// The whole vein is out: off home to show the diamonds.
-				this.startReturn(level, golem, data, false);
+				this.startReturn(golem, false);
 				return;
 			}
 		}
@@ -225,7 +226,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	// --- choosing what to do next ---
 
 	private boolean chooseWork(ServerLevel level, CopperGolem golem, MinerData data, MinePlan plan) {
-		if (this.nextExtraDig(level, golem, data)) {
+		if (this.nextExtraDig(level, golem)) {
 			return this.work != null;
 		}
 		this.oreBudget = Eyes.radius(golem, ORE_BUDGET);
@@ -241,32 +242,32 @@ public class MineBehavior extends Behavior<CopperGolem> {
 				continue;
 			}
 			Predicate<ItemStack> material = this.materialFor(step.action());
-			if (material != null && !this.hasMaterial(golem, data, material)) {
+			if (material != null && Load.of(golem).find(material).isEmpty()) {
 				if (this.homeHas(level, golem, material)) {
-					this.startReturn(level, golem, data, false);
+					this.startReturn(golem, false);
 					return false;
 				}
 				// Nothing to build with anywhere: leave this one out.
 				plan = this.advance(data, plan);
 				continue;
 			}
-			if (step.action() == MineLayout.Action.DIG && JobBehavior.isFull(golem, data.lootCount(), Golems.POUCH_LIMIT)) {
-				this.startReturn(level, golem, data, false);
+			if (step.action() == MineLayout.Action.DIG && Load.of(golem).isFull(Golems.POUCH_LIMIT)) {
+				this.startReturn(golem, false);
 				return false;
 			}
-			if (step.action() == MineLayout.Action.DIG && !this.checkSliceSupplies(level, golem, data, plan, step)) {
+			if (step.action() == MineLayout.Action.DIG && !this.checkSliceSupplies(level, golem, plan, step)) {
 				return false;
 			}
-			MineLayout.Step floor = this.floorFirst(level, golem, data, plan, step);
+			MineLayout.Step floor = this.floorFirst(level, golem, plan, step);
 			return floor != null ? this.setWork(floor, true) : this.setWork(step, false);
 		}
 		// Plan finished.
-		this.startReturn(level, golem, data, true);
+		this.startReturn(golem, true);
 		return false;
 	}
 
 	/** Fallen blocks and ores come before the plan. Returns true if it decided (picked work, or went home to unload). */
-	private boolean nextExtraDig(ServerLevel level, CopperGolem golem, MinerData data) {
+	private boolean nextExtraDig(ServerLevel level, CopperGolem golem) {
 		// Gravel or sand that fell into the tunnel comes out first.
 		for (MineLayout.Step dug : this.recentDigs) {
 			if (level.isLoaded(dug.pos()) && level.getBlockState(dug.pos()).getBlock() instanceof FallingBlock) {
@@ -277,9 +278,9 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		while (!this.oreDigs.isEmpty()) {
 			MineLayout.Step ore = this.oreDigs.poll();
 			if (level.isLoaded(ore.pos()) && isOre(level.getBlockState(ore.pos())) && this.canDig(level, golem, ore.pos())) {
-				if (JobBehavior.isFull(golem, data.lootCount(), Golems.POUCH_LIMIT)) {
+				if (Load.of(golem).isFull(Golems.POUCH_LIMIT)) {
 					this.oreDigs.addFirst(ore);
-					this.startReturn(level, golem, data, false);
+					this.startReturn(golem, false);
 				} else {
 					this.setWork(ore, true);
 				}
@@ -290,15 +291,15 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	}
 
 	/** No supports, no digging: fetch them, or wait at home until someone fills the chest. False if it went home. */
-	private boolean checkSliceSupplies(ServerLevel level, CopperGolem golem, MinerData data, MinePlan plan, MineLayout.Step step) {
+	private boolean checkSliceSupplies(ServerLevel level, CopperGolem golem, MinePlan plan, MineLayout.Step step) {
 		int slice = MineLayout.sliceOf(plan, step.pos());
 		if (slice <= this.checkedSlice) {
 			return true;
 		}
-		if (!this.hasSliceMaterials(golem, data, slice, null)) {
+		if (!this.hasSliceMaterials(golem, slice, null)) {
 			Container homeChest = Homes.container(level, Homes.valid(level, golem));
-			boolean available = homeChest != null && this.hasSliceMaterials(golem, data, slice, homeChest);
-			this.startReturn(level, golem, data, !available);
+			boolean available = homeChest != null && this.hasSliceMaterials(golem, slice, homeChest);
+			this.startReturn(golem, !available);
 			return false;
 		}
 		this.checkedSlice = slice;
@@ -309,11 +310,11 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	 * No floor where the golem should stand (the entrance at a ledge, the edge of a cave)? Then it lays one first, from
 	 * one block further back, or it would never get there. Null if the floor is fine.
 	 */
-	private MineLayout.@Nullable Step floorFirst(ServerLevel level, CopperGolem golem, MinerData data, MinePlan plan, MineLayout.Step step) {
+	private MineLayout.@Nullable Step floorFirst(ServerLevel level, CopperGolem golem, MinePlan plan, MineLayout.Step step) {
 		BlockPos standFloor = step.stand().below();
 		BlockState below = level.getBlockState(standFloor);
 		if (!below.isFaceSturdy(level, standFloor, Direction.UP) && below.canBeReplaced() && !this.unreachable.contains(standFloor)
-			&& this.hasMaterial(golem, data, this.materialFor(MineLayout.Action.FLOOR))) {
+			&& !Load.of(golem).find(this.materialFor(MineLayout.Action.FLOOR)).isEmpty()) {
 			BlockPos further = step.stand().relative(plan.heading().orElseThrow().getOpposite());
 			return new MineLayout.Step(MineLayout.Action.FLOOR, standFloor, further, Direction.UP);
 		}
@@ -419,7 +420,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			golem.setState(CopperGolemState.DROPPING_ITEM);
 		}
 		if (this.workTicks >= PLACE_TICKS) {
-			this.build(level, golem, data, plan, step);
+			this.build(level, golem, step);
 			this.finishWork(golem, data);
 			this.pauseTicks = 10;
 		}
@@ -459,7 +460,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		}
 		if (this.workTicks >= this.digTicks) {
 			level.destroyBlockProgress(golem.getId(), pos, -1);
-			this.dig(level, golem, data, step, state);
+			this.dig(level, golem, step, state);
 			this.finishWork(golem, data);
 		}
 	}
@@ -472,7 +473,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		return Math.clamp((int) Math.ceil(hardness * 30.0F / speed * clumsiness), MIN_DIG_TICKS, MAX_DIG_TICKS);
 	}
 
-	private void dig(ServerLevel level, CopperGolem golem, MinerData data, MineLayout.Step step, BlockState state) {
+	private void dig(ServerLevel level, CopperGolem golem, MineLayout.Step step, BlockState state) {
 		BlockPos pos = step.pos();
 		ItemStack tool = golem.getMainHandItem();
 		BlockEntity blockEntity = level.getBlockEntity(pos);
@@ -483,9 +484,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			Tools.wear(golem, tool);
 		}
 		Upkeep.spend(golem, ENERGY_PER_DIG);
-		for (ItemStack drop : drops) {
-			JobBehavior.stash(golem, data.loot(), drop);
-		}
+		drops.forEach(Load.of(golem)::stash);
 		if (isDiamond(state) && !isExcited(golem)) {
 			golem.setAttached(ModAttachments.EXCITED, true);
 			level.playSound(null, golem, SoundEvents.AMETHYST_BLOCK_CHIME, golem.getSoundSource(), 1.0F, 1.6F);
@@ -570,7 +569,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	}
 
 	private boolean plugOrFlee(ServerLevel level, CopperGolem golem, MinerData data, BlockPos pos) {
-		ItemStack filler = this.takeMaterial(golem, data, MineBehavior::isFiller);
+		ItemStack filler = Load.of(golem).takeOne(MineBehavior::isFiller);
 		if (filler.isEmpty()) {
 			// Nothing to plug the hole with: too dangerous, the golem packs up and goes home.
 			MinePlan plan = data.plan();
@@ -578,7 +577,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 				data.setPlan(plan.withProgress(this.steps(level, plan).size()));
 			}
 			this.work = null;
-			this.startReturn(level, golem, data, true);
+			this.startReturn(golem, true);
 			return false;
 		}
 		this.placeBlock(level, golem, pos, ((BlockItem) filler.getItem()).getBlock().defaultBlockState());
@@ -587,24 +586,24 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		return false;
 	}
 
-	private void build(ServerLevel level, CopperGolem golem, MinerData data, MinePlan plan, MineLayout.Step step) {
+	private void build(ServerLevel level, CopperGolem golem, MineLayout.Step step) {
 		BlockPos pos = step.pos();
 		if (step.action() == MineLayout.Action.TORCH) {
-			this.placeTorch(level, golem, data, pos, step.facing());
+			this.placeTorch(level, golem, pos, step.facing());
 			return;
 		}
 		Predicate<ItemStack> material = this.materialFor(step.action());
-		ItemStack item = material == null ? ItemStack.EMPTY : this.takeMaterial(golem, data, material);
+		ItemStack item = material == null ? ItemStack.EMPTY : Load.of(golem).takeOne(material);
 		if (step.action() == MineLayout.Action.FLOOR && item.isEmpty()) {
 			// No planks left for a mineshaft floor: any filler will do.
-			item = this.takeMaterial(golem, data, MineBehavior::isFiller);
+			item = Load.of(golem).takeOne(MineBehavior::isFiller);
 		}
 		if (item.getItem() instanceof BlockItem blockItem) {
 			this.placeBlock(level, golem, pos, blockItem.getBlock().defaultBlockState());
 		}
 	}
 
-	private void placeTorch(ServerLevel level, CopperGolem golem, MinerData data, BlockPos pos, Direction facing) {
+	private void placeTorch(ServerLevel level, CopperGolem golem, BlockPos pos, Direction facing) {
 		BlockState wall = Blocks.WALL_TORCH.defaultBlockState().setValue(WallTorchBlock.FACING, facing);
 		BlockState standing = Blocks.TORCH.defaultBlockState();
 		BlockPos target = pos;
@@ -619,7 +618,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		} else {
 			return;
 		}
-		if (!this.takeMaterial(golem, data, stack -> stack.is(Items.TORCH)).isEmpty()) {
+		if (!Load.of(golem).takeOne(stack -> stack.is(Items.TORCH)).isEmpty()) {
 			this.placeBlock(level, golem, target, state);
 		}
 	}
@@ -651,29 +650,17 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		return stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock().defaultBlockState().is(ModTags.FILLER);
 	}
 
-	private boolean hasMaterial(CopperGolem golem, MinerData data, Predicate<ItemStack> material) {
-		return !Inventories.find(List.of(data.supplies(), data.loot()), CartChaining.findCart(golem), material).isEmpty();
-	}
-
-	/** Takes one matching item from the supplies, the pouch or the cart. */
-	private ItemStack takeMaterial(CopperGolem golem, MinerData data, Predicate<ItemStack> material) {
-		return Inventories.takeOne(List.of(data.supplies(), data.loot()), CartChaining.findCart(golem), material);
-	}
-
 	// --- going home ---
 
-	private void startReturn(ServerLevel level, CopperGolem golem, MinerData data, boolean stopAfter) {
+	private void startReturn(CopperGolem golem, boolean stopAfter) {
 		this.mode = Mode.RETURNING;
 		this.stopAfterReturn = stopAfter;
 		this.workTicks = 0;
-		MinePlan plan = data.plan();
-		this.home = Homes.valid(level, golem);
 		golem.setState(CopperGolemState.IDLE);
 	}
 
 	private void endReturn(CopperGolem golem) {
 		this.mode = Mode.WORKING;
-		this.home = null;
 		golem.clearOpenedChestPos();
 		golem.setState(CopperGolemState.IDLE);
 		if (this.stopAfterReturn) {
@@ -682,29 +669,25 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		}
 	}
 
-	private void tickReturn(ServerLevel level, CopperGolem golem, MinerData data) {
-		Container chest = Homes.container(level, this.home);
-		if (chest == null) {
-			// No copper chest at the entrance: leave everything at the golem's feet.
-			for (ItemStack stack : data.loot()) {
-				golem.spawnAtLocation(level, stack);
-			}
-			data.loot().clear();
-			this.endReturn(golem);
-			return;
-		}
+	private void tickReturn(ServerLevel level, CopperGolem golem, MinerData data, BlockPos home) {
+		Container chest = Homes.container(level, home);
 		// Hurrying when it has diamonds to show.
-		this.workTicks = JobBehavior.tickReturn(golem, this.home, chest, this.workTicks, WALK_SPEED * (isExcited(golem) ? 1.3F : 1.0F));
+		this.workTicks = JobBehavior.tickReturn(golem, home, chest, this.workTicks, WALK_SPEED * (isExcited(golem) ? 1.3F : 1.0F));
 		if (this.workTicks >= Golems.INTERACTION_TICKS) {
 			// Keep some plain stone back for plugging leaks and patching floors.
-			JobBehavior.unload(level, golem, data.loot(), data.supplies(), stack -> isFiller(stack) ? FILLER_RESERVE - countFillers(data) : 0, chest);
+			Load load = Load.of(golem);
+			load.unloadInto(chest, stack -> isFiller(stack) ? FILLER_RESERVE - load.suppliesCount(MineBehavior::isFiller) : 0);
 			if (golem.removeAttached(ModAttachments.EXCITED) != null) {
 				level.sendParticles(ParticleTypes.HAPPY_VILLAGER, golem.getX(), golem.getY() + 1.2, golem.getZ(), 12, 0.4, 0.3, 0.4, 0.0);
 				golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_DROP, 1.0F, 1.5F);
 			}
 			MinePlan plan = data.plan();
 			if (plan != null && !this.stopAfterReturn) {
-				this.restock(data, plan, chest);
+				this.restock(load, plan, chest);
+			}
+			if (!load.isEmpty()) {
+				// The chest is full: try again in a while instead of opening it over and over.
+				this.stopAfterReturn = true;
 			}
 			if (chest.getEntitiesWithContainerOpen().contains(golem)) {
 				chest.stopOpen(golem);
@@ -713,49 +696,36 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		}
 	}
 
-	private static int countFillers(MinerData data) {
-		return Inventories.count(data.supplies(), MineBehavior::isFiller);
-	}
-
-	private void restock(MinerData data, MinePlan plan, Container chest) {
-		this.restockOne(data, chest, stack -> stack.is(Items.TORCH), 16);
+	private void restock(Load load, MinePlan plan, Container chest) {
+		this.restockOne(load, chest, stack -> stack.is(Items.TORCH), 16);
 		// Every rail stays in the pouch until the shaft is dug, so it takes enough for the whole plan.
-		this.restockOne(data, chest, stack -> stack.is(Items.RAIL), plan.length());
-		this.restockOne(data, chest, stack -> stack.is(ItemTags.PLANKS), 32);
-		this.restockOne(data, chest, stack -> stack.is(ItemTags.WOODEN_FENCES), 16);
+		this.restockOne(load, chest, stack -> stack.is(Items.RAIL), plan.length());
+		this.restockOne(load, chest, stack -> stack.is(ItemTags.PLANKS), 32);
+		this.restockOne(load, chest, stack -> stack.is(ItemTags.WOODEN_FENCES), 16);
 	}
 
-	/**
-	 * Whether the golem carries (plus {@code chest}, if given, holds) what slice {@code slice} needs: a rail for it and
-	 * every slice before it (they are laid at the end), and on support slices 4 fences and 3 planks.
-	 */
-	private boolean hasSliceMaterials(CopperGolem golem, MinerData data, int slice, @Nullable Container chest) {
-		boolean support = MineLayout.isSupportSlice(slice);
-		return this.countCarried(golem, data, chest, stack -> stack.is(Items.RAIL)) >= slice + 1
-			&& (!support || this.countCarried(golem, data, chest, stack -> stack.is(ItemTags.WOODEN_FENCES)) >= 4)
-			&& (!support || this.countCarried(golem, data, chest, stack -> stack.is(ItemTags.PLANKS)) >= 3);
+	/** Whether the golem carries (plus {@code chest}, if given, holds) what slice {@code slice} needs. */
+	private boolean hasSliceMaterials(CopperGolem golem, int slice, @Nullable Container chest) {
+		MineLayout.SliceNeeds needs = MineLayout.needs(slice);
+		Load load = Load.of(golem);
+		return countWith(load, chest, stack -> stack.is(Items.RAIL)) >= needs.rails()
+			&& countWith(load, chest, stack -> stack.is(ItemTags.WOODEN_FENCES)) >= needs.fences()
+			&& countWith(load, chest, stack -> stack.is(ItemTags.PLANKS)) >= needs.planks();
 	}
 
-	private int countCarried(CopperGolem golem, MinerData data, @Nullable Container chest, Predicate<ItemStack> material) {
-		int count = Inventories.count(data.supplies(), material) + Inventories.count(data.loot(), material);
-		CopperChestMinecart cart = CartChaining.findCart(golem);
-		for (Container container : Arrays.asList(cart, chest)) {
-			if (container != null) {
-				count += Inventories.count(container, material);
-			}
-		}
-		return count;
+	private static int countWith(Load load, @Nullable Container chest, Predicate<ItemStack> material) {
+		return load.count(material) + (chest == null ? 0 : Inventories.count(chest, material));
 	}
 
-	private void restockOne(MinerData data, Container chest, Predicate<ItemStack> material, int target) {
-		int have = Inventories.count(data.supplies(), material);
+	private void restockOne(Load load, Container chest, Predicate<ItemStack> material, int target) {
+		int have = load.suppliesCount(material);
 		while (have < target) {
 			ItemStack taken = Inventories.takeFirst(chest, target - have, material);
 			if (taken.isEmpty()) {
 				return;
 			}
 			have += taken.getCount();
-			Inventories.addTo(data.supplies(), taken);
+			load.addSupplies(taken);
 		}
 	}
 

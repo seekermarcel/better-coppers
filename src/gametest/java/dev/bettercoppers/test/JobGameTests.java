@@ -5,11 +5,13 @@ import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.Job;
+import dev.bettercoppers.job.Load;
 import dev.bettercoppers.job.Tools;
 import dev.bettercoppers.job.WorkerData;
 import dev.bettercoppers.mining.MineLayout;
 import dev.bettercoppers.mining.MinePattern;
 import dev.bettercoppers.mining.MinePlan;
+import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.registry.ModComponents;
 import dev.bettercoppers.registry.ModEntities;
 import dev.bettercoppers.registry.ModItems;
@@ -216,6 +218,68 @@ public class JobGameTests {
 			h.assertTrue(cart.isEmpty(), "cart still loaded");
 			h.assertTrue(golem.getMainHandItem().is(Items.COPPER_HOE), "no new hoe yet");
 		});
+	}
+
+	@GameTest(maxTicks = 1200)
+	public void forester_finds_sapling_in_cart(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		GameTests.chest(h, home, COPPER_CHEST);
+		BlockPos stump = new BlockPos(4, 1, 2);
+		h.setBlock(stump.below(), Blocks.DIRT);
+		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
+		GameTests.energize(golem);
+		give(h, golem, new ItemStack(Items.COPPER_AXE));
+		WorkerData.getOrCreate(golem).marks().add(h.absolutePos(stump));
+		Homes.set(golem, h.absolutePos(home));
+		CopperChestMinecart cart = cart(h, golem, new BlockPos(5, 1, 4), new ItemStack(Items.OAK_SAPLING));
+		h.succeedWhen(() -> {
+			h.assertBlockPresent(Blocks.OAK_SAPLING, stump);
+			h.assertTrue(cart.isEmpty(), "sapling still in the cart");
+		});
+	}
+
+	@GameTest
+	public void golem_death_drops_load_cart_keeps_items(GameTestHelper h) {
+		scene(h);
+		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
+		give(h, golem, new ItemStack(Items.COPPER_HOE));
+		Load load = Load.of(golem);
+		h.assertTrue(load.isEmpty() && !golem.hasAttached(ModAttachments.LOAD), "reading added an attachment");
+		load.stash(new ItemStack(Items.WHEAT, 8));
+		load.addSupplies(new ItemStack(Items.WHEAT_SEEDS, 4));
+		h.assertTrue(golem.hasAttached(ModAttachments.LOAD), "writing added no attachment");
+		CopperChestMinecart cart = cart(h, golem, new BlockPos(5, 1, 4), new ItemStack(Items.CARROT, 5));
+		golem.kill(h.getLevel());
+		h.succeedWhen(() -> {
+			h.assertValueEqual(GameTests.dropped(h, Items.WHEAT), 8, "dropped pouch");
+			h.assertValueEqual(GameTests.dropped(h, Items.WHEAT_SEEDS), 4, "dropped supplies");
+			h.assertValueEqual(GameTests.dropped(h, Items.CARROT), 0, "dropped from the cart");
+			h.assertValueEqual(count(cart, Items.CARROT), 5, "left in the cart");
+		});
+	}
+
+	@GameTest(maxTicks = 1200)
+	public void full_chest_keeps_load_until_there_is_room(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		for (int slot = 0; slot < chest.getContainerSize(); slot++) {
+			chest.setItem(slot, new ItemStack(Items.COBBLESTONE, 64));
+		}
+		CopperGolem golem = GameTests.golem(h, new BlockPos(2, 1, 2));
+		GameTests.energize(golem);
+		give(h, golem, new ItemStack(Items.COPPER_HOE));
+		Homes.set(golem, h.absolutePos(home));
+		Load.of(golem).stash(new ItemStack(Items.WHEAT, 64));
+		h.startSequence()
+			.thenExecuteAfter(200, () -> {
+				h.assertValueEqual(Load.of(golem).count(stack -> stack.is(Items.WHEAT)), 64, "wheat carried");
+				h.assertValueEqual(GameTests.dropped(h, Items.WHEAT), 0, "wheat dropped");
+				chest.setItem(0, ItemStack.EMPTY);
+			})
+			.thenWaitUntil(() -> h.assertValueEqual(count(chest, Items.WHEAT), 64, "wheat in the chest"))
+			.thenSucceed();
 	}
 
 	@GameTest(maxTicks = 2400)

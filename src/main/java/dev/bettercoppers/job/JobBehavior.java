@@ -1,17 +1,13 @@
 package dev.bettercoppers.job;
 
 import com.google.common.collect.ImmutableMap;
-import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.home.Homes;
-import dev.bettercoppers.golem.CartChaining;
 import dev.bettercoppers.golem.Golems;
-import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.api.TravelWatch;
+import dev.bettercoppers.mining.MinerData;
 import dev.bettercoppers.upkeep.Upkeep;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.function.ToIntFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -58,18 +54,18 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 	// --- what subclasses provide ---
 
 	/** The next thing to do around {@code home}, or null. May call {@link #requestReturn} instead. */
-	protected abstract @Nullable T chooseTask(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos home);
+	protected abstract @Nullable T chooseTask(ServerLevel level, CopperGolem golem, BlockPos home);
 
 	/** Works on the task; returns true when it is finished (successfully or not). */
-	protected abstract boolean tickTask(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos home, T task);
+	protected abstract boolean tickTask(ServerLevel level, CopperGolem golem, BlockPos home, T task);
 
 	/** How many of this unloaded stack to keep in the supplies instead of putting it in the chest. */
-	protected int keepOnUnload(WorkerData data, ItemStack stack) {
+	protected int keepOnUnload(Load load, ItemStack stack) {
 		return 0;
 	}
 
 	/** Takes what the job needs from the home chest. */
-	protected void restock(ServerLevel level, CopperGolem golem, WorkerData data, Container chest) {
+	protected void restock(ServerLevel level, CopperGolem golem, Load load, Container chest) {
 	}
 
 	/** Pouch size before going home. */
@@ -93,21 +89,16 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 	}
 
 	private boolean hasWork(CopperGolem golem) {
-		WorkerData data = WorkerData.get(golem);
-		if (golem.isLeashed() || data == null || Homes.get(golem) == null) {
+		if (golem.isLeashed() || WorkerData.get(golem) == null || Homes.get(golem) == null) {
 			return false;
 		}
-		ItemStack tool = golem.getMainHandItem();
-		if (this.job.isTool(tool)) {
+		if (this.job.isTool(golem.getMainHandItem())) {
 			return true;
 		}
-		// Tool broke: its own job drives a loaded cart home, or ToolFetchBehavior would wait for that forever.
-		CopperChestMinecart cart = WorkerData.job(golem) == this.job ? CartChaining.findCart(golem) : null;
-		if (cart != null && !cart.isEmpty()) {
-			return true;
-		}
-		// Tool taken away: one of the job behaviours (the first) still brings the pouch home.
-		return this.job == Job.values()[0] && Job.forTool(tool) == null && data.pouchCount() > 0;
+		// Tool broke: its own job takes the load home. Tool taken away: the first job does, unless the miner's job will.
+		Job current = WorkerData.job(golem);
+		boolean takesLoadHome = current == this.job || current == null && this.job == Job.values()[0] && MinerData.get(golem) == null;
+		return takesLoadHome && !Load.of(golem).isEmpty();
 	}
 
 	@Override
@@ -136,8 +127,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 			}
 			return;
 		}
-		WorkerData data = WorkerData.get(golem);
-		if (data == null) {
+		if (WorkerData.get(golem) == null) {
 			return;
 		}
 		BlockPos home = Homes.valid(level, golem);
@@ -146,7 +136,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 			return;
 		}
 		if (this.returning) {
-			this.tickReturn(level, golem, data, home);
+			this.tickReturn(level, golem, home);
 			return;
 		}
 		if (!this.job.isTool(golem.getMainHandItem())) {
@@ -154,11 +144,12 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 			return;
 		}
 		if (this.task == null) {
-			if (isFull(golem, data.pouchCount(), this.pouchLimit())) {
+			Load load = Load.of(golem);
+			if (load.isFull(this.pouchLimit())) {
 				this.requestReturn();
 				return;
 			}
-			this.task = this.chooseTask(level, golem, data, home);
+			this.task = this.chooseTask(level, golem, home);
 			this.travel.reset();
 			this.workTicks = 0;
 			this.hesitated = false;
@@ -167,8 +158,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 				return;
 			}
 			if (this.task == null) {
-				CopperChestMinecart cart = CartChaining.findCart(golem);
-				if (data.pouchCount() > 0 || cart != null && !cart.isEmpty()) {
+				if (!load.isEmpty()) {
 					this.requestReturn();
 				} else {
 					this.idle(golem);
@@ -177,7 +167,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 			}
 		}
 		T current = this.task;
-		if (this.tickTask(level, golem, data, home, current) && this.task == current) {
+		if (this.tickTask(level, golem, home, current) && this.task == current) {
 			this.task = null;
 			golem.setState(CopperGolemState.IDLE);
 			this.pauseTicks = 5;
@@ -265,24 +255,6 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 		return until != null;
 	}
 
-	/** Puts something the golem got into the chained cart, or else its pouch. */
-	public static void stash(CopperGolem golem, List<ItemStack> pouch, ItemStack stack) {
-		ItemStack rest = stack;
-		CopperChestMinecart cart = CartChaining.findCart(golem);
-		if (cart != null) {
-			rest = Inventories.insert(cart, rest);
-		}
-		if (!rest.isEmpty()) {
-			Inventories.addTo(pouch, rest);
-		}
-	}
-
-	/** No room left in the chained cart (or none chained) and {@code carried} reached {@code limit}. */
-	public static boolean isFull(CopperGolem golem, int carried, int limit) {
-		CopperChestMinecart cart = CartChaining.findCart(golem);
-		return (cart == null || !Inventories.hasEmptySlot(cart)) && carried >= limit;
-	}
-
 	private void idle(CopperGolem golem) {
 		this.task = null;
 		golem.getBrain().setMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS, IDLE_COOLDOWN);
@@ -290,7 +262,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 
 	// --- home ---
 
-	private void tickReturn(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos home) {
+	private void tickReturn(ServerLevel level, CopperGolem golem, BlockPos home) {
 		Container chest = Homes.container(level, home);
 		if (chest == null) {
 			this.returning = false;
@@ -298,9 +270,10 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 		}
 		this.homeTicks = tickReturn(golem, home, chest, this.homeTicks, Golems.WALK_SPEED);
 		if (this.homeTicks >= Golems.INTERACTION_TICKS) {
-			unload(level, golem, data.pouch(), data.supplies(), stack -> this.keepOnUnload(data, stack), chest);
+			Load load = Load.of(golem);
+			load.unloadInto(chest, stack -> this.keepOnUnload(load, stack));
 			if (this.job.isTool(golem.getMainHandItem())) {
-				this.restock(level, golem, data, chest);
+				this.restock(level, golem, load, chest);
 			}
 			if (chest.getEntitiesWithContainerOpen().contains(golem)) {
 				chest.stopOpen(golem);
@@ -309,7 +282,8 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 			golem.setState(CopperGolemState.IDLE);
 			this.returning = false;
 			this.homeTicks = 0;
-			if (!this.job.isTool(golem.getMainHandItem())) {
+			// No tool, or the chest is full: try again in a while instead of opening it over and over.
+			if (!this.job.isTool(golem.getMainHandItem()) || !load.isEmpty()) {
 				this.idle(golem);
 			}
 		}
@@ -336,32 +310,5 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_DROP);
 		}
 		return ticks;
-	}
-
-	/**
-	 * Empties the pouch and the chained cart into the chest, except what {@code keep} says to put in the supplies.
-	 * What does not fit is dropped.
-	 */
-	public static void unload(ServerLevel level, CopperGolem golem, List<ItemStack> pouch, List<ItemStack> supplies, ToIntFunction<ItemStack> keep, Container chest) {
-		for (ItemStack stack : pouch) {
-			int kept = Math.min(stack.getCount(), keep.applyAsInt(stack));
-			if (kept > 0) {
-				Inventories.addTo(supplies, stack.split(kept));
-			}
-			ItemStack rest = Inventories.insert(chest, stack);
-			if (!rest.isEmpty()) {
-				golem.spawnAtLocation(level, rest);
-			}
-		}
-		pouch.clear();
-		CopperChestMinecart cart = CartChaining.findCart(golem);
-		if (cart != null) {
-			for (int slot = 0; slot < cart.getContainerSize(); slot++) {
-				ItemStack stack = cart.getItem(slot);
-				if (!stack.isEmpty()) {
-					cart.setItem(slot, Inventories.insert(chest, stack));
-				}
-			}
-		}
 	}
 }

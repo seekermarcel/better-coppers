@@ -2,42 +2,31 @@ package dev.bettercoppers.mining;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.bettercoppers.entity.CopperChestMinecart;
-import dev.bettercoppers.golem.CartChaining;
+import dev.bettercoppers.job.Load;
 import dev.bettercoppers.job.Tools;
 import dev.bettercoppers.registry.ModAttachments;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Everything a mining golem carries besides its pickaxe: the plan it follows, a pouch for what it digs up, and the
- * supplies (torches, wood, rails, filler blocks) it takes along. Stored on the golem as a Fabric attachment.
+ * Says a player made this golem a miner, and holds the plan it follows. Stored on the golem as a Fabric attachment;
+ * what it carries is its {@link Load}.
  */
 public final class MinerData {
 	public static final Codec<MinerData> CODEC = RecordCodecBuilder.create(
 		instance -> instance.group(
-				MinePlan.CODEC.optionalFieldOf("plan").forGetter(data -> Optional.ofNullable(data.plan)),
-				ItemStack.OPTIONAL_CODEC.listOf().optionalFieldOf("loot", List.of()).forGetter(data -> data.loot),
-				ItemStack.OPTIONAL_CODEC.listOf().optionalFieldOf("supplies", List.of()).forGetter(data -> data.supplies)
+				MinePlan.CODEC.optionalFieldOf("plan").forGetter(data -> Optional.ofNullable(data.plan))
 			)
-			.apply(instance, (plan, loot, supplies) -> {
+			.apply(instance, plan -> {
 				MinerData data = new MinerData();
 				data.plan = plan.orElse(null);
-				data.loot.addAll(loot.stream().filter(stack -> !stack.isEmpty()).toList());
-				data.supplies.addAll(supplies.stream().filter(stack -> !stack.isEmpty()).toList());
 				return data;
 			})
 	);
 
 	private @Nullable MinePlan plan;
-	private final List<ItemStack> loot = new ArrayList<>();
-	private final List<ItemStack> supplies = new ArrayList<>();
 
 	public static @Nullable MinerData get(CopperGolem golem) {
 		return golem.getAttached(ModAttachments.MINER);
@@ -51,17 +40,10 @@ public final class MinerData {
 		return golem.getMainHandItem().is(Items.COPPER_PICKAXE);
 	}
 
-	/** A golem that was handed a pickaxe, or still has mined items to bring home. Miners do not sort. */
+	/** A golem that was handed a pickaxe, or still has a load to bring home. Miners do not sort. */
 	public static boolean isMiner(CopperGolem golem) {
 		MinerData data = get(golem);
-		if (data == null) {
-			return false;
-		}
-		if (hasPickaxe(golem) || Tools.hasLost(golem, Items.COPPER_PICKAXE) || data.lootCount() > 0) {
-			return true;
-		}
-		CopperChestMinecart cart = data.plan() == null ? null : CartChaining.findCart(golem);
-		return cart != null && !cart.isEmpty();
+		return data != null && (hasPickaxe(golem) || Tools.hasLost(golem, Items.COPPER_PICKAXE) || !Load.of(golem).isEmpty());
 	}
 
 	public @Nullable MinePlan plan() {
@@ -70,19 +52,5 @@ public final class MinerData {
 
 	public void setPlan(@Nullable MinePlan plan) {
 		this.plan = plan;
-	}
-
-	/** Mutable pouch of mined items. */
-	public List<ItemStack> loot() {
-		return this.loot;
-	}
-
-	/** Mutable pouch of building supplies. */
-	public List<ItemStack> supplies() {
-		return this.supplies;
-	}
-
-	public int lootCount() {
-		return this.loot.stream().mapToInt(ItemStack::getCount).sum();
 	}
 }

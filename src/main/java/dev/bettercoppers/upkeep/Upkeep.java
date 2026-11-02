@@ -10,8 +10,8 @@ import dev.bettercoppers.golem.Sorter;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.Job;
 import dev.bettercoppers.job.Tools;
+import dev.bettercoppers.job.Load;
 import dev.bettercoppers.job.WorkerData;
-import dev.bettercoppers.job.WorkerInteractions;
 import dev.bettercoppers.mining.MinerData;
 import dev.bettercoppers.mining.MinerInteractions;
 import dev.bettercoppers.mixin.CopperGolemAccessor;
@@ -190,12 +190,12 @@ public final class Upkeep {
 	}
 
 	private static String jobId(CopperGolem golem) {
-		if (MinerData.isMiner(golem)) {
-			return "miner";
-		}
 		Job job = WorkerData.job(golem);
 		if (job != null) {
 			return job.id();
+		}
+		if (MinerData.isMiner(golem)) {
+			return "miner";
 		}
 		if (Couriers.isCourier(golem)) {
 			return "courier";
@@ -210,8 +210,9 @@ public final class Upkeep {
 	/** Drops everything a working golem carries for its job (on death or when turning into a statue). */
 	public static void dropJobItems(CopperGolem golem) {
 		MinerInteractions.dropAll(golem);
-		WorkerInteractions.dropAll(golem);
+		golem.removeAttached(ModAttachments.WORKER);
 		if (golem.level() instanceof ServerLevel level) {
+			Load.of(golem).dropAll(level, golem);
 			Eyes.drop(level, golem);
 			RepairBehavior.dropCarried(level, golem);
 			GolemTrims.dropAll(level, golem);

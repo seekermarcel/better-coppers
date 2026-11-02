@@ -66,7 +66,7 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 	}
 
 	@Override
-	protected @Nullable Task chooseTask(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos home) {
+	protected @Nullable Task chooseTask(ServerLevel level, CopperGolem golem, BlockPos home) {
 		int radius = Eyes.radius(golem, RADIUS);
 		AABB area = new AABB(home).inflate(radius, HEIGHT, radius);
 		// Picking up what fell off the trees comes first, before it despawns.
@@ -78,9 +78,11 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 			return new Task(Kind.PICK_UP, drop.blockPosition(), drop, null);
 		}
 		// Then the stumps waiting for a sapling.
-		data.marks().removeIf(stump -> !level.isLoaded(stump) || !level.getBlockState(stump).isAir());
-		for (BlockPos stump : data.marks()) {
-			Item sapling = this.saplingFor(golem, data, stump);
+		List<BlockPos> marks = WorkerData.getOrCreate(golem).marks();
+		marks.removeIf(stump -> !level.isLoaded(stump) || !level.getBlockState(stump).isAir());
+		Load load = Load.of(golem);
+		for (BlockPos stump : marks) {
+			Item sapling = this.saplingFor(golem, load, stump);
 			if (sapling != null && !this.isIgnored(level, stump)) {
 				return new Task(Kind.PLANT, stump, null, sapling);
 			}
@@ -106,22 +108,22 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 	}
 
 	@Override
-	protected boolean tickTask(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos home, Task task) {
+	protected boolean tickTask(ServerLevel level, CopperGolem golem, BlockPos home, Task task) {
 		return switch (task.kind()) {
-			case PICK_UP -> this.pickUp(level, golem, data, task.item());
-			case PLANT -> this.plant(level, golem, data, task.pos(), task.sapling());
-			case FELL -> this.fell(level, golem, data, task.pos());
+			case PICK_UP -> this.pickUp(level, golem, task.item());
+			case PLANT -> this.plant(level, golem, task.pos(), task.sapling());
+			case FELL -> this.fell(level, golem, task.pos());
 		};
 	}
 
-	private boolean pickUp(ServerLevel level, CopperGolem golem, WorkerData data, @Nullable ItemEntity item) {
+	private boolean pickUp(ServerLevel level, CopperGolem golem, @Nullable ItemEntity item) {
 		if (item == null || !item.isAlive()) {
 			return true;
 		}
 		if (!this.reach(level, golem, item)) {
 			return false;
 		}
-		stash(golem, data.pouch(), item.getItem().copy());
+		Load.of(golem).stash(item.getItem());
 		item.discard();
 		golem.setState(CopperGolemState.GETTING_ITEM);
 		golem.playSound(net.minecraft.sounds.SoundEvents.ITEM_PICKUP, 0.3F, 1.0F);
@@ -129,7 +131,7 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 		return true;
 	}
 
-	private boolean plant(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos stump, @Nullable Item sapling) {
+	private boolean plant(ServerLevel level, CopperGolem golem, BlockPos stump, @Nullable Item sapling) {
 		if (!(sapling instanceof BlockItem blockItem)) {
 			return true;
 		}
@@ -142,17 +144,17 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 		}
 		BlockState state = blockItem.getBlock().defaultBlockState();
 		boolean fits = level.getBlockState(stump).isAir() && state.canSurvive(level, stump);
-		if (fits && !Inventories.takeOne(List.of(data.supplies(), data.pouch()), null, stack -> stack.is(sapling)).isEmpty()) {
+		if (fits && !Load.of(golem).takeOne(stack -> stack.is(sapling)).isEmpty()) {
 			level.setBlockAndUpdate(stump, state);
 			level.gameEvent(GameEvent.BLOCK_PLACE, stump, GameEvent.Context.of(golem, state));
 			level.playSound(null, stump, state.getSoundType().getPlaceSound(), SoundSource.BLOCKS, 1.0F, 0.8F);
 			Upkeep.spend(golem, 2);
 		}
-		data.marks().remove(stump);
+		WorkerData.getOrCreate(golem).marks().remove(stump);
 		return true;
 	}
 
-	private boolean fell(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos base) {
+	private boolean fell(ServerLevel level, CopperGolem golem, BlockPos base) {
 		if (!level.getBlockState(base).is(BlockTags.LOGS)) {
 			return true;
 		}
@@ -189,13 +191,13 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 				break;
 			}
 			BlockState state = level.getBlockState(log);
-			Block.getDrops(state, level, log, null, golem, axe).forEach(drop -> stash(golem, data.pouch(), drop));
+			Block.getDrops(state, level, log, null, golem, axe).forEach(Load.of(golem)::stash);
 			level.destroyBlock(log, false, golem);
 			Tools.wear(golem, axe);
 			Upkeep.spend(golem, ENERGY_PER_LOG);
 		}
 		if (sapling != null && level.getBlockState(base).isAir()) {
-			data.marks().add(base);
+			WorkerData.getOrCreate(golem).marks().add(base);
 		}
 		return true;
 	}
@@ -292,16 +294,10 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 	}
 
 	/** A sapling for this stump: the kind that grew there if it has one, otherwise any. */
-	private @Nullable Item saplingFor(CopperGolem golem, WorkerData data, BlockPos stump) {
-		List<ItemStack> all = new ArrayList<>(data.supplies());
-		all.addAll(data.pouch());
-		for (ItemStack stack : all) {
-			if (stack.is(ItemTags.SAPLINGS) && stack.getItem() instanceof BlockItem blockItem
-				&& blockItem.getBlock().defaultBlockState().canSurvive(golem.level(), stump)) {
-				return stack.getItem();
-			}
-		}
-		return null;
+	private @Nullable Item saplingFor(CopperGolem golem, Load load, BlockPos stump) {
+		ItemStack found = load.find(stack -> stack.is(ItemTags.SAPLINGS) && stack.getItem() instanceof BlockItem blockItem
+			&& blockItem.getBlock().defaultBlockState().canSurvive(golem.level(), stump));
+		return found.isEmpty() ? null : found.getItem();
 	}
 
 	private static boolean isForestDrop(ItemStack stack) {
@@ -309,17 +305,17 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 	}
 
 	@Override
-	protected int keepOnUnload(WorkerData data, ItemStack stack) {
+	protected int keepOnUnload(Load load, ItemStack stack) {
 		if (!stack.is(ItemTags.SAPLINGS)) {
 			return 0;
 		}
-		return Math.max(0, SAPLING_RESERVE - Inventories.count(data.supplies(), other -> other.is(stack.getItem())));
+		return Math.max(0, SAPLING_RESERVE - load.suppliesCount(other -> other.is(stack.getItem())));
 	}
 
 	@Override
-	protected void restock(ServerLevel level, CopperGolem golem, WorkerData data, Container chest) {
-		if (Inventories.count(data.supplies(), stack -> stack.is(ItemTags.SAPLINGS)) == 0) {
-			Inventories.addTo(data.supplies(), Inventories.takeFirst(chest, SAPLING_RESERVE, stack -> stack.is(ItemTags.SAPLINGS)));
+	protected void restock(ServerLevel level, CopperGolem golem, Load load, Container chest) {
+		if (load.suppliesCount(stack -> stack.is(ItemTags.SAPLINGS)) == 0) {
+			load.addSupplies(Inventories.takeFirst(chest, SAPLING_RESERVE, stack -> stack.is(ItemTags.SAPLINGS)));
 		}
 	}
 }

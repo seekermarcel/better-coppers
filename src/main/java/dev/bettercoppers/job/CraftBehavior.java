@@ -50,7 +50,7 @@ public class CraftBehavior extends JobBehavior<CraftBehavior.Order> {
 	}
 
 	@Override
-	protected @Nullable Order chooseTask(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos home) {
+	protected @Nullable Order chooseTask(ServerLevel level, CopperGolem golem, BlockPos home) {
 		Container chest = Homes.container(level, home);
 		if (chest == null) {
 			return null;
@@ -71,7 +71,7 @@ public class CraftBehavior extends JobBehavior<CraftBehavior.Order> {
 	}
 
 	@Override
-	protected boolean tickTask(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos home, Order order) {
+	protected boolean tickTask(ServerLevel level, CopperGolem golem, BlockPos home, Order order) {
 		Container chest = Homes.container(level, home);
 		if (chest == null) {
 			return true;
@@ -122,20 +122,14 @@ public class CraftBehavior extends JobBehavior<CraftBehavior.Order> {
 				chest.removeItem(order.sourceSlots().get(i), 1);
 			}
 		}
+		// What does not fit stays in the load and goes back when the chest has room.
+		Load load = Load.of(golem);
 		for (ItemStack stack : remainders) {
-			if (!stack.isEmpty()) {
-				spill(level, golem, Inventories.insert(chest, stack));
-			}
+			load.stash(Inventories.insert(chest, stack));
 		}
-		spill(level, golem, Inventories.insert(chest, result));
+		load.stash(Inventories.insert(chest, result));
 		golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_DROP);
 		Upkeep.spend(golem, ENERGY_PER_CRAFT);
-	}
-
-	private static void spill(ServerLevel level, CopperGolem golem, ItemStack rest) {
-		if (!rest.isEmpty()) {
-			golem.spawnAtLocation(level, rest);
-		}
 	}
 
 	/** Picks a chest stack for every ingredient, or null if the chest lacks something. */

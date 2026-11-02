@@ -33,6 +33,10 @@ public final class MineLayout {
 	public record Step(Action action, BlockPos pos, BlockPos stand, Direction facing) {
 	}
 
+	/** What a slice uses: a rail for it and every slice before it (they are laid at the end), fences and planks for a support. */
+	public record SliceNeeds(int rails, int fences, int planks) {
+	}
+
 	private static final int SUPPORT_SPACING = 4;
 
 	private final BlockPos entrance;
@@ -75,6 +79,10 @@ public final class MineLayout {
 	/** Slices that get two fence posts and a plank beam. */
 	public static boolean isSupportSlice(int slice) {
 		return slice % SUPPORT_SPACING == 2;
+	}
+
+	public static SliceNeeds needs(int slice) {
+		return isSupportSlice(slice) ? new SliceNeeds(slice + 1, 4, 3) : new SliceNeeds(slice + 1, 0, 0);
 	}
 
 	private BlockPos cell(int forward, int side, int up) {

@@ -109,7 +109,7 @@ public final class MinerInteractions {
 		return stack;
 	}
 
-	/** Drops the plan, pouch and supplies with the golem. */
+	/** Drops the plan with the golem. */
 	public static void dropAll(CopperGolem golem) {
 		if (!(golem.level() instanceof ServerLevel level)) {
 			return;
@@ -121,7 +121,5 @@ public final class MinerInteractions {
 		if (data.plan() != null) {
 			golem.spawnAtLocation(level, planStack(data.plan()));
 		}
-		data.loot().forEach(stack -> golem.spawnAtLocation(level, stack));
-		data.supplies().forEach(stack -> golem.spawnAtLocation(level, stack));
 	}
 }

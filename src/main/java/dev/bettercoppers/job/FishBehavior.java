@@ -60,7 +60,7 @@ public class FishBehavior extends JobBehavior<FishBehavior.Spot> {
 	}
 
 	@Override
-	protected @Nullable Spot chooseTask(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos home) {
+	protected @Nullable Spot chooseTask(ServerLevel level, CopperGolem golem, BlockPos home) {
 		if (this.spot == null || !isValid(level, this.spot) || this.isIgnored(level, this.spot.stand())) {
 			this.spot = this.findSpot(level, home, Eyes.radius(golem, RADIUS));
 		}
@@ -68,7 +68,7 @@ public class FishBehavior extends JobBehavior<FishBehavior.Spot> {
 	}
 
 	@Override
-	protected boolean tickTask(ServerLevel level, CopperGolem golem, WorkerData data, BlockPos home, Spot spot) {
+	protected boolean tickTask(ServerLevel level, CopperGolem golem, BlockPos home, Spot spot) {
 		if (!isValid(level, spot)) {
 			this.spot = null;
 			this.reelIn();
@@ -121,7 +121,7 @@ public class FishBehavior extends JobBehavior<FishBehavior.Spot> {
 		if (this.workTicks < this.waitTicks) {
 			return false;
 		}
-		this.landCatch(level, golem, data, bobber);
+		this.landCatch(level, golem, bobber);
 		this.reelIn();
 		return true;
 	}
@@ -155,7 +155,7 @@ public class FishBehavior extends JobBehavior<FishBehavior.Spot> {
 		super.stop(level, golem, timestamp);
 	}
 
-	private void landCatch(ServerLevel level, CopperGolem golem, WorkerData data, Vec3 bobber) {
+	private void landCatch(ServerLevel level, CopperGolem golem, Vec3 bobber) {
 		ItemStack rod = golem.getMainHandItem();
 		LootParams params = new LootParams.Builder(level)
 			.withParameter(LootContextParams.ORIGIN, bobber)
@@ -164,7 +164,7 @@ public class FishBehavior extends JobBehavior<FishBehavior.Spot> {
 			.create(LootContextParamSets.FISHING);
 		LootTable table = level.getServer().reloadableRegistries().getLootTable(BuiltInLootTables.FISHING);
 		List<ItemStack> catches = table.getRandomItems(params);
-		catches.forEach(stack -> stash(golem, data.pouch(), stack));
+		catches.forEach(Load.of(golem)::stash);
 		level.sendParticles(ParticleTypes.SPLASH, bobber.x, bobber.y, bobber.z, 12, 0.2, 0.1, 0.2, 0.0);
 		level.playSound(null, bobber.x, bobber.y, bobber.z, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.NEUTRAL, 0.5F, 1.0F);
 		golem.setState(CopperGolemState.GETTING_ITEM);

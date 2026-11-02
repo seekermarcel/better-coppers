@@ -1,12 +1,9 @@
 package dev.bettercoppers.job;
 
-import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.home.Homes;
-import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.upkeep.Upkeep;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -37,7 +34,7 @@ public final class WorkerInteractions {
 		ItemStack held = player.getItemInHand(hand);
 		if (FarmBehavior.isSeed(held) && WorkerData.job(golem) == Job.FARMER) {
 			if (!level.isClientSide()) {
-				Inventories.addTo(WorkerData.getOrCreate(golem).supplies(), held);
+				Load.of(golem).addSupplies(held);
 				held.consume(held.getCount(), player);
 				golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET);
 			}
@@ -76,16 +73,5 @@ public final class WorkerInteractions {
 		held.consume(1, player);
 		Tools.clearLost(golem);
 		golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET);
-	}
-
-	public static void dropAll(CopperGolem golem) {
-		if (!(golem.level() instanceof ServerLevel level)) {
-			return;
-		}
-		WorkerData data = golem.removeAttached(ModAttachments.WORKER);
-		if (data != null) {
-			data.pouch().forEach(stack -> golem.spawnAtLocation(level, stack));
-			data.supplies().forEach(stack -> golem.spawnAtLocation(level, stack));
-		}
 	}
 }

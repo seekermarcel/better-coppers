@@ -1,10 +1,7 @@
 package dev.bettercoppers.job;
 
 import com.google.common.collect.ImmutableMap;
-import dev.bettercoppers.entity.CopperChestMinecart;
-import dev.bettercoppers.golem.CartChaining;
 import dev.bettercoppers.home.Homes;
-import dev.bettercoppers.mining.MinerData;
 import dev.bettercoppers.upkeep.Upkeep;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -63,18 +60,9 @@ public class ToolFetchBehavior extends Behavior<CopperGolem> {
 		return false;
 	}
 
+	/** The load goes home first; the job behaviours do that by themselves. */
 	private boolean wantsTool(ServerLevel level, CopperGolem golem) {
-		return Tools.lostTool(golem) != null && !golem.isLeashed() && Homes.get(golem) != null && Upkeep.canWork(level, golem) && !isCarrying(golem);
-	}
-
-	/** Loot, harvest or a full pouch goes home first; the job behaviours do that by themselves. */
-	private static boolean isCarrying(CopperGolem golem) {
-		MinerData miner = MinerData.get(golem);
-		WorkerData worker = WorkerData.get(golem);
-		CopperChestMinecart cart = CartChaining.findCart(golem);
-		return miner != null && miner.lootCount() > 0
-			|| worker != null && worker.pouchCount() > 0
-			|| cart != null && !cart.isEmpty();
+		return Tools.lostTool(golem) != null && !golem.isLeashed() && Homes.get(golem) != null && Upkeep.canWork(level, golem) && Load.of(golem).isEmpty();
 	}
 
 	@Override
