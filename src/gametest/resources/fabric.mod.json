@@ -8,6 +8,8 @@
 		"fabric-gametest": [
 			"dev.bettercoppers.test.GameTests",
 			"dev.bettercoppers.test.JobGameTests",
+			"dev.bettercoppers.test.MinerGameTests",
+			"dev.bettercoppers.test.RepairGameTests",
 			"dev.bettercoppers.test.VanillaGameTests"
 		]
 	},
