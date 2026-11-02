@@ -87,6 +87,12 @@ public class JobGameTests {
 		UseEntityCallback.EVENT.invoker().interact(player, h.getLevel(), InteractionHand.MAIN_HAND, golem, null);
 	}
 
+	/**
+	 * Sorters and tool fetchers look for chests up to 32 blocks away, so these tests keep that far from their neighbours.
+	 * Chests of other tests with the same item are out of reach for them, but the golem still tries them first.
+	 */
+	private static final int SORTER_PADDING = 48;
+
 	private static int count(Container container, Item item) {
 		return container.countItem(item);
 	}
@@ -340,7 +346,7 @@ public class JobGameTests {
 		h.succeed();
 	}
 
-	@GameTest(maxTicks = 1200)
+	@GameTest(maxTicks = 1200, padding = SORTER_PADDING)
 	public void sorter_with_bundle_delivers_to_matching_chest(GameTestHelper h) {
 		scene(h);
 		BlockPos home = new BlockPos(2, 1, 4);
@@ -355,7 +361,30 @@ public class JobGameTests {
 		h.succeedWhen(() -> h.assertTrue(count(match, Items.COBBLESTONE) == 2, "cobblestone not delivered yet"));
 	}
 
-	@GameTest(maxTicks = 400)
+	/** Chests with the item that the sorter cannot reach come first by distance; they must not hide the one it can. */
+	@GameTest(maxTicks = 300, padding = SORTER_PADDING)
+	public void sorter_delivers_past_many_unreachable_matching_chests(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(0, 1, 0);
+		GameTests.chest(h, home, COPPER_CHEST).setItem(0, new ItemStack(Items.COBBLESTONE));
+		Container destination = GameTests.chest(h, new BlockPos(7, 1, 1), Blocks.CHEST);
+		destination.setItem(0, new ItemStack(Items.COBBLESTONE));
+		// Twelve chests on pillars, nearer to the golem than the destination, and too high to reach.
+		for (int x = 3; x <= 5; x++) {
+			for (int z = 2; z <= 5; z++) {
+				h.setBlock(new BlockPos(x, 1, z), Blocks.STONE);
+				h.setBlock(new BlockPos(x, 2, z), Blocks.STONE);
+				GameTests.chest(h, new BlockPos(x, 3, z), Blocks.CHEST).setItem(0, new ItemStack(Items.COBBLESTONE));
+			}
+		}
+		CopperGolem golem = GameTests.golem(h, new BlockPos(1, 1, 1));
+		GameTests.energize(golem);
+		give(h, golem, new ItemStack(Items.BUNDLE));
+		Homes.set(golem, h.absolutePos(home));
+		h.succeedWhen(() -> h.assertTrue(count(destination, Items.COBBLESTONE) == 2, "cobblestone not delivered yet"));
+	}
+
+	@GameTest(maxTicks = 400, padding = SORTER_PADDING)
 	public void tool_fetch_without_a_spare_tool_ends_idle(GameTestHelper h) {
 		scene(h);
 		BlockPos home = new BlockPos(2, 1, 4);
@@ -378,7 +407,7 @@ public class JobGameTests {
 		h.succeed();
 	}
 
-	@GameTest(maxTicks = 1200)
+	@GameTest(maxTicks = 1200, padding = SORTER_PADDING)
 	public void stale_data_does_not_stop_a_sorter(GameTestHelper h) {
 		scene(h);
 		BlockPos home = new BlockPos(2, 1, 4);
@@ -618,7 +647,7 @@ public class JobGameTests {
 			.thenSucceed();
 	}
 
-	@GameTest(maxTicks = 2400)
+	@GameTest(maxTicks = 2400, padding = SORTER_PADDING)
 	public void sorter_prefers_chest_with_item_frame(GameTestHelper h) {
 		scene(h);
 		BlockPos home = new BlockPos(2, 1, 4);
@@ -658,7 +687,7 @@ public class JobGameTests {
 		});
 	}
 
-	@GameTest(maxTicks = 2400)
+	@GameTest(maxTicks = 2400, padding = SORTER_PADDING)
 	public void seeds_protected_across_double_chest(GameTestHelper h) {
 		scene(h);
 		// The sorter is linked to one half, the farmer to the other.
@@ -670,7 +699,7 @@ public class JobGameTests {
 		stockStays(h, new BlockPos(1, 1, 1), new BlockPos(2, 1, 1), new ItemStack(Items.COPPER_HOE), Items.WHEAT_SEEDS);
 	}
 
-	@GameTest(maxTicks = 2400)
+	@GameTest(maxTicks = 2400, padding = SORTER_PADDING)
 	public void forester_keeps_saplings_with_sorter(GameTestHelper h) {
 		scene(h);
 		BlockPos home = new BlockPos(1, 1, 1);
@@ -680,7 +709,7 @@ public class JobGameTests {
 		stockStays(h, home, home, new ItemStack(Items.COPPER_AXE), Items.OAK_SAPLING);
 	}
 
-	@GameTest(maxTicks = 2400)
+	@GameTest(maxTicks = 2400, padding = SORTER_PADDING)
 	public void spare_tool_stays_with_sorter(GameTestHelper h) {
 		scene(h);
 		BlockPos home = new BlockPos(1, 1, 1);
@@ -690,7 +719,7 @@ public class JobGameTests {
 		stockStays(h, home, home, new ItemStack(Items.COPPER_HOE), Items.COPPER_HOE);
 	}
 
-	@GameTest(maxTicks = 2400)
+	@GameTest(maxTicks = 2400, padding = SORTER_PADDING)
 	public void keeper_keeps_food_without_animals(GameTestHelper h) {
 		scene(h);
 		BlockPos home = new BlockPos(1, 1, 1);
@@ -723,12 +752,12 @@ public class JobGameTests {
 		});
 	}
 
-	@GameTest(maxTicks = 2400)
+	@GameTest(maxTicks = 2400, padding = SORTER_PADDING)
 	public void sorter_takes_only_seeds_above_reserve(GameTestHelper h) {
 		reserveHolds(h, Golems.SEED_RESERVE + 4, false);
 	}
 
-	@GameTest(maxTicks = 2400)
+	@GameTest(maxTicks = 2400, padding = SORTER_PADDING)
 	public void sorter_with_cart_takes_only_seeds_above_reserve(GameTestHelper h) {
 		reserveHolds(h, 64, true);
 	}

@@ -59,6 +59,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 	private static final int MAX_QUEUE_TICKS = 600;
 	private static final int MAX_DECOYS = 3;
 	private static final int MAX_PATH_ATTEMPTS = 4;
+	private static final int MAX_DELIVERY_ROUNDS = 4;
 	private static final double QUEUE_DISTANCE = 3.0;
 	private static final double KEEP_INTERACTING_DISTANCE = 2.0;
 
@@ -198,10 +199,19 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 				return true;
 			}
 		}
-		this.tier = found.tier();
-		boolean reached = this.targetNearestReachable(level, golem, now, found.spots(), Purpose.DELIVER);
-		this.targetSpot = reached ? found.spots().stream().filter(spot -> spot.pos().equals(this.target)).findFirst().orElse(null) : null;
-		return reached;
+		// Unreachable spots end up ignored, so look again: a nearer tier full of them must not hide a reachable one.
+		for (int round = 0; round < MAX_DELIVERY_ROUNDS && found != null; round++) {
+			this.tier = found.tier();
+			Found current = found;
+			if (this.targetNearestReachable(level, golem, now, current.spots(), Purpose.DELIVER)) {
+				this.targetSpot = current.spots().stream().filter(spot -> spot.pos().equals(this.target)).findFirst().orElse(null);
+				return true;
+			}
+			spots = spots.stream().filter(spot -> !this.isIgnored(spot.pos(), now)).toList();
+			found = SortingDestinations.find(spots, hand, golem.position());
+		}
+		this.targetSpot = null;
+		return false;
 	}
 
 	/**
