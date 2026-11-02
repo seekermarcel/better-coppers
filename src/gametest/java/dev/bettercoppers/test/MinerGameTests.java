@@ -1,0 +1,117 @@
+package dev.bettercoppers.test;
+
+import dev.bettercoppers.home.Homes;
+import dev.bettercoppers.mining.MineLayout;
+import dev.bettercoppers.mining.MinePattern;
+import dev.bettercoppers.mining.MinePlan;
+import dev.bettercoppers.mining.MinerData;
+import dev.bettercoppers.registry.ModComponents;
+import dev.bettercoppers.registry.ModItems;
+import net.fabricmc.fabric.api.event.player.UseEntityCallback;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Container;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.animal.golem.CopperGolem;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+
+/** Describes the miner's current behaviour: supplies, ore and fluids. The scene is a stone block with a shaft heading north. */
+public class MinerGameTests {
+	private static final Block COPPER_CHEST = Blocks.COPPER_CHEST.weathering().unaffected();
+	private static final BlockPos HOME = new BlockPos(1, 1, 7);
+	private static final BlockPos ENTRANCE = new BlockPos(4, 1, 5);
+	/** Beside the shaft (its east wall is x = 5), in the second slice. */
+	private static final BlockPos WALL = new BlockPos(6, 2, 4);
+
+	private record Scene(CopperGolem golem, Container chest, MinePlan plan) {
+	}
+
+	/** Stone block, daytime, a miner with plan and pickaxe, and a home chest with supplies or empty. */
+	private static Scene scene(GameTestHelper h, boolean supplies) {
+		ServerLevel level = h.getLevel();
+		level.clockManager().setTotalTicks(level.dimensionType().defaultClock().orElseThrow(), 1000L);
+		for (int x = 0; x < 8; x++) {
+			for (int z = 0; z < 8; z++) {
+				h.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+			}
+		}
+		for (int x = 2; x <= 7; x++) {
+			for (int y = 1; y <= 4; y++) {
+				for (int z = 0; z <= 5; z++) {
+					h.setBlock(new BlockPos(x, y, z), Blocks.STONE);
+				}
+			}
+		}
+		Container chest = GameTests.chest(h, HOME, COPPER_CHEST);
+		if (supplies) {
+			chest.setItem(0, new ItemStack(Items.RAIL, 16));
+			chest.setItem(1, new ItemStack(Items.OAK_PLANKS, 32));
+			chest.setItem(2, new ItemStack(Items.OAK_FENCE, 16));
+			chest.setItem(3, new ItemStack(Items.TORCH, 16));
+		}
+		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 6));
+		GameTests.energize(golem);
+		MinePlan plan = MinePlan.blank(MinePattern.MINESHAFT, 8).marked(h.absolutePos(ENTRANCE), Direction.NORTH);
+		ItemStack planStack = new ItemStack(ModItems.MINESHAFT_PLAN);
+		planStack.set(ModComponents.MINE_PLAN, plan);
+		give(h, golem, new ItemStack(Items.COPPER_PICKAXE));
+		give(h, golem, planStack);
+		Homes.set(golem, h.absolutePos(HOME));
+		return new Scene(golem, chest, plan);
+	}
+
+	private static void give(GameTestHelper h, CopperGolem golem, ItemStack stack) {
+		Player player = h.makeMockPlayer(GameType.SURVIVAL);
+		player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+		UseEntityCallback.EVENT.invoker().interact(player, h.getLevel(), InteractionHand.MAIN_HAND, golem, null);
+	}
+
+	private static int progress(CopperGolem golem) {
+		return MinerData.get(golem).plan().progress();
+	}
+
+	@GameTest(maxTicks = 600)
+	public void miner_without_supplies_waits_at_home(GameTestHelper h) {
+		Scene s = scene(h, false);
+		var firstSlice = MineLayout.build(s.plan(), h.getLevel().getMinY()).stream()
+			.filter(step -> step.action() == MineLayout.Action.DIG && MineLayout.sliceOf(s.plan(), step.pos()) == 0)
+			.toList();
+		h.runAfterDelay(500, () -> {
+			for (var step : firstSlice) {
+				h.assertTrue(!h.getLevel().getBlockState(step.pos()).isAir(), "dug without supplies: " + step.pos());
+			}
+			h.assertTrue(progress(s.golem()) == 0, "plan advanced without supplies");
+			h.assertTrue(s.golem().blockPosition().distManhattan(h.absolutePos(HOME)) <= 4, "not waiting at home: " + s.golem().blockPosition());
+			h.succeed();
+		});
+	}
+
+	@GameTest(maxTicks = 3600)
+	public void miner_digs_ore_vein_and_carries_on(GameTestHelper h) {
+		Scene s = scene(h, true);
+		h.setBlock(WALL, Blocks.COAL_ORE);
+		h.succeedWhen(() -> {
+			h.assertTrue(h.getBlockState(WALL).isAir(), "ore not dug yet");
+			h.assertTrue(s.chest().countItem(Items.COAL) >= 1, "no coal in the chest yet");
+			h.assertTrue(progress(s.golem()) > 8, "plan did not carry on: " + progress(s.golem()));
+		});
+	}
+
+	@GameTest(maxTicks = 3600)
+	public void miner_seals_fluid_with_filler(GameTestHelper h) {
+		Scene s = scene(h, true);
+		h.setBlock(WALL, Blocks.WATER);
+		h.succeedWhen(() -> {
+			h.assertTrue(h.getBlockState(WALL).is(Blocks.COBBLESTONE) || h.getBlockState(WALL).is(Blocks.STONE), "water not plugged yet");
+			h.assertTrue(progress(s.golem()) > 8, "plan did not carry on: " + progress(s.golem()));
+		});
+	}
+}
