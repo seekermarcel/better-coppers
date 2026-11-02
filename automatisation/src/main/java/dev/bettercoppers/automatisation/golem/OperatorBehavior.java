@@ -5,9 +5,7 @@ import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.automatisation.Automatisation;
 import dev.bettercoppers.automatisation.machine.MachineBlockEntity;
 import dev.bettercoppers.automatisation.registry.AutoAttachments;
-import dev.bettercoppers.golem.Inventories;
-import dev.bettercoppers.golem.TravelWatch;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.api.TravelWatch;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -57,7 +55,7 @@ public class OperatorBehavior extends Behavior<CopperGolem> {
 
 	@Override
 	protected boolean checkExtraStartConditions(ServerLevel level, CopperGolem golem) {
-		return Operators.isOperator(golem) && Operators.machine(golem) != null && !golem.isLeashed() && Upkeep.canWork(level, golem);
+		return Operators.isOperator(golem) && Operators.machine(golem) != null && !golem.isLeashed() && BetterCoppersApi.canWork(level, golem);
 	}
 
 	@Override
@@ -104,7 +102,7 @@ public class OperatorBehavior extends Behavior<CopperGolem> {
 
 		if (!machine.wantsWork(level)) {
 			if (distance > STAY_NEAR) {
-				BehaviorUtils.setWalkAndLookTargetMemories(golem, pos, 0.8F * Upkeep.speed(golem), 2);
+				BehaviorUtils.setWalkAndLookTargetMemories(golem, pos, 0.8F * BetterCoppersApi.workSpeed(golem), 2);
 			} else {
 				this.rest(golem, IDLE_COOLDOWN);
 			}
@@ -116,7 +114,7 @@ public class OperatorBehavior extends Behavior<CopperGolem> {
 				this.rest(golem, UNREACHABLE_COOLDOWN);
 				return;
 			}
-			BehaviorUtils.setWalkAndLookTargetMemories(golem, pos, 0.8F * Upkeep.speed(golem), 1);
+			BehaviorUtils.setWalkAndLookTargetMemories(golem, pos, 0.8F * BetterCoppersApi.workSpeed(golem), 1);
 			return;
 		}
 		this.travel.reset();
@@ -124,7 +122,7 @@ public class OperatorBehavior extends Behavior<CopperGolem> {
 		golem.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
 		golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(pos));
 		// Rust makes the golem crank more slowly: some ticks it just does not get the crank round.
-		if (golem.getRandom().nextFloat() < Upkeep.speed(golem)) {
+		if (golem.getRandom().nextFloat() < BetterCoppersApi.workSpeed(golem)) {
 			machine.operate(level);
 		}
 		this.crankTicks++;
@@ -135,7 +133,7 @@ public class OperatorBehavior extends Behavior<CopperGolem> {
 			golem.setState(CopperGolemState.IDLE);
 		}
 		if (this.crankTicks % ENERGY_INTERVAL == 0) {
-			Upkeep.spend(golem, 1);
+			BetterCoppersApi.spendEnergy(golem, 1);
 		}
 	}
 
@@ -207,7 +205,7 @@ public class OperatorBehavior extends Behavior<CopperGolem> {
 				continue;
 			}
 			Container container = HopperBlockEntity.getContainerAt(level, mutable);
-			if (container == null || !Inventories.contains(container, stack -> stack.is(wanted))) {
+			if (container == null || !BetterCoppersApi.contains(container, stack -> stack.is(wanted))) {
 				continue;
 			}
 			double distance = mutable.distSqr(machine);
@@ -229,7 +227,7 @@ public class OperatorBehavior extends Behavior<CopperGolem> {
 			this.rest(golem, UNREACHABLE_COOLDOWN);
 			return;
 		}
-		BehaviorUtils.setWalkAndLookTargetMemories(golem, target, 0.8F * Upkeep.speed(golem), 1);
+		BehaviorUtils.setWalkAndLookTargetMemories(golem, target, 0.8F * BetterCoppersApi.workSpeed(golem), 1);
 	}
 
 	private static void stopAndLook(CopperGolem golem, BlockPos pos) {

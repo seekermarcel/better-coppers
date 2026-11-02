@@ -6,7 +6,7 @@ import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.golem.CartChaining;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
-import dev.bettercoppers.golem.TravelWatch;
+import dev.bettercoppers.api.TravelWatch;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.golem.Errands;
 import net.minecraft.core.BlockPos;

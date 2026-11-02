@@ -7,7 +7,6 @@ import dev.bettercoppers.automatisation.Automatisation;
 import dev.bettercoppers.automatisation.item.WrenchItem;
 import dev.bettercoppers.automatisation.machine.MachineBlock;
 import dev.bettercoppers.automatisation.registry.AutoAttachments;
-import dev.bettercoppers.home.HomeDisplay;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -79,7 +78,7 @@ public final class Operators {
 			}
 			golem.setAttached(AutoAttachments.MACHINE, pos.immutable());
 			level.playSound(null, pos, SoundEvents.COPPER_GOLEM_ITEM_DROP, SoundSource.NEUTRAL, 1.0F, 1.2F);
-			HomeDisplay.drawLine(level, golem, pos, null);
+			BetterCoppersApi.drawLinkLine(level, golem, pos);
 			player.sendOverlayMessage(Component.translatable("message.bettercoppers_automatisation.operator_linked", level.getBlockState(pos).getBlock().getName()));
 			BetterCoppersApi.awardGuide(player, Automatisation.id("guide/operator"));
 			return InteractionResult.SUCCESS;

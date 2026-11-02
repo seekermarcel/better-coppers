@@ -9,8 +9,8 @@ Everything runs in the flake dev shell:
 - `nix develop -c ./gradlew runClient` starts the game.
 
 ## Package map (`src/main/java/dev/bettercoppers/`)
-- `api`: BetterCoppersApi, hooks for add-ons (jobs, behaviours, link targets, modifiers, pads, handbook)
-- `golem`: GolemBrain (registers behaviours), Golems, Inventories, ItemFamilies, Sorter, SortItemsBehavior, Errands, RideBehavior, CartChaining, TravelWatch, Eyes, HomeStroll
+- `api`: BetterCoppersApi, TravelWatch, hooks for add-ons (jobs, behaviours, link targets, modifiers, pads, handbook)
+- `golem`: GolemBrain (registers behaviours), Golems, Inventories, ItemFamilies, Sorter, SortItemsBehavior, Errands, RideBehavior, CartChaining, Eyes, HomeStroll
 - `job`: Job enum, JobBehavior, WorkerData, WorkerInteractions, Tools, ToolFetchBehavior, Farm/Forest/Fish/Keeper/CraftBehavior
 - `guide`: Golem Handbook, guide advancements
 - `mining`: miner job, mine layout and plan

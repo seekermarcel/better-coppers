@@ -1,12 +1,21 @@
 package dev.bettercoppers.api;
 
+import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.golem.Eyes;
+import dev.bettercoppers.golem.Inventories;
+import dev.bettercoppers.home.HomeDisplay;
 import dev.bettercoppers.guide.Guide;
+import dev.bettercoppers.upkeep.Upkeep;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.player.Player;
@@ -132,5 +141,42 @@ public final class BetterCoppersApi {
 			}
 		}
 		return null;
+	}
+
+	/** Whether the golem has energy and is not rusted shut or otherwise stopped: the check for starting work. */
+	public static boolean canWork(ServerLevel level, CopperGolem golem) {
+		return Upkeep.canWork(level, golem);
+	}
+
+	/** How fast the golem moves and works, 1 being normal. */
+	public static float workSpeed(CopperGolem golem) {
+		return Upkeep.speed(golem);
+	}
+
+	public static void spendEnergy(CopperGolem golem, int energy) {
+		Upkeep.spend(golem, energy);
+	}
+
+	/** Draws the particle line from the golem to a linked block, as for a home. */
+	public static void drawLinkLine(ServerLevel level, CopperGolem golem, BlockPos pos) {
+		HomeDisplay.drawLine(level, golem, pos, null);
+	}
+
+	public static boolean hasRoom(Container container, ItemStack item) {
+		return Inventories.hasRoom(container, item);
+	}
+
+	public static boolean contains(Container container, Predicate<ItemStack> filter) {
+		return Inventories.contains(container, filter);
+	}
+
+	/** Whether this is a Copper Chest Minecart that is not yet a double chest. */
+	public static boolean canExtendCart(Entity entity) {
+		return entity instanceof CopperChestMinecart cart && !cart.isExtended();
+	}
+
+	/** Makes a Copper Chest Minecart a double chest. Only call after {@link #canExtendCart}. */
+	public static void extendCart(Entity entity, ItemStack extension) {
+		((CopperChestMinecart) entity).extend(extension);
 	}
 }

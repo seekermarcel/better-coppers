@@ -1,4 +1,4 @@
-package dev.bettercoppers.golem;
+package dev.bettercoppers.api;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;

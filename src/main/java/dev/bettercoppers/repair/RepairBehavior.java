@@ -6,7 +6,7 @@ import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.golem.Errands;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
-import dev.bettercoppers.golem.TravelWatch;
+import dev.bettercoppers.api.TravelWatch;
 import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.registry.ModAttachments;

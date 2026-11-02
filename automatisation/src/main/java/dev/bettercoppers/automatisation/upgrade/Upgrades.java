@@ -5,7 +5,6 @@ import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.automatisation.Automatisation;
 import dev.bettercoppers.automatisation.registry.AutoAttachments;
 import dev.bettercoppers.automatisation.registry.AutoItems;
-import dev.bettercoppers.entity.CopperChestMinecart;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.particles.ParticleTypes;
@@ -132,14 +131,11 @@ public final class Upgrades {
 			return InteractionResult.PASS;
 		}
 		ItemStack held = player.getItemInHand(hand);
-		if (entity instanceof CopperChestMinecart cart && held.is(AutoItems.CART_EXTENSION)) {
-			if (cart.isExtended()) {
-				return InteractionResult.PASS;
-			}
+		if (held.is(AutoItems.CART_EXTENSION) && BetterCoppersApi.canExtendCart(entity)) {
 			if (!level.isClientSide()) {
-				cart.extend(held);
+				BetterCoppersApi.extendCart(entity, held);
 				held.consume(1, player);
-				cart.playSound(SoundEvents.CHEST_LOCKED, 0.8F, 1.2F);
+				entity.playSound(SoundEvents.CHEST_LOCKED, 0.8F, 1.2F);
 				player.sendOverlayMessage(Component.translatable("message.bettercoppers_automatisation.cart_extended"));
 				BetterCoppersApi.awardGuide(player, Automatisation.id("guide/cart_extension"));
 			}

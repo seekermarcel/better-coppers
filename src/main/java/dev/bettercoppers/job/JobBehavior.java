@@ -6,7 +6,7 @@ import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.golem.CartChaining;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
-import dev.bettercoppers.golem.TravelWatch;
+import dev.bettercoppers.api.TravelWatch;
 import dev.bettercoppers.upkeep.Upkeep;
 import java.util.HashMap;
 import java.util.List;

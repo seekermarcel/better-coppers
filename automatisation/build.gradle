@@ -54,3 +54,19 @@ java {
 	sourceCompatibility = JavaVersion.VERSION_25
 	targetCompatibility = JavaVersion.VERSION_25
 }
+
+// The add-on may use the base mod's api package only (ADR 0004).
+tasks.register('checkApiOnly') {
+	def sources = fileTree('src') { include '**/*.java' }
+	doLast {
+		sources.each { f ->
+			f.eachLine { line ->
+				def m = line =~ /^\s*import\s+(?:static\s+)?dev\.bettercoppers\.(\w+)/
+				if (m && !(m[0][1] in ['api', 'automatisation'])) {
+					throw new GradleException("${f} imports ${line.trim()}: the add-on may only use dev.bettercoppers.api")
+				}
+			}
+		}
+	}
+}
+check.dependsOn 'checkApiOnly'

@@ -2,10 +2,10 @@ package dev.bettercoppers.automatisation.arm;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.automatisation.machine.MachineBlock;
 import dev.bettercoppers.automatisation.machine.MachineBlockEntity;
 import dev.bettercoppers.automatisation.registry.AutoBlockEntities;
-import dev.bettercoppers.golem.Inventories;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -216,7 +216,7 @@ public class GrabberArmBlockEntity extends MachineBlockEntity {
 	private static boolean canPut(Level level, BlockPos pos, ItemStack stack) {
 		Container container = HopperBlockEntity.getContainerAt(level, pos);
 		if (container != null) {
-			return Inventories.hasRoom(container, stack);
+			return BetterCoppersApi.hasRoom(container, stack);
 		}
 		return level.getBlockState(pos).getCollisionShape(level, pos).max(Direction.Axis.Y) < 0.9 && looseItems(level, pos).size() < MAX_LOOSE_ITEMS;
 	}
