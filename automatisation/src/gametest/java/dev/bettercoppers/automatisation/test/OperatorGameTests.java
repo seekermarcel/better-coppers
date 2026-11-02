@@ -82,6 +82,24 @@ public class OperatorGameTests {
 			.thenSucceed();
 	}
 
+	/** The wrench comes back into the selected hand, so a held button repeats with the wrench in it. */
+	@GameTest
+	public void rest_of_the_ending_press_does_not_make_an_operator_again(GameTestHelper h) {
+		floor(h);
+		Player player = h.makeMockPlayer(GameType.SURVIVAL);
+		CopperGolem golem = h.spawn(EntityTypes.COPPER_GOLEM, new BlockPos(4, 1, 4));
+		give(h, player, golem, AutoItems.COPPER_WRENCH);
+		click(h, player, golem, true, ItemStack.EMPTY);
+		h.startSequence()
+			.thenExecuteAfter(6, () -> click(h, player, golem, true, ItemStack.EMPTY))
+			.thenExecuteAfter(4, () -> {
+				h.assertTrue(player.getMainHandItem().is(AutoItems.COPPER_WRENCH), "the wrench is not in the selected hand");
+				click(h, player, golem, true, player.getMainHandItem());
+				h.assertFalse(Operators.isOperator(golem), "the repeat made it an operator again");
+			})
+			.thenSucceed();
+	}
+
 	@GameTest
 	public void worker_handed_a_wrench_returns_its_load(GameTestHelper h) {
 		floor(h);

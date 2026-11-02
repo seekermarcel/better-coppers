@@ -47,7 +47,9 @@ import org.jspecify.annotations.Nullable;
 /**
  * Empty-hand clicks on a golem, and linking it to its home chest: sneak + right-click the golem with an empty hand (it
  * glows and shows its status), then right-click a copper chest within {@link #MAX_DISTANCE} blocks of it. The pick
- * expires after half a minute. A second sneak-click on a golem with a job within {@link #END_JOB_TICKS} ends the job.
+ * expires after half a minute. A second press of sneak + empty hand on a golem with a job within {@link #END_JOB_TICKS}
+ * ends the job. Clicks closer than {@link #SAME_PRESS_TICKS} are one press, as a held button repeats them, and the rest of
+ * the press that ended a job does nothing.
  * <p>
  * Right-clicking a plain chest or barrel instead starts a courier route; the next chest or barrel clicked, at any
  * distance in the same dimension, ends it. There are {@link #ROUTE_TICKS ten minutes} to walk there.
@@ -67,9 +69,31 @@ public final class HomeLinking {
 	private record Selection(UUID golem, ResourceKey<Level> dimension, long until, @Nullable BlockPos routeStart, long endJobUntil, long lastClick) {
 	}
 
+	/** The press that ended a golem's job. */
+	private record EndingPress(UUID golem, long lastClick) {
+	}
+
 	private static final Map<UUID, Selection> SELECTIONS = new HashMap<>();
+	private static final Map<UUID, EndingPress> ENDING_PRESSES = new HashMap<>();
 
 	private HomeLinking() {
+	}
+
+	/**
+	 * Registered first, so it stops every other handler and vanilla. The tool that came back can land in the selected
+	 * hand, and a held button would then hand it straight over again.
+	 */
+	public static InteractionResult onEndingPress(Player player, Level level, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
+		EndingPress press = ENDING_PRESSES.get(player.getUUID());
+		if (!(level instanceof ServerLevel) || press == null || !press.golem().equals(entity.getUUID())) {
+			return InteractionResult.PASS;
+		}
+		if (level.getGameTime() - press.lastClick() > SAME_PRESS_TICKS) {
+			ENDING_PRESSES.remove(player.getUUID());
+			return InteractionResult.PASS;
+		}
+		ENDING_PRESSES.put(player.getUUID(), new EndingPress(press.golem(), level.getGameTime()));
+		return InteractionResult.SUCCESS;
 	}
 
 	public static InteractionResult onUseEntity(Player player, Level level, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
@@ -107,6 +131,7 @@ public final class HomeLinking {
 		boolean hasJob = Jobs.has(golem);
 		if (hasJob && sameGolem && now <= previous.endJobUntil()) {
 			SELECTIONS.remove(player.getUUID());
+			ENDING_PRESSES.put(player.getUUID(), new EndingPress(golem.getUUID(), now));
 			golem.removeEffect(MobEffects.GLOWING);
 			JobHandover.end(player, golem);
 			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_NO_GET);

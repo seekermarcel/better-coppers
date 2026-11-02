@@ -293,6 +293,48 @@ public class HandoverGameTests {
 			.thenSucceed();
 	}
 
+	/** The hoe comes back into the selected hand, so a held button repeats with the hoe in it. */
+	@GameTest(maxTicks = 100)
+	public void rest_of_the_ending_press_does_not_give_the_job_back(GameTestHelper h) {
+		JobGameTests.scene(h);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		give(h, player, golem, Items.COPPER_HOE);
+		Runnable repeat = () -> {
+			click(h, player, golem, true, player.getMainHandItem());
+			h.assertFalse(Jobs.has(golem), "the repeat gave the job back");
+			h.assertTrue(player.getMainHandItem().is(Items.COPPER_HOE), "the repeat took the hoe");
+		};
+		click(h, player, golem, true, ItemStack.EMPTY);
+		h.startSequence()
+			.thenExecuteAfter(NEW_PRESS, () -> {
+				click(h, player, golem, true, ItemStack.EMPTY);
+				h.assertFalse(Jobs.has(golem), "not ended");
+				h.assertTrue(player.getMainHandItem().is(Items.COPPER_HOE), "the hoe is not in the selected hand");
+			})
+			.thenExecuteAfter(4, repeat)
+			// More than a gap after the end, so only the refreshing keeps this one out.
+			.thenExecuteAfter(4, repeat)
+			.thenExecuteAfter(12, () -> {
+				click(h, player, golem, true, player.getMainHandItem());
+				h.assertTrue(Jobs.has(golem), "a new press gave no job");
+			})
+			.thenSucceed();
+	}
+
+	@GameTest
+	public void ending_press_does_not_stop_clicks_on_another_golem(GameTestHelper h) {
+		JobGameTests.scene(h);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		CopperGolem other = GameTests.golem(h, GOLEM);
+		give(h, player, golem, Items.COPPER_HOE);
+		endJob(h, player, golem, () -> {
+			click(h, player, other, true, player.getMainHandItem());
+			h.assertTrue(Jobs.has(other), "the other golem refused the hoe");
+		});
+	}
+
 	/** The button held from giving the hoe: it also repeats on the now empty hand. */
 	@GameTest(maxTicks = 100)
 	public void held_button_after_giving_a_tool_does_not_end_the_job(GameTestHelper h) {

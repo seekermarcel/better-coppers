@@ -47,7 +47,8 @@ public class BetterCoppers implements ModInitializer {
 		ModItems.init();
 		ModMenus.init();
 		Couriers.init();
-		// First, so non-copper tools are refused before any job takes them.
+		UseEntityCallback.EVENT.register(HomeLinking::onEndingPress);
+		// Next, so non-copper tools are refused before any job takes them.
 		UseEntityCallback.EVENT.register(Tools::onUseEntity);
 		// Before HomeLinking, which stops every other plain empty-hand click on a golem with a job.
 		UseEntityCallback.EVENT.register(CartChaining::onUseEntity);

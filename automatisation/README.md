@@ -123,7 +123,7 @@ A spot can be a container (chest, barrel, chute, assembler…) or any other bloc
 A workshop with 9 slots. Right-click it to open it, or fill it with hoppers, funnels or a grabber arm; it only takes golem parts.
 - **One golem needs:** 4 copper sheets, 2 copper gears, 1 carved pumpkin and 1 redstone dust.
 - With the parts in and room in front, its operator cranks for 20 seconds and a new copper golem steps out of the front.
-- New golems have no job yet. Give them one like any other golem.
+- New golems have no job yet. Sneak + right-click them with one, like any other golem.
 
 ### Charging Station
 A gilded charging pad. It needs **no redstone clock** and charges a golem in about 12 seconds, twice as fast as a Charging Pad on the fastest clock. Put it within 16 blocks of a golem's home or machine.
