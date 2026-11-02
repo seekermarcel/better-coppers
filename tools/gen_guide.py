@@ -238,6 +238,13 @@ It knows every container within 32 blocks (8 up and down).
 # Item frames
 Hang item frames on a chest or barrel to reserve it: it then takes only the items its frames show, and they go there before anywhere else.
 
+# Working stock
+A sorter shares its chest with another golem and leaves what that golem needs to do its job:
+- spare tools of its job,
+- a miner's torches, rails, planks and fences,
+- 16 of every seed for a farmer, 8 of every sapling for a forester, 16 of the food a keeper's animals eat.
+This also holds when the golems are linked to the two halves of a double chest.
+
 It carries 16 items per trip. Now and then it opens a wrong chest first and shakes its head: that is just its character.
 
 Sorters are free to run: no energy, no rust."""),
@@ -251,6 +258,13 @@ Er kennt jeden Behälter im Umkreis von 32 Blöcken (8 nach oben und unten).
 
 # Rahmen
 Häng Rahmen an eine Truhe oder ein Fass, um sie zu reservieren: Dann kommen nur die gezeigten Gegenstände hinein, und zwar vor allen anderen Truhen.
+
+# Arbeitsvorrat
+Teilt sich ein Sortierer die Truhe mit einem anderen Golem, lässt er liegen, was dieser für seine Arbeit braucht:
+- Ersatzwerkzeug für dessen Beruf,
+- Fackeln, Schienen, Bretter und Zäune eines Bergmanns,
+- 16 von jedem Saatgut für einen Bauern, 8 von jedem Setzling für einen Förster, 16 von dem Futter, das die Tiere eines Tierpflegers fressen.
+Das gilt auch, wenn die Golems an den beiden Hälften einer Doppeltruhe hängen.
 
 Er trägt 16 Gegenstände pro Gang. Ab und zu öffnet er erst eine falsche Truhe und schüttelt den Kopf: Das ist einfach sein Charakter.
 

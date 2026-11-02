@@ -8,9 +8,7 @@ import dev.bettercoppers.golem.SortingDestinations.Spot;
 import dev.bettercoppers.golem.SortingDestinations.Tier;
 import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.home.Homes;
-import dev.bettercoppers.job.FarmBehavior;
 import dev.bettercoppers.job.Jobs;
-import dev.bettercoppers.mining.MineBehavior;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -83,8 +81,6 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 	private int decoyBudget;
 	private boolean deliveryPrepared;
 	private final Map<BlockPos, Long> ignoredUntil = new HashMap<>();
-	private Set<BlockPos> minerHomes = Set.of();
-	private Set<BlockPos> farmerHomes = Set.of();
 
 	public SortItemsBehavior() {
 		super(ImmutableMap.of(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS, MemoryStatus.VALUE_ABSENT, MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT));
@@ -182,9 +178,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 		if (hand.isEmpty()) {
 			this.decoys.clear();
 			this.deliveryPrepared = false;
-			this.minerHomes = MineBehavior.minerHomesNear(level, golem.blockPosition());
-			this.farmerHomes = FarmBehavior.farmerHomesNear(level, golem.blockPosition());
-			List<Spot> sources = spots.stream().filter(spot -> spot.kind() == Kind.SOURCE && isOwnChest(level, golem, spot.pos()) && Inventories.contains(spot.container(), this.sortableIn(spot.pos(), spot.container()))).toList();
+			List<Spot> sources = spots.stream().filter(spot -> spot.kind() == Kind.SOURCE && isOwnChest(level, golem, spot.pos()) && Inventories.contains(spot.container(), WorkingStock.sortableIn(level, spot.pos(), spot.container()))).toList();
 			return this.targetNearestReachable(level, golem, now, sources, Purpose.PICKUP);
 		}
 
@@ -345,20 +339,8 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 		};
 	}
 
-	/** A miner's home chest keeps its torches, rails and wood; everything else in it gets sorted as usual. */
-	private Predicate<ItemStack> sortableIn(BlockPos source, Container container) {
-		if (this.minerHomes.contains(source)) {
-			return stack -> !MineBehavior.isSupply(stack);
-		}
-		if (this.farmerHomes.contains(source)) {
-			// A farm chest keeps a few of every seed so its farmer can always replant.
-			return stack -> !FarmBehavior.isSeed(stack) || Inventories.count(container, other -> other.is(stack.getItem())) > Golems.SEED_RESERVE;
-		}
-		return stack -> true;
-	}
-
 	private void pickUp(ServerLevel level, CopperGolem golem, Container source) {
-		Predicate<ItemStack> sortable = this.sortableIn(this.target, source);
+		Predicate<ItemStack> sortable = WorkingStock.sortableIn(level, this.target, source);
 		ItemStack kind = ItemStack.EMPTY;
 		for (ItemStack stack : source) {
 			if (!stack.isEmpty() && sortable.test(stack)) {

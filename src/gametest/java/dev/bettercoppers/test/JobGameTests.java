@@ -5,6 +5,7 @@ import dev.bettercoppers.api.GolemJob;
 import dev.bettercoppers.courier.CourierRoute;
 import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.entity.CopperChestMinecart;
+import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.HomeStroll;
 import dev.bettercoppers.golem.SortItemsBehavior;
 import dev.bettercoppers.home.Homes;
@@ -58,7 +59,9 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.state.properties.ChestType;
 import org.jspecify.annotations.Nullable;
 
 /** One game test per job: each builds a small scene, hands the golem its tool the way a player would, and waits. */
@@ -599,5 +602,54 @@ public class JobGameTests {
 			h.assertTrue(count(framed, Items.COBBLESTONE) == 4, "not delivered to the framed chest yet");
 			h.assertTrue(count(matching, Items.COBBLESTONE) == 1, "delivered to the unframed chest");
 		});
+	}
+
+	/** A sorter and a worker share a home chest that holds the worker's stock and some cobblestone; only the cobblestone may leave. */
+	private static void stockStays(GameTestHelper h, BlockPos sorterHome, BlockPos workerHome, ItemStack worker, Item stock) {
+		Container destination = GameTests.chest(h, new BlockPos(6, 1, 4), Blocks.CHEST);
+		CopperGolem sorter = GameTests.golem(h, new BlockPos(4, 1, 4));
+		GameTests.energize(sorter);
+		give(h, sorter, new ItemStack(Items.BUNDLE));
+		Homes.set(sorter, h.absolutePos(sorterHome));
+		CopperGolem other = GameTests.golem(h, new BlockPos(3, 1, 3));
+		GameTests.energize(other);
+		give(h, other, worker);
+		Homes.set(other, h.absolutePos(workerHome));
+		h.succeedWhen(() -> {
+			h.assertTrue(count(destination, Items.COBBLESTONE) == 4, "cobblestone not delivered yet");
+			h.assertTrue(count(destination, stock) == 0, "working stock was sorted away");
+		});
+	}
+
+	@GameTest(maxTicks = 2400)
+	public void seeds_protected_across_double_chest(GameTestHelper h) {
+		scene(h);
+		// The sorter is linked to one half, the farmer to the other.
+		h.getLevel().setBlock(h.absolutePos(new BlockPos(1, 1, 1)), COPPER_CHEST.defaultBlockState().setValue(ChestBlock.TYPE, ChestType.LEFT), 3);
+		h.getLevel().setBlock(h.absolutePos(new BlockPos(2, 1, 1)), COPPER_CHEST.defaultBlockState().setValue(ChestBlock.TYPE, ChestType.RIGHT), 3);
+		Container chest = Homes.containerAt(h.getLevel(), h.absolutePos(new BlockPos(1, 1, 1)));
+		chest.setItem(0, new ItemStack(Items.WHEAT_SEEDS, Golems.SEED_RESERVE));
+		chest.setItem(1, new ItemStack(Items.COBBLESTONE, 4));
+		stockStays(h, new BlockPos(1, 1, 1), new BlockPos(2, 1, 1), new ItemStack(Items.COPPER_HOE), Items.WHEAT_SEEDS);
+	}
+
+	@GameTest(maxTicks = 2400)
+	public void forester_keeps_saplings_with_sorter(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.OAK_SAPLING, ForestBehavior.SAPLING_RESERVE));
+		chest.setItem(1, new ItemStack(Items.COBBLESTONE, 4));
+		stockStays(h, home, home, new ItemStack(Items.COPPER_AXE), Items.OAK_SAPLING);
+	}
+
+	@GameTest(maxTicks = 2400)
+	public void spare_tool_stays_with_sorter(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.COPPER_HOE));
+		chest.setItem(1, new ItemStack(Items.COBBLESTONE, 4));
+		stockStays(h, home, home, new ItemStack(Items.COPPER_HOE), Items.COPPER_HOE);
 	}
 }

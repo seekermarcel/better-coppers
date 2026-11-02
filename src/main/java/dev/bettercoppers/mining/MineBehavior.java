@@ -77,7 +77,6 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	private static final int ENERGY_PER_DIG = 2;
 	private static final int ENERGY_PER_BUILD = 1;
 	/** Miners further than this from a sorting golem cannot be the reason to leave a chest alone. */
-	private static final int MINER_HOME_SEARCH_RADIUS = 64;
 	private static final int IDLE_COOLDOWN = 200;
 
 	private enum Mode {
@@ -734,22 +733,6 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	/** What a miner takes along from its home chest; sorting golems leave these there. */
 	public static boolean isSupply(ItemStack stack) {
 		return stack.is(Items.TORCH) || stack.is(Items.RAIL) || stack.is(ItemTags.PLANKS) || stack.is(ItemTags.WOODEN_FENCES);
-	}
-
-	/** Home chests of the mining golems around {@code pos}. */
-	public static Set<BlockPos> minerHomesNear(ServerLevel level, BlockPos pos) {
-		Set<BlockPos> homes = new HashSet<>();
-		for (CopperGolem golem : level.getEntitiesOfClass(CopperGolem.class, new AABB(pos).inflate(MINER_HOME_SEARCH_RADIUS))) {
-			MinerData data = MinerData.get(golem);
-			MinePlan plan = data == null ? null : data.plan();
-			if (plan != null && plan.isMarked() && Jobs.of(golem) == Jobs.JobKind.MINER) {
-				BlockPos home = Homes.get(golem);
-				if (home != null) {
-					homes.add(home);
-				}
-			}
-		}
-		return homes;
 	}
 
 	// --- movement ---

@@ -47,7 +47,7 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 	private static final int RADIUS = 12;
 	private static final int HEIGHT = 6;
 	private static final int MAX_LOGS = 200;
-	private static final int SAPLING_RESERVE = 8;
+	public static final int SAPLING_RESERVE = 8;
 	private static final int ENERGY_PER_LOG = 3;
 
 	enum Kind {
