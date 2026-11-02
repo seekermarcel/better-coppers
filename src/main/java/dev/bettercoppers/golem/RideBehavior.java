@@ -116,7 +116,7 @@ public class RideBehavior extends Behavior<CopperGolem> {
 
 	@Override
 	protected boolean canStillUse(ServerLevel level, CopperGolem golem, long timestamp) {
-		return !this.finished && this.vehicle != null && this.vehicle.isAlive() && golem.isAlive() && !golem.isLeashed() && (!this.riding || golem.getVehicle() == this.vehicle);
+		return !this.finished && this.vehicle != null && this.vehicle.isAlive() && golem.isAlive() && !golem.isLeashed() && Jobs.has(golem) && (!this.riding || golem.getVehicle() == this.vehicle);
 	}
 
 	@Override
