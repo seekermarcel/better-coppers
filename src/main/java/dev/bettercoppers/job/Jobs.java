@@ -52,6 +52,12 @@ public final class Jobs {
 		return of(golem) != JobKind.NONE;
 	}
 
+	/** A golem without a job, or a courier (which keeps its job and cargo), may get a new route. */
+	public static boolean takesRoute(CopperGolem golem) {
+		JobKind kind = of(golem);
+		return kind == JobKind.NONE || kind == JobKind.COURIER;
+	}
+
 	/** A job with running costs, so not sorter or courier. */
 	public static boolean isPaying(CopperGolem golem) {
 		JobKind kind = of(golem);

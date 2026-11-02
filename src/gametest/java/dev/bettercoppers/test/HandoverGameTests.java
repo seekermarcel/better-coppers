@@ -639,6 +639,31 @@ public class HandoverGameTests {
 	}
 
 	@GameTest
+	public void courier_takes_a_new_route_and_keeps_its_cargo_but_a_farmer_is_refused(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos first = new BlockPos(2, 1, 1);
+		BlockPos second = new BlockPos(5, 1, 6);
+		h.setBlock(first, Blocks.CHEST);
+		h.setBlock(second, Blocks.CHEST);
+		Player player = player(h);
+		CopperGolem courier = GameTests.golem(h, GOLEM);
+		Couriers.setRoute(courier, route(h));
+		courier.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.COBBLESTONE, 5));
+		click(h, player, courier, true, ItemStack.EMPTY);
+		h.assertTrue(clickBlock(h, player, first).consumesAction(), "courier refused at the first chest");
+		h.assertTrue(clickBlock(h, player, second).consumesAction(), "courier refused at the second chest");
+		h.assertValueEqual(Couriers.route(courier), new CourierRoute(h.absolutePos(first), h.absolutePos(second)), "new route");
+		h.assertValueEqual(Jobs.of(courier), JobKind.COURIER, "job");
+		h.assertValueEqual(courier.getMainHandItem().getCount(), 5, "cargo");
+		CopperGolem farmer = GameTests.golem(h, GOLEM);
+		give(h, player, farmer, Items.COPPER_HOE);
+		click(h, player, farmer, true, ItemStack.EMPTY);
+		h.assertValueEqual(clickBlock(h, player, first), InteractionResult.FAIL, "farmer at the first chest");
+		h.assertFalse(Couriers.isCourier(farmer), "farmer got a route");
+		h.succeed();
+	}
+
+	@GameTest
 	public void plan_is_refused_without_a_pickaxe_in_hand(GameTestHelper h) {
 		JobGameTests.scene(h);
 		Player player = player(h);

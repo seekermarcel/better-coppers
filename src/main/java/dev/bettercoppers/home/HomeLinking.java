@@ -244,9 +244,9 @@ public final class HomeLinking {
 		return InteractionResult.SUCCESS;
 	}
 
-	/** A golem with a job takes no route. Forgets the pick, so the next click on a chest opens it again. */
+	/** A golem with a job takes no route, except a courier. Forgets the pick, so the next click on a chest opens it again. */
 	private static boolean refuseRoute(Player player, ServerLevel level, Selection selection) {
-		if (!(level.getEntity(selection.golem()) instanceof CopperGolem golem) || !Jobs.has(golem)) {
+		if (!(level.getEntity(selection.golem()) instanceof CopperGolem golem) || Jobs.takesRoute(golem)) {
 			return false;
 		}
 		SELECTIONS.remove(player.getUUID());

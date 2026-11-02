@@ -385,7 +385,7 @@ Stellt her, was die Rahmen an oder neben seiner Truhe zeigen, aus den Zutaten in
 
 It takes 16 items per trip, or a cart load with a chained cart. On the road it keeps the chunks around it loaded, so the route keeps working while you are far away. If the destination is full, it waits.
 
-A golem with a job takes no route: end its job first. Linking it to a home copper chest ends the route."""),
+A golem with a job takes no route, except a courier: give it a new route and it keeps what it carries and delivers it on the new route. Other jobs have to be ended first. Linking it to a home copper chest ends the route."""),
                 ("Kurier", """Ein Kurier trägt alles von einer Truhe zu einer anderen, egal wie weit sie auseinander stehen.
 
 1. Schleichen + Rechtsklick mit leerer Hand auf den Golem.
@@ -394,7 +394,7 @@ A golem with a job takes no route: end its job first. Linking it to a home coppe
 
 Er nimmt 16 Gegenstände pro Gang mit, mit angeketteter Lore eine ganze Ladung. Unterwegs hält er die Chunks um sich geladen, damit die Route auch funktioniert, wenn du weit weg bist. Ist das Ziel voll, wartet er.
 
-Ein Golem mit Beruf nimmt keine Route an: Beende erst seinen Beruf. Verbindest du ihn mit einer Kupfertruhe als Zuhause, endet die Route.""")),
+Ein Golem mit Beruf nimmt keine Route an, außer ein Kurier: Gib ihm eine neue Route, dann behält er, was er trägt, und liefert es auf der neuen Route aus. Andere Berufe musst du erst beenden. Verbindest du ihn mit einer Kupfertruhe als Zuhause, endet die Route.""")),
     "travel": (("Minecarts and Boats", """A golem heading somewhere more than 24 blocks away looks around for a ride.
 
 # Minecart
@@ -419,7 +419,7 @@ Ein Golem, der eine Lore zieht, geht immer zu Fuß.""")),
 Iron golems stay near the copper golems around them and attack any monster that hunts or hits one (except creepers).
 
 # Repairs
-When an iron golem nearby is badly hurt, a copper golem takes iron ingots from its home chest (or the nearest chest with iron) and repairs it: 25 health per ingot.
+When an iron golem nearby is badly hurt, a copper golem takes iron ingots from its home chest (or the nearest chest with iron) and repairs it: 25 health per ingot. A golem with only a home also uses iron ingots it already holds in its hand, and gives back what is left over.
 
 So build an iron golem for every work site, and keep some iron in your chests."""),
                ("Monster und Eisengolems", """Monster jagen Kupfergolems: Zombies, Skelette, Spinnen, Illager und mehr. Ein Kupfergolem hat nur 12 Lebenspunkte.
@@ -428,7 +428,7 @@ So build an iron golem for every work site, and keep some iron in your chests.""
 Eisengolems bleiben in der Nähe der Kupfergolems und greifen jedes Monster an, das einen jagt oder schlägt (außer Creeper).
 
 # Reparaturen
-Ist ein Eisengolem in der Nähe schwer verletzt, holt ein Kupfergolem Eisenbarren aus seiner Heimattruhe (oder der nächsten Truhe mit Eisen) und repariert ihn: 25 Lebenspunkte pro Barren.
+Ist ein Eisengolem in der Nähe schwer verletzt, holt ein Kupfergolem Eisenbarren aus seiner Heimattruhe (oder der nächsten Truhe mit Eisen) und repariert ihn: 25 Lebenspunkte pro Barren. Ein Golem, der nur ein Zuhause hat, nutzt auch Eisenbarren, die er schon in der Hand hält, und gibt zurück, was übrig bleibt.
 
 Bau also für jeden Arbeitsplatz einen Eisengolem und halte etwas Eisen in deinen Truhen bereit.""")),
     "upkeep": (("Energy and Rust", """Sorters and couriers are free. Every other job costs something.
