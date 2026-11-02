@@ -2,6 +2,7 @@ package dev.bettercoppers.golem;
 
 import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.home.Homes;
+import dev.bettercoppers.job.JobHandover;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.ItemTags;
@@ -17,8 +18,8 @@ import net.minecraft.world.phys.EntityHitResult;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A golem only sorts once it is given a bundle (kept in its off hand, since the main hand carries the items). Without
- * one it sorts like vanilla. Right-clicking a sorter with an empty hand, while it carries nothing, takes the bundle back.
+ * A golem only sorts once it is given a bundle with sneak + right-click (kept in its off hand, since the main hand carries
+ * the items). Without one it sorts like vanilla.
  */
 public final class Sorter {
 	private Sorter() {
@@ -29,29 +30,23 @@ public final class Sorter {
 	}
 
 	public static InteractionResult onUseEntity(Player player, Level level, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-		if (!(entity instanceof CopperGolem golem) || player.isSpectator() || hand != InteractionHand.MAIN_HAND || player.isShiftKeyDown()) {
+		if (!(entity instanceof CopperGolem golem) || player.isSpectator() || hand != InteractionHand.MAIN_HAND || !player.isShiftKeyDown()) {
 			return InteractionResult.PASS;
 		}
 		ItemStack held = player.getItemInHand(hand);
 		if (held.is(ItemTags.BUNDLES) && !isSorter(golem)) {
 			if (!level.isClientSide()) {
-				golem.setItemSlot(EquipmentSlot.OFFHAND, held.copyWithCount(1));
-				golem.setGuaranteedDrop(EquipmentSlot.OFFHAND);
+				ItemStack bundle = held.copyWithCount(1);
+				// First, so what comes back can use the slot.
 				held.consume(1, player);
+				JobHandover.clear(player, golem);
+				golem.setItemSlot(EquipmentSlot.OFFHAND, bundle);
+				golem.setGuaranteedDrop(EquipmentSlot.OFFHAND);
 				golem.playSound(SoundEvents.BUNDLE_INSERT);
 				Guide.job(player, "sorter");
 				player.sendOverlayMessage(
 					Component.translatable(Homes.get(golem) == null ? "message.bettercoppers.sorter_needs_home" : "message.bettercoppers.sorter_ready")
 				);
-			}
-			return InteractionResult.SUCCESS;
-		}
-		if (held.isEmpty() && isSorter(golem) && golem.getMainHandItem().isEmpty()) {
-			if (!level.isClientSide()) {
-				ItemStack bundle = golem.getOffhandItem();
-				golem.setItemSlot(EquipmentSlot.OFFHAND, ItemStack.EMPTY);
-				Inventories.giveOrDrop(player, bundle);
-				golem.playSound(SoundEvents.BUNDLE_REMOVE_ONE);
 			}
 			return InteractionResult.SUCCESS;
 		}

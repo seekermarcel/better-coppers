@@ -7,16 +7,20 @@ import dev.bettercoppers.courier.CourierRoute;
 import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.golem.Eyes;
 import dev.bettercoppers.guide.Guide;
+import dev.bettercoppers.job.JobHandover;
 import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.job.Tools;
 import dev.bettercoppers.upkeep.GolemUpkeep;
 import dev.bettercoppers.upkeep.Upkeep;
+import com.mojang.datafixers.util.Pair;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -28,6 +32,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -40,20 +45,24 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Linking a golem to its home chest: sneak + right-click the golem with an empty hand (it glows and shows its status),
- * then right-click a copper chest within {@link #MAX_DISTANCE} blocks of it. The pick expires after half a minute.
+ * Empty-hand clicks on a golem, and linking it to its home chest: sneak + right-click the golem with an empty hand (it
+ * glows and shows its status), then right-click a copper chest within {@link #MAX_DISTANCE} blocks of it. The pick
+ * expires after half a minute. A second sneak-click on a golem with a job within {@link #END_JOB_TICKS} ends the job.
  * <p>
  * Right-clicking a plain chest or barrel instead starts a courier route; the next chest or barrel clicked, at any
  * distance in the same dimension, ends it. There are {@link #ROUTE_TICKS ten minutes} to walk there.
+ * <p>
+ * A plain empty-hand click on a golem with a job only shows its status (ADR 0009).
  */
 public final class HomeLinking {
 	private static final int SELECTION_TICKS = 600;
 	private static final int ROUTE_TICKS = 12000;
+	private static final int END_JOB_TICKS = 100;
 	private static final double MAX_DISTANCE = 32.0;
 	/** A route this long earns the "Long Haul" guide step. */
 	private static final int LONG_HAUL = 500;
 
-	private record Selection(UUID golem, ResourceKey<Level> dimension, long until, @Nullable BlockPos routeStart) {
+	private record Selection(UUID golem, ResourceKey<Level> dimension, long until, @Nullable BlockPos routeStart, long endJobUntil) {
 	}
 
 	private static final Map<UUID, Selection> SELECTIONS = new HashMap<>();
@@ -62,17 +71,45 @@ public final class HomeLinking {
 	}
 
 	public static InteractionResult onUseEntity(Player player, Level level, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-		if (!(entity instanceof CopperGolem golem) || hand != InteractionHand.MAIN_HAND || player.isSpectator()
-			|| !player.isShiftKeyDown() || !player.getItemInHand(hand).isEmpty()) {
+		if (!(entity instanceof CopperGolem golem) || player.isSpectator() || !player.getItemInHand(hand).isEmpty()) {
 			return InteractionResult.PASS;
 		}
-		if (level instanceof ServerLevel serverLevel) {
-			SELECTIONS.put(player.getUUID(), new Selection(golem.getUUID(), serverLevel.dimension(), serverLevel.getGameTime() + SELECTION_TICKS, null));
-			golem.addEffect(new MobEffectInstance(MobEffects.GLOWING, SELECTION_TICKS, 0, false, false));
-			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET, 0.6F, 1.4F);
-			player.sendSystemMessage(Component.translatable("message.bettercoppers.selected", status(golem)));
+		if (hand == InteractionHand.MAIN_HAND && player.isShiftKeyDown()) {
+			if (level instanceof ServerLevel serverLevel) {
+				sneakClick(player, serverLevel, golem);
+			}
+			return InteractionResult.SUCCESS;
+		}
+		// The client does not know the job, so it ran vanilla's throw and the server has to answer. Vanilla throws for any
+		// empty hand: also for the off hand, when the main hand's item did nothing.
+		if (!(level instanceof ServerLevel) || !Jobs.has(golem)) {
+			return InteractionResult.PASS;
+		}
+		if (hand == InteractionHand.MAIN_HAND) {
+			player.sendOverlayMessage(status(golem));
+		}
+		if (player instanceof ServerPlayer serverPlayer) {
+			serverPlayer.connection.send(new ClientboundSetEquipmentPacket(golem.getId(), List.of(Pair.of(EquipmentSlot.MAINHAND, golem.getMainHandItem().copy()))));
 		}
 		return InteractionResult.SUCCESS;
+	}
+
+	private static void sneakClick(Player player, ServerLevel level, CopperGolem golem) {
+		long now = level.getGameTime();
+		Selection previous = SELECTIONS.get(player.getUUID());
+		boolean hasJob = Jobs.has(golem);
+		if (hasJob && previous != null && previous.golem().equals(golem.getUUID()) && now <= previous.endJobUntil()) {
+			SELECTIONS.remove(player.getUUID());
+			golem.removeEffect(MobEffects.GLOWING);
+			JobHandover.end(player, golem);
+			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_NO_GET);
+			player.sendOverlayMessage(Component.translatable("message.bettercoppers.job_ended"));
+			return;
+		}
+		SELECTIONS.put(player.getUUID(), new Selection(golem.getUUID(), level.dimension(), now + SELECTION_TICKS, null, hasJob ? now + END_JOB_TICKS : 0L));
+		golem.addEffect(new MobEffectInstance(MobEffects.GLOWING, SELECTION_TICKS, 0, false, false));
+		golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET, 0.6F, 1.4F);
+		player.sendSystemMessage(Component.translatable(hasJob ? "message.bettercoppers.selected_job" : "message.bettercoppers.selected", status(golem)));
 	}
 
 	/** Job, place, energy and rust, for the status message. */
@@ -140,7 +177,10 @@ public final class HomeLinking {
 			return Homes.canEndRoute(state) ? endRoute(player, serverLevel, selection, pos) : InteractionResult.PASS;
 		}
 		if (Couriers.canStartRoute(state)) {
-			SELECTIONS.put(player.getUUID(), new Selection(selection.golem(), selection.dimension(), serverLevel.getGameTime() + ROUTE_TICKS, pos));
+			if (refuseRoute(player, serverLevel, selection)) {
+				return InteractionResult.FAIL;
+			}
+			SELECTIONS.put(player.getUUID(), new Selection(selection.golem(), selection.dimension(), serverLevel.getGameTime() + ROUTE_TICKS, pos, 0L));
 			serverLevel.playSound(null, pos, SoundEvents.COPPER_GOLEM_ITEM_GET, SoundSource.NEUTRAL, 1.0F, 1.2F);
 			player.sendOverlayMessage(Component.translatable("message.bettercoppers.route_start"));
 			return InteractionResult.SUCCESS;
@@ -166,7 +206,21 @@ public final class HomeLinking {
 		return InteractionResult.SUCCESS;
 	}
 
+	/** A golem with a job takes no route. Forgets the pick, so the next click on a chest opens it again. */
+	private static boolean refuseRoute(Player player, ServerLevel level, Selection selection) {
+		if (!(level.getEntity(selection.golem()) instanceof CopperGolem golem) || !Jobs.has(golem)) {
+			return false;
+		}
+		SELECTIONS.remove(player.getUUID());
+		golem.removeEffect(MobEffects.GLOWING);
+		player.sendOverlayMessage(Component.translatable("message.bettercoppers.route_has_job"));
+		return true;
+	}
+
 	private static InteractionResult endRoute(Player player, ServerLevel level, Selection selection, BlockPos pos) {
+		if (refuseRoute(player, level, selection)) {
+			return InteractionResult.FAIL;
+		}
 		BlockPos start = selection.routeStart();
 		if (Homes.sameContainer(level, start).contains(pos)) {
 			player.sendOverlayMessage(Component.translatable("message.bettercoppers.route_same_chest"));

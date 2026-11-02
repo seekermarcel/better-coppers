@@ -13,7 +13,8 @@ import net.minecraft.world.phys.EntityHitResult;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Handing a cart over to a golem: chain the cart to yourself with an iron or copper chain, then right-click a copper golem.
+ * Handing a cart over to a golem: chain the cart to yourself with an iron or copper chain, then right-click a copper golem
+ * with an empty hand. The one plain click that changes a golem with a job; the player leading a cart clearly means it.
  */
 public final class CartChaining {
 	private static final double SEARCH_RADIUS = 16.0;
@@ -22,7 +23,7 @@ public final class CartChaining {
 	}
 
 	public static InteractionResult onUseEntity(Player player, Level level, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-		if (!(entity instanceof CopperGolem golem) || player.isSpectator()) {
+		if (!(entity instanceof CopperGolem golem) || player.isSpectator() || hand != InteractionHand.MAIN_HAND || player.isShiftKeyDown() || !player.getItemInHand(hand).isEmpty()) {
 			return InteractionResult.PASS;
 		}
 		List<CopperChestMinecart> carts = cartsChainedTo(player);

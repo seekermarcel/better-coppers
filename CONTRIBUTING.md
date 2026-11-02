@@ -16,7 +16,7 @@ See [The vanilla rule](CLAUDE.md#the-vanilla-rule) and [why it works the way it 
 ## Adding a job
 These steps are for a job that shares the home-chest routine of `JobBehavior`. Miner, sorter and courier have their own code. An add-on job uses `BetterCoppersApi.registerJob` and `registerBehavior` instead of steps 1 to 3.
 
-1. One entry in the `Job` enum. The first entry also brings the load home for a golem whose tool was taken away (`JobBehavior`), so check that when you reorder.
+1. One entry in the `Job` enum.
 2. One class extending `JobBehavior`.
 3. Register it in `GolemBrain.modBehaviours()`.
 4. Lang keys in both `en_us.json` and `de_de.json` (keep them key-identical).

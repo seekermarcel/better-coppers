@@ -48,7 +48,7 @@ On top of the jobs:
 
 **New to the mod?** You get a **Golem Handbook** the first time you join a world (lost it? book + copper ingot). It explains everything, chapter by chapter, in English and German. The **Better Coppers advancement tab** (press L) is the quest line: each step tells you what to try next, from building your first golem to "Full Employment" with a golem in every job. The add-on brings its own handbook chapters and its own tab.
 
-1. **Give a golem its job item.** Right-click the golem with it (see the table above).
+1. **Give a golem its job item.** Sneak + right-click the golem with it (see the table above).
 2. **Give it a home.** Sneak + right-click the golem with an empty hand. It glows and tells you its job, home, energy and rust. Then right-click the **copper chest** it should belong to (within 32 blocks).
 3. **Check on it.** While you sneak, copper particles run from every golem near you to its home chest. A golem that has a job but no home puffs smoke.
 
@@ -67,7 +67,7 @@ To move a golem to another chest, link it again.
   4. otherwise an empty chest.
 - For character, it first opens 0–3 wrong chests on each trip and shakes its head.
 - It carries 16 items at a time, as in vanilla, or a whole cart load with a chained cart.
-- To take the bundle back, right-click the sorter with an empty hand while it carries nothing.
+- To take the bundle back, end its job: sneak + right-click it twice with an empty hand, within 5 seconds.
 
 ### Miner
 1. Make a **Survey Table** (2 paper / 2 copper ingots / 2 planks, stacked in that order).
@@ -83,7 +83,7 @@ The golem digs a **3×3 vanilla-style mineshaft**: plank floor over gaps, a supp
 - **Slow and clumsy:** it digs at about half a player's speed and skips blocks it can't reach.
 - **Loot:** it carries 64 items (more with a cart), then walks home. Link a sorter to the same chest and it sorts the loot, leaving the mining supplies alone.
 - **Diamonds:** when it finds diamonds, it digs out the whole vein and hurries home with its antenna blinking.
-- **Getting things back:** right-click with an empty hand to get the pickaxe and the plan back. The plan keeps its progress.
+- **Getting things back:** end its job to get the pickaxe and the plan back. The plan keeps its progress. It takes the pickaxe first, then the plan.
 
 ### Farmer
 - Give it a **copper hoe**. Its field is everything within 8 blocks of its home chest.
@@ -114,7 +114,7 @@ The courier takes 16 items at a time, or a whole cart load with a chained cart. 
 
 ### Copper Chest Minecart on a chain
 - **Recipe:** minecart + any copper chest.
-- **Hand it over:** right-click the cart with an **iron or copper chain** (any age, waxed or not) so it follows you, then right-click a golem.
+- **Hand it over:** right-click the cart with an **iron or copper chain** (any age, waxed or not) so it follows you, then right-click a golem with an empty hand.
 - **Unchain it:** sneak + right-click the cart.
 - **Sorters** load everything *related* to the first item they pick up: stone also brings stone slabs, stairs and bricks, but not oak logs. They then deliver it all in one trip.
 - **Other jobs** fill the cart before their pouch.
@@ -142,9 +142,9 @@ So keep some iron in your chests, and build an iron golem for every work site.
 
 **Copper tools only.** Golems work with copper pickaxes, axes and hoes. Other pickaxes, axes and hoes are refused (any axe still scrapes a rusty golem). Fishing rods, brushes and crafting tables have no copper version and work as before.
 
-**Broken tools.** When a tool breaks, the golem keeps its job. It brings home what it carries, then looks for the same tool in its home chest and then in every chest and barrel within 16 blocks of home, and takes it. With none anywhere it shakes its head and looks again every half minute. To end its job instead, right-click it with an empty hand.
+**Broken tools.** When a tool breaks, the golem keeps its job. It brings home what it carries, then looks for the same tool in its home chest and then in every chest and barrel within 16 blocks of home, and takes it. With none anywhere it shakes its head and looks again every half minute. To end its job instead, sneak + right-click it twice with an empty hand, within 5 seconds.
 
-**Eyes.** Right-click a golem with a block of iron, gold or diamond:
+**Eyes.** Sneak + right-click a golem with a block of iron, gold or diamond:
 
 | Block | Eyes | Radius | Farm | Forest | Fishing | Sorter |
 |---|---|---|---|---|---|---|
@@ -158,7 +158,7 @@ It also widens animal pens, how far a miner follows a vein and where an add-on o
 ---
 
 ## Armour trims
-Right-click a golem with an **armour trim smithing template**, then with a **trim material** (iron, gold, copper, emerald, amethyst…). The trim shows in the material's colour, exactly like on armour, and all 18 vanilla patterns are supported.
+Sneak + right-click a golem with an **armour trim smithing template**, then with a **trim material** (iron, gold, copper, emerald, amethyst…). The trim shows in the material's colour, exactly like on armour, and all 18 vanilla patterns are supported.
 - The material is used up. The template stays with the golem.
 - A new template or material changes the trim.
 - **Shears** take the trim off and give the template back.
@@ -182,15 +182,16 @@ Sorters and couriers are free. Every other job costs something:
 
 | You do | What happens |
 |---|---|
-| Right-click golem with a job item | Gives it that job |
+| Sneak + right-click golem with a job item | Gives it that job, or switches to it |
 | Sneak + right-click golem (empty hand) | Shows its status and starts linking |
 | …then right-click a copper chest | Sets its home |
 | …then right-click a chest/barrel, then another | Sets a courier route |
-| Right-click golem (empty hand) | Takes its tool or bundle back (or ends the job of a golem whose tool broke) |
-| Right-click golem with an iron, gold or diamond block | Eye upgrade: bigger work radius |
-| Right-click golem with template, then material | Gives it an armour trim |
+| …the same click again within 5 seconds | Ends its job: you get its tool or bundle and everything it carries, a chained cart stays where it is |
+| Right-click golem (empty hand) | With a job: shows its status. Without: hands over what it holds, as in vanilla |
+| Sneak + right-click golem with an iron, gold or diamond block | Eye upgrade: bigger work radius |
+| Sneak + right-click golem with template, then material | Gives it an armour trim |
 | Right-click golem with shears | Removes the trim |
-| Right-click cart with an iron or copper chain, then a golem | Hands the cart over |
+| Right-click cart with an iron or copper chain, then a golem with an empty hand | Hands the cart over |
 | Sneak (just hold it) | Shows lines from golems to their homes |
 
 ---

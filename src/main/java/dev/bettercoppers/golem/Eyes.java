@@ -20,7 +20,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Eye upgrades: right-click a golem with a block of iron, gold or diamond and its eyes glow in that colour, and it
+ * Eye upgrades: sneak + right-click a golem with a block of iron, gold or diamond and its eyes glow in that colour, and it
  * works further from home: 1.5, 2 or 3 times its job's normal radius (fields, forest, fishing water, animals, the
  * containers a sorter knows, how far a miner follows a vein). A new block replaces the old one, which is given back;
  * the block drops when the golem dies. Couriers have no radius, so they don't take one.
@@ -62,7 +62,7 @@ public final class Eyes {
 	}
 
 	public static InteractionResult onUseEntity(Player player, Level level, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-		if (!(entity instanceof CopperGolem golem) || player.isSpectator() || hand != InteractionHand.MAIN_HAND || player.isShiftKeyDown()) {
+		if (!(entity instanceof CopperGolem golem) || player.isSpectator() || hand != InteractionHand.MAIN_HAND || !player.isShiftKeyDown()) {
 			return InteractionResult.PASS;
 		}
 		ItemStack held = player.getItemInHand(hand);

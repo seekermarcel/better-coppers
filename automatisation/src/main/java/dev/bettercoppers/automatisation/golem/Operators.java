@@ -16,8 +16,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -58,6 +56,15 @@ public final class Operators {
 				golem.spawnAtLocation(level, part);
 			}
 		}
+
+		@Override
+		public void onEnded(CopperGolem golem) {
+			golem.removeAttached(AutoAttachments.OPERATOR);
+			golem.removeAttached(AutoAttachments.MACHINE);
+			if (golem.level() instanceof ServerLevel level) {
+				this.dropItems(level, golem);
+			}
+		}
 	};
 
 	public static final GolemLinkTarget LINK = new GolemLinkTarget() {
@@ -96,9 +103,9 @@ public final class Operators {
 		return golem.getAttached(AutoAttachments.MACHINE);
 	}
 
-	/** Right-clicking a golem with a wrench hands the wrench over. Its old main hand item is thrown back. */
+	/** Sneak + right-clicking a golem with a wrench hands the wrench over and ends any other job. */
 	public static InteractionResult onUseEntity(Player player, Level level, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-		if (!(entity instanceof CopperGolem golem) || player.isSpectator() || hand != InteractionHand.MAIN_HAND || player.isShiftKeyDown()) {
+		if (!(entity instanceof CopperGolem golem) || player.isSpectator() || hand != InteractionHand.MAIN_HAND || !player.isShiftKeyDown()) {
 			return InteractionResult.PASS;
 		}
 		ItemStack held = player.getItemInHand(hand);
@@ -106,15 +113,8 @@ public final class Operators {
 			return InteractionResult.PASS;
 		}
 		if (level instanceof ServerLevel) {
-			ItemStack current = golem.getMainHandItem();
-			if (!current.isEmpty()) {
-				BehaviorUtils.throwItem(golem, current, player.position());
-			}
-			golem.setItemSlot(EquipmentSlot.MAINHAND, held.copyWithCount(1));
+			BetterCoppersApi.giveTool(player, golem, held);
 			golem.setAttached(AutoAttachments.OPERATOR, true);
-			golem.setGuaranteedDrop(EquipmentSlot.MAINHAND);
-			held.consume(1, player);
-			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET);
 			player.sendOverlayMessage(Component.translatable(
 				machine(golem) == null ? "message.bettercoppers_automatisation.operator_needs_machine" : "message.bettercoppers_automatisation.operator_ready"
 			));

@@ -52,39 +52,29 @@ public final class Tools {
 		return lostTool(golem) == item;
 	}
 
-	/** Called whenever a player hands the golem a job tool. */
+	/** A new tool is in the golem's hand. */
 	public static void clearLost(CopperGolem golem) {
 		golem.removeAttached(ModAttachments.LOST_TOOL);
 	}
 
-	/**
-	 * Refuses non-copper tools with a message, and lets a player end the job of a golem whose tool broke: right-click it
-	 * with an empty hand.
-	 */
+	/** Any axe scrapes a rusty or waxed golem, as in vanilla, so it cannot be handed over. */
+	public static boolean scrapes(CopperGolem golem, ItemStack stack) {
+		return stack.is(ItemTags.AXES) && (golem.getWeatherState() != WeatheringCopper.WeatherState.UNAFFECTED || Upkeep.isWaxed(golem));
+	}
+
+	/** Refuses to take non-copper tools, with a message. */
 	public static InteractionResult onUseEntity(Player player, Level level, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-		if (!(entity instanceof CopperGolem golem) || player.isSpectator() || hand != InteractionHand.MAIN_HAND || player.isShiftKeyDown()) {
+		if (!(entity instanceof CopperGolem golem) || player.isSpectator() || hand != InteractionHand.MAIN_HAND || !player.isShiftKeyDown()) {
 			return InteractionResult.PASS;
 		}
 		ItemStack held = player.getItemInHand(hand);
-		if (isNonCopperTool(held)) {
-			if (held.is(ItemTags.AXES) && (golem.getWeatherState() != WeatheringCopper.WeatherState.UNAFFECTED || Upkeep.isWaxed(golem))) {
-				// Any axe still scrapes, as in vanilla.
-				return InteractionResult.PASS;
-			}
-			if (!level.isClientSide()) {
-				player.sendOverlayMessage(Component.translatable("message.bettercoppers.copper_tools_only"));
-				golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_NO_GET);
-			}
-			return InteractionResult.SUCCESS;
+		if (!isNonCopperTool(held) || scrapes(golem, held)) {
+			return InteractionResult.PASS;
 		}
-		if (held.isEmpty() && lostTool(golem) != null) {
-			if (!level.isClientSide()) {
-				clearLost(golem);
-				golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_NO_GET);
-				player.sendOverlayMessage(Component.translatable("message.bettercoppers.job_ended"));
-			}
-			return InteractionResult.SUCCESS;
+		if (!level.isClientSide()) {
+			player.sendOverlayMessage(Component.translatable("message.bettercoppers.copper_tools_only"));
+			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_NO_GET);
 		}
-		return InteractionResult.PASS;
+		return InteractionResult.SUCCESS;
 	}
 }

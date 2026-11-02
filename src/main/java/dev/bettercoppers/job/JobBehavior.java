@@ -88,16 +88,14 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 	}
 
 	private boolean hasWork(CopperGolem golem) {
-		if (golem.isLeashed() || WorkerData.get(golem) == null || Homes.get(golem) == null || Jobs.of(golem) != Jobs.JobKind.WORKER) {
+		if (golem.isLeashed() || Homes.get(golem) == null || Jobs.of(golem) != Jobs.JobKind.WORKER) {
 			return false;
 		}
 		if (this.job.isTool(golem.getMainHandItem())) {
 			return true;
 		}
-		// Tool broke: its own job takes the load home. Tool taken away: the first job does.
-		Job current = WorkerData.job(golem);
-		boolean takesLoadHome = current == this.job || current == null && this.job == Job.values()[0];
-		return takesLoadHome && !Load.of(golem).hasNothingToBringHome();
+		// Tool broke: its own job takes the load home.
+		return WorkerData.job(golem) == this.job && !Load.of(golem).hasNothingToBringHome();
 	}
 
 	@Override
@@ -124,9 +122,6 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 			if (--this.pauseTicks == 0) {
 				golem.setState(CopperGolemState.IDLE);
 			}
-			return;
-		}
-		if (WorkerData.get(golem) == null) {
 			return;
 		}
 		BlockPos home = Homes.valid(level, golem);

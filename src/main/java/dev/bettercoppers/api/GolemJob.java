@@ -28,4 +28,12 @@ public interface GolemJob {
 	/** Drops whatever the golem carries for this job (on death, or when it turns into a statue). */
 	default void dropItems(ServerLevel level, CopperGolem golem) {
 	}
+
+	/**
+	 * A player ended or changed the golem's job. Called for every registered job, also on golems that never had this one.
+	 * Clear what {@link #has} relies on, or the golem can regain the job by picking up an item. What is in its hands has
+	 * already gone back to the player.
+	 */
+	default void onEnded(CopperGolem golem) {
+	}
 }

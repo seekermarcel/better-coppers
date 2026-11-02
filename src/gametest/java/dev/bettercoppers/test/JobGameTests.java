@@ -66,7 +66,7 @@ public class JobGameTests {
 	private static final Block COPPER_CHEST = Blocks.COPPER_CHEST.weathering().unaffected();
 
 	/** Stone floor under the test area and daytime, so job golems are allowed to work. */
-	private static void scene(GameTestHelper h) {
+	static void scene(GameTestHelper h) {
 		ServerLevel level = h.getLevel();
 		level.clockManager().setTotalTicks(level.dimensionType().defaultClock().orElseThrow(), 1000L);
 		for (int x = 0; x < 8; x++) {
@@ -79,6 +79,7 @@ public class JobGameTests {
 	/** A player right-clicks the golem with this item, through the registered interaction callbacks. */
 	private static void give(GameTestHelper h, CopperGolem golem, ItemStack stack) {
 		Player player = h.makeMockPlayer(GameType.SURVIVAL);
+		player.setShiftKeyDown(true);
 		player.setItemInHand(InteractionHand.MAIN_HAND, stack);
 		UseEntityCallback.EVENT.invoker().interact(player, h.getLevel(), InteractionHand.MAIN_HAND, golem, null);
 	}
@@ -88,7 +89,7 @@ public class JobGameTests {
 	}
 
 	/** Stands in for an add-on's job, for the golems put in this map. */
-	private static final Map<UUID, BlockPos> ADDON_WORKPLACES = new HashMap<>();
+	static final Map<UUID, BlockPos> ADDON_WORKPLACES = new HashMap<>();
 
 	static {
 		BetterCoppersApi.registerJob(new GolemJob() {
@@ -105,6 +106,11 @@ public class JobGameTests {
 			@Override
 			public @Nullable BlockPos workplace(CopperGolem golem) {
 				return ADDON_WORKPLACES.get(golem.getUUID());
+			}
+
+			@Override
+			public void onEnded(CopperGolem golem) {
+				ADDON_WORKPLACES.remove(golem.getUUID());
 			}
 		});
 	}
@@ -159,45 +165,28 @@ public class JobGameTests {
 				MinerData.getOrCreate(g);
 				loseTool(g, Items.COPPER_PICKAXE);
 			}),
-			new OrderRow("lost tool beats bundle", JobKind.WORKER, g -> {
-				WorkerData.getOrCreate(g);
-				loseTool(g, Items.COPPER_HOE);
-				give(h, g, bundle.copy());
-			}),
-			new OrderRow("both datas, hoe in hand", JobKind.WORKER, g -> {
-				MinerData.getOrCreate(g);
+			new OrderRow("miner handed a hoe", JobKind.WORKER, g -> {
+				give(h, g, new ItemStack(Items.COPPER_PICKAXE));
 				give(h, g, new ItemStack(Items.COPPER_HOE));
 			}),
-			new OrderRow("both datas, pickaxe in hand", JobKind.MINER, g -> {
-				WorkerData.getOrCreate(g);
+			new OrderRow("farmer handed a pickaxe", JobKind.MINER, g -> {
+				give(h, g, new ItemStack(Items.COPPER_HOE));
 				give(h, g, new ItemStack(Items.COPPER_PICKAXE));
 			}),
-			new OrderRow("tool taken, worker load", JobKind.WORKER, g -> {
-				WorkerData.getOrCreate(g);
-				pouch(g);
-			}),
-			new OrderRow("tool taken, miner load", JobKind.MINER, g -> {
-				MinerData.getOrCreate(g);
-				pouch(g);
-			}),
-			new OrderRow("tool taken, both datas: miner first", JobKind.MINER, g -> {
+			new OrderRow("stale data and a load is no job", JobKind.NONE, g -> {
 				WorkerData.getOrCreate(g);
 				MinerData.getOrCreate(g);
 				pouch(g);
-			}),
-			new OrderRow("load beats bundle", JobKind.WORKER, g -> {
-				WorkerData.getOrCreate(g);
-				pouch(g);
-				give(h, g, bundle.copy());
 			}),
 			new OrderRow("sorter", JobKind.SORTER, g -> give(h, g, bundle.copy())),
 			new OrderRow("sorter carrying a hoe it picked up", JobKind.SORTER, g -> {
 				give(h, g, bundle.copy());
 				hold(g, Items.COPPER_HOE);
 			}),
-			new OrderRow("sorter with stale data", JobKind.SORTER, g -> {
-				WorkerData.getOrCreate(g);
+			new OrderRow("sorter with stale data and a load", JobKind.SORTER, g -> {
 				give(h, g, bundle.copy());
+				WorkerData.getOrCreate(g);
+				pouch(g);
 			}),
 			new OrderRow("sorter handed a hoe", JobKind.WORKER, g -> {
 				give(h, g, bundle.copy());
@@ -208,8 +197,9 @@ public class JobGameTests {
 				give(h, g, new ItemStack(Items.COPPER_HOE));
 				Couriers.setRoute(g, route);
 			}),
-			new OrderRow("courier with a bundle", JobKind.COURIER, g -> {
-				give(h, g, bundle.copy());
+			new OrderRow("courier with stale data and a load", JobKind.COURIER, g -> {
+				WorkerData.getOrCreate(g);
+				pouch(g);
 				Couriers.setRoute(g, route);
 			}),
 			new OrderRow("add-on job", JobKind.ADDON, g -> ADDON_WORKPLACES.put(g.getUUID(), null)),
@@ -264,7 +254,7 @@ public class JobGameTests {
 	private record StartRow(String name, Set<String> expected, Consumer<CopperGolem> setup) {
 	}
 
-	/** Who starts for a golem that may seem to have two jobs: a shared load has exactly one behaviour taking it home. */
+	/** Who starts for a golem that may seem to have two jobs. */
 	@GameTest
 	public void exactly_one_behaviour_starts(GameTestHelper h) {
 		scene(h);
@@ -282,16 +272,8 @@ public class JobGameTests {
 		);
 		CourierRoute route = new CourierRoute(h.absolutePos(new BlockPos(1, 1, 1)), h.absolutePos(new BlockPos(6, 1, 6)));
 		List<StartRow> rows = List.of(
-			new StartRow("tool taken, both datas", Set.of("mine"), g -> {
+			new StartRow("stale data and a load", Set.of(), g -> {
 				WorkerData.getOrCreate(g);
-				MinerData.getOrCreate(g);
-				pouch(g);
-			}),
-			new StartRow("tool taken, worker data", Set.of("forest"), g -> {
-				WorkerData.getOrCreate(g);
-				pouch(g);
-			}),
-			new StartRow("tool taken, miner data", Set.of("mine"), g -> {
 				MinerData.getOrCreate(g);
 				pouch(g);
 			}),
@@ -307,14 +289,14 @@ public class JobGameTests {
 				loseTool(g, Items.COPPER_PICKAXE);
 				pouch(g);
 			}),
-			new StartRow("hoe, both datas, load", Set.of("farm"), g -> {
-				MinerData.getOrCreate(g);
+			new StartRow("hoe, stale miner data, load", Set.of("farm"), g -> {
 				give(h, g, new ItemStack(Items.COPPER_HOE));
+				MinerData.getOrCreate(g);
 				pouch(g);
 			}),
-			new StartRow("pickaxe, both datas, load", Set.of("mine"), g -> {
-				WorkerData.getOrCreate(g);
+			new StartRow("pickaxe, stale worker data, load", Set.of("mine"), g -> {
 				give(h, g, new ItemStack(Items.COPPER_PICKAXE));
+				WorkerData.getOrCreate(g);
 				pouch(g);
 			}),
 			new StartRow("broken hoe, no load, goes for a new one", Set.of("fetch"), g -> {
@@ -322,17 +304,16 @@ public class JobGameTests {
 				loseTool(g, Items.COPPER_HOE);
 			}),
 			new StartRow("sorter", Set.of("sort"), g -> give(h, g, new ItemStack(Items.BUNDLE))),
-			new StartRow("sorter with stale data and a load", Set.of("forest"), g -> {
+			new StartRow("sorter with stale data and a load", Set.of("sort"), g -> {
+				give(h, g, new ItemStack(Items.BUNDLE));
 				WorkerData.getOrCreate(g);
 				pouch(g);
-				give(h, g, new ItemStack(Items.BUNDLE));
 			}),
 			new StartRow("untouched, holding a hoe", Set.of(), g -> hold(g, Items.COPPER_HOE)),
 			new StartRow("courier carrying a hoe, stale data and a load", Set.of(), g -> {
 				give(h, g, new ItemStack(Items.COPPER_HOE));
 				MinerData.getOrCreate(g);
 				pouch(g);
-				loseTool(g, Items.COPPER_HOE);
 				Couriers.setRoute(g, route);
 				Homes.set(g, h.absolutePos(home));
 			})
@@ -369,6 +350,39 @@ public class JobGameTests {
 		give(h, golem, new ItemStack(Items.BUNDLE));
 		Homes.set(golem, h.absolutePos(home));
 		h.succeedWhen(() -> h.assertTrue(count(match, Items.COBBLESTONE) == 2, "cobblestone not delivered yet"));
+	}
+
+	@GameTest(maxTicks = 1200)
+	public void stale_data_does_not_stop_a_sorter(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(2, 1, 4);
+		GameTests.chest(h, home, COPPER_CHEST).setItem(0, new ItemStack(Items.COBBLESTONE));
+		Container match = GameTests.chest(h, new BlockPos(6, 1, 4), Blocks.CHEST);
+		match.setItem(0, new ItemStack(Items.COBBLESTONE));
+		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
+		GameTests.energize(golem);
+		give(h, golem, new ItemStack(Items.BUNDLE));
+		WorkerData.getOrCreate(golem);
+		MinerData.getOrCreate(golem);
+		pouch(golem);
+		Homes.set(golem, h.absolutePos(home));
+		h.succeedWhen(() -> h.assertTrue(count(match, Items.COBBLESTONE) == 2, "cobblestone not delivered yet"));
+	}
+
+	@GameTest(maxTicks = 1200)
+	public void stale_data_does_not_stop_a_courier(GameTestHelper h) {
+		scene(h);
+		BlockPos from = new BlockPos(1, 1, 4);
+		BlockPos to = new BlockPos(7, 1, 4);
+		GameTests.chest(h, from, COPPER_CHEST).setItem(0, new ItemStack(Items.IRON_INGOT, 8));
+		Container target = GameTests.chest(h, to, COPPER_CHEST);
+		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
+		GameTests.energize(golem);
+		WorkerData.getOrCreate(golem);
+		MinerData.getOrCreate(golem);
+		pouch(golem);
+		Couriers.setRoute(golem, new CourierRoute(h.absolutePos(from), h.absolutePos(to)));
+		h.succeedWhen(() -> h.assertTrue(count(target, Items.IRON_INGOT) == 8, "ingots not delivered yet"));
 	}
 
 	@GameTest(maxTicks = 2400)
@@ -484,7 +498,7 @@ public class JobGameTests {
 	}
 
 	/** A cart the golem tows, with the given items already in it. */
-	private static CopperChestMinecart cart(GameTestHelper h, CopperGolem golem, BlockPos rel, ItemStack... contents) {
+	static CopperChestMinecart cart(GameTestHelper h, CopperGolem golem, BlockPos rel, ItemStack... contents) {
 		CopperChestMinecart cart = h.spawn(ModEntities.COPPER_CHEST_MINECART, rel);
 		for (int slot = 0; slot < contents.length; slot++) {
 			cart.setItem(slot, contents[slot]);

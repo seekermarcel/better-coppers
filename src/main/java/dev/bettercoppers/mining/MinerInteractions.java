@@ -2,14 +2,14 @@ package dev.bettercoppers.mining;
 
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.guide.Guide;
-import dev.bettercoppers.job.WorkerInteractions;
+import dev.bettercoppers.job.JobHandover;
+import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.registry.ModComponents;
 import dev.bettercoppers.registry.ModItems;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -22,20 +22,19 @@ import net.minecraft.world.phys.EntityHitResult;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Turning a copper golem into a miner and back:
+ * Turning a copper golem into a miner, with sneak + right-click:
  * <ul>
- * <li>right-click with a pickaxe: the golem holds it (and stops sorting);</li>
- * <li>right-click with a marked plan: the golem keeps the plan and starts digging;</li>
- * <li>right-click with an empty hand (vanilla): the golem hands over what it holds, i.e. the pickaxe, and the plan
- * comes back with it, progress included.</li>
+ * <li>with a pickaxe: the golem holds it;</li>
+ * <li>then with a marked plan: the golem keeps the plan and starts digging.</li>
  * </ul>
+ * When the job ends the plan comes back, progress included.
  */
 public final class MinerInteractions {
 	private MinerInteractions() {
 	}
 
 	public static InteractionResult onUseEntity(Player player, Level level, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-		if (!(entity instanceof CopperGolem golem) || player.isSpectator() || hand != InteractionHand.MAIN_HAND) {
+		if (!(entity instanceof CopperGolem golem) || player.isSpectator() || hand != InteractionHand.MAIN_HAND || !player.isShiftKeyDown()) {
 			return InteractionResult.PASS;
 		}
 		ItemStack held = player.getItemInHand(hand);
@@ -44,13 +43,6 @@ public final class MinerInteractions {
 		}
 		if (held.is(Items.COPPER_PICKAXE)) {
 			return givePickaxe(player, level, golem, held);
-		}
-		if (held.isEmpty() && !player.isShiftKeyDown() && MinerData.hasPickaxe(golem)) {
-			// Taking the pickaxe back (vanilla hands it over) also returns the plan, progress included.
-			MinerData data = MinerData.get(golem);
-			if (data != null && data.plan() != null && !level.isClientSide()) {
-				returnPlan(player, golem, data);
-			}
 		}
 		return InteractionResult.PASS;
 	}
@@ -67,25 +59,25 @@ public final class MinerInteractions {
 			return InteractionResult.SUCCESS;
 		}
 		if (!level.isClientSide()) {
+			if (Jobs.of(golem) != Jobs.JobKind.MINER || !MinerData.hasPickaxe(golem)) {
+				player.sendOverlayMessage(Component.translatable("message.bettercoppers.needs_pickaxe"));
+				return InteractionResult.SUCCESS;
+			}
 			MinerData data = MinerData.getOrCreate(golem);
+			held.consume(1, player);
 			if (data.plan() != null) {
 				returnPlan(player, golem, data);
 			}
 			data.setPlan(plan);
-			held.consume(1, player);
 			golem.playSound(SoundEvents.BOOK_PAGE_TURN);
-			if (!MinerData.hasPickaxe(golem)) {
-				player.sendOverlayMessage(Component.translatable("message.bettercoppers.needs_pickaxe"));
-			} else {
-				Guide.job(player, "miner");
-			}
+			Guide.job(player, "miner");
 		}
 		return InteractionResult.SUCCESS;
 	}
 
 	private static InteractionResult givePickaxe(Player player, Level level, CopperGolem golem, ItemStack held) {
 		if (!level.isClientSide()) {
-			WorkerInteractions.giveTool(player, golem, held);
+			JobHandover.giveTool(player, golem, held);
 			MinerData data = MinerData.getOrCreate(golem);
 			if (data.plan() == null) {
 				player.sendOverlayMessage(Component.translatable("message.bettercoppers.needs_plan"));
@@ -96,7 +88,7 @@ public final class MinerInteractions {
 		return InteractionResult.SUCCESS;
 	}
 
-	private static void returnPlan(Player player, CopperGolem golem, MinerData data) {
+	public static void returnPlan(Player player, CopperGolem golem, MinerData data) {
 		ItemStack stack = planStack(data.plan());
 		data.setPlan(null);
 		Inventories.giveOrDrop(player, stack);

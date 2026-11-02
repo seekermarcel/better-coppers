@@ -5,6 +5,7 @@ import dev.bettercoppers.golem.Eyes;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.home.HomeDisplay;
 import dev.bettercoppers.guide.Guide;
+import dev.bettercoppers.job.JobHandover;
 import dev.bettercoppers.upkeep.Upkeep;
 import java.util.ArrayList;
 import java.util.List;
@@ -141,6 +142,14 @@ public final class BetterCoppersApi {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Puts one of {@code held} in the golem's hand, as the base mod's job items do: the player gets back what the golem
+	 * carries for any other job, whose data goes. Then record the player's act for {@link GolemJob#has}.
+	 */
+	public static void giveTool(Player player, CopperGolem golem, ItemStack held) {
+		JobHandover.giveTool(player, golem, held);
 	}
 
 	/** Whether the golem has energy and is not rusted shut or otherwise stopped: the check for starting work. */

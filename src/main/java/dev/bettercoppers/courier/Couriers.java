@@ -2,6 +2,7 @@ package dev.bettercoppers.courier;
 
 import dev.bettercoppers.BetterCoppers;
 import dev.bettercoppers.home.Homes;
+import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.registry.ModAttachments;
 import java.util.HashMap;
 import java.util.Map;
@@ -70,7 +71,8 @@ public final class Couriers {
 	public static void onEntityLoad(Entity entity, ServerLevel level) {
 		if (entity instanceof CopperGolem golem) {
 			CourierRoute route = PENDING.remove(golem.getUUID());
-			if (route != null) {
+			// Given a job since the route was started: the job stays.
+			if (route != null && !Jobs.has(golem)) {
 				setRoute(golem, route);
 			}
 		}

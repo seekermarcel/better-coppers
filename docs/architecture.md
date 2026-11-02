@@ -13,15 +13,21 @@ Each behaviour decides for itself whether it applies, in its start conditions, w
 
 ## How a player action reaches a golem
 
-Right-clicks run through the `UseEntityCallback` handlers in the order `BetterCoppers.onInitialize` registers them, and the first result other than `PASS` wins. `Tools` is first, so non-copper tools are refused before a job takes them. `HomeLinking` comes before the job handlers, so it gets sneak + empty hand first.
+Right-clicks run through the `UseEntityCallback` handlers in the order `BetterCoppers.onInitialize` registers them, and the first result other than `PASS` wins. `Tools` is first, so non-copper tools are refused before a job takes them. Handing a golem anything takes sneak + right-click (ADR 0009).
+
+`HomeLinking` owns empty-hand clicks: sneak starts the link, and a plain click on a golem with a job shows its status and returns `SUCCESS`, which stops vanilla's item throw. `CartChaining` runs before it, for a player leading a cart. Vanilla throws for any empty hand, so the same check covers the off hand when the main hand's item did nothing.
+
+Client and server both run these handlers, but job attachments are not synced, so the client cannot call `Jobs.has`. Decide on the server. Vanilla's throw also runs on the client, so `HomeLinking` resends the golem's main hand after blocking a click.
 
 ## What a job is in code
 
 A job is derived from what the golem holds and which data it has, with no stored job field. Miners and the `Job` enum's jobs need both the tool and a player-created attachment, which is what stops an untouched golem from gaining a job by picking up a tool. A sorter holds its bundle in the off hand, which vanilla transport leaves alone, and a courier is defined by its route.
 
-`Jobs` answers from those facts. When a golem seems to have two jobs the first match wins: route, add-on job, job tool in hand or lost, a load left after the tool was taken (miner first, until ending a job clears it), bundle. So a courier carrying a hoe is a courier and a sorter handed a hoe is a worker. `Jobs.has` is the vanilla rule's predicate and runs for every golem, so it must stay free of entity searches for an untouched golem. `Jobs.place` is the workplace, then the home, which stays linked underneath.
+`Jobs` answers from those facts. When a golem seems to have two jobs the first match wins: route, add-on job, job tool in hand or lost, bundle. So a courier carrying a hoe is a courier, and data without its tool means nothing.
 
-`WorkerData.job` is narrower than it sounds: it names the job of the tool, given worker data, and also answers for a courier carrying that tool. Ask `Jobs.of` what the golem's job is.
+`JobHandover` is the only way a job starts over or ends. It gives the player the held items, plan, pouch and supplies, removes the job's data and calls `GolemJob.onEnded`, so no job data outlives its job: an ex-worker that picks up a hoe through vanilla transport stays jobless. `giveTool` and `clear` keep a chained cart for the next job, and `end` unchains it. A broken tool is not a job end: the job stays and `ToolFetchBehavior` restocks it. `Jobs.has` is the vanilla rule's predicate and runs for every golem, so it must stay free of entity searches for an untouched golem. `Jobs.place` is the workplace, then the home, which stays linked underneath.
+
+`WorkerData.job` is narrower than it sounds: it names the job of the tool, given worker data. Ask `Jobs.of` what the golem's job is.
 
 The `Job` enum holds only the five jobs that share `JobBehavior`. Miner, sorter and courier have their own code, and add-on jobs are `GolemJob`s.
 

@@ -7,6 +7,7 @@ import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.registry.ModAttachments;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 import net.minecraft.server.level.ServerLevel;
@@ -123,13 +124,20 @@ public final class Load {
 		}
 	}
 
-	/** Drops pouch and supplies when the golem dies or turns into a statue. The cart stays where it is and keeps its items. */
-	public void dropAll(ServerLevel level, CopperGolem golem) {
-		this.pouch.forEach(stack -> golem.spawnAtLocation(level, stack));
-		this.supplies.forEach(stack -> golem.spawnAtLocation(level, stack));
+	/** Passes on pouch and supplies, for a job's end. The cart keeps its items. */
+	public void handOver(Consumer<ItemStack> receiver) {
+		this.pouch.forEach(receiver);
+		this.supplies.forEach(receiver);
 		this.pouch.clear();
 		this.supplies.clear();
-		golem.removeAttached(ModAttachments.LOAD);
+		if (this.golem != null) {
+			this.golem.removeAttached(ModAttachments.LOAD);
+		}
+	}
+
+	/** Drops pouch and supplies when the golem dies or turns into a statue. The cart stays where it is and keeps its items. */
+	public void dropAll(ServerLevel level, CopperGolem golem) {
+		this.handOver(stack -> golem.spawnAtLocation(level, stack));
 	}
 
 	/** Before the first write: saves these lists on the golem, or uses the ones another view saved since. */

@@ -75,6 +75,7 @@ public class MinerGameTests {
 
 	private static void give(GameTestHelper h, CopperGolem golem, ItemStack stack) {
 		Player player = h.makeMockPlayer(GameType.SURVIVAL);
+		player.setShiftKeyDown(true);
 		player.setItemInHand(InteractionHand.MAIN_HAND, stack);
 		UseEntityCallback.EVENT.invoker().interact(player, h.getLevel(), InteractionHand.MAIN_HAND, golem, null);
 	}

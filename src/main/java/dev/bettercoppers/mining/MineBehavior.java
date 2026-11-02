@@ -199,7 +199,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		}
 		MinePlan plan = data.plan();
 		if (plan == null || !plan.isMarked() || !MinerData.hasPickaxe(golem)) {
-			// Pickaxe gone or plan taken away: just bring the pouch home.
+			// Pickaxe broke or no plan yet: just bring the load home.
 			this.startReturn(golem, true);
 			return;
 		}

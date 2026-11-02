@@ -49,12 +49,13 @@ public class BetterCoppers implements ModInitializer {
 		Couriers.init();
 		// First, so non-copper tools are refused before any job takes them.
 		UseEntityCallback.EVENT.register(Tools::onUseEntity);
+		// Before HomeLinking, which stops every other plain empty-hand click on a golem with a job.
+		UseEntityCallback.EVENT.register(CartChaining::onUseEntity);
 		UseEntityCallback.EVENT.register(Eyes::onUseEntity);
 		UseEntityCallback.EVENT.register(HomeLinking::onUseEntity);
 		UseEntityCallback.EVENT.register(GolemTrims::onUseEntity);
 		UseEntityCallback.EVENT.register(MinerInteractions::onUseEntity);
 		UseEntityCallback.EVENT.register(WorkerInteractions::onUseEntity);
-		UseEntityCallback.EVENT.register(CartChaining::onUseEntity);
 		UseEntityCallback.EVENT.register(Sorter::onUseEntity);
 		UseBlockCallback.EVENT.register(HomeLinking::onUseBlock);
 		ServerTickEvents.END_LEVEL_TICK.register(HomeDisplay::tick);

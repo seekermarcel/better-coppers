@@ -2,33 +2,29 @@ package dev.bettercoppers.job;
 
 import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.home.Homes;
-import dev.bettercoppers.upkeep.Upkeep;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Handing a copper golem its job tool: a hoe (farmer), an axe (forester), a fishing rod (fisher), a brush (animal keeper)
- * or a crafting table (crafter). An axe only becomes a tool for a clean golem; on a rusty or waxed one it scrapes, as in
- * vanilla. Seeds handed to a farmer go into its supplies.
+ * Sneak + right-click hands a copper golem its job tool: a hoe (farmer), an axe (forester), a fishing rod (fisher), a
+ * brush (animal keeper) or a crafting table (crafter). An axe only becomes a tool for a clean golem; on a rusty or waxed
+ * one it scrapes, as in vanilla. Seeds handed to a farmer go into its supplies.
  */
 public final class WorkerInteractions {
 	private WorkerInteractions() {
 	}
 
 	public static InteractionResult onUseEntity(Player player, Level level, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-		if (!(entity instanceof CopperGolem golem) || player.isSpectator() || hand != InteractionHand.MAIN_HAND) {
+		if (!(entity instanceof CopperGolem golem) || player.isSpectator() || hand != InteractionHand.MAIN_HAND || !player.isShiftKeyDown()) {
 			return InteractionResult.PASS;
 		}
 		ItemStack held = player.getItemInHand(hand);
@@ -41,15 +37,11 @@ public final class WorkerInteractions {
 			return InteractionResult.SUCCESS;
 		}
 		Job job = Job.forTool(held);
-		if (job == null) {
-			return InteractionResult.PASS;
-		}
-		if (job == Job.FORESTER && (golem.getWeatherState() != WeatheringCopper.WeatherState.UNAFFECTED || Upkeep.isWaxed(golem))) {
-			// Let vanilla scrape it first.
+		if (job == null || Tools.scrapes(golem, held)) {
 			return InteractionResult.PASS;
 		}
 		if (!level.isClientSide()) {
-			giveTool(player, golem, held);
+			JobHandover.giveTool(player, golem, held);
 			WorkerData.getOrCreate(golem);
 			Component jobName = Component.translatable("job.bettercoppers." + job.id());
 			Guide.job(player, job.id());
@@ -60,18 +52,5 @@ public final class WorkerInteractions {
 			);
 		}
 		return InteractionResult.SUCCESS;
-	}
-
-	/** Puts one of {@code held} in the golem's hand; whatever it held before is thrown to the player. */
-	public static void giveTool(Player player, CopperGolem golem, ItemStack held) {
-		ItemStack current = golem.getMainHandItem();
-		if (!current.isEmpty()) {
-			BehaviorUtils.throwItem(golem, current, player.position());
-		}
-		golem.setItemSlot(EquipmentSlot.MAINHAND, held.copyWithCount(1));
-		golem.setGuaranteedDrop(EquipmentSlot.MAINHAND);
-		held.consume(1, player);
-		Tools.clearLost(golem);
-		golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET);
 	}
 }

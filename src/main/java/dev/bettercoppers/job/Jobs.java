@@ -28,8 +28,8 @@ public final class Jobs {
 
 	/**
 	 * The golem's job, first match wins: a route (anything in hand is cargo), an add-on job, a job tool in hand or a lost
-	 * one backed by the data a player's act created (ADR 0006), a bundle. Called for every golem, so an untouched golem
-	 * must not get as far as {@link Load#of}, which searches for a cart.
+	 * one backed by the data a player's act created (ADR 0006), a bundle. Called for every golem, so it must not search
+	 * for entities.
 	 */
 	public static JobKind of(CopperGolem golem) {
 		if (Couriers.isCourier(golem)) {
@@ -38,16 +38,11 @@ public final class Jobs {
 		if (BetterCoppersApi.jobOf(golem) != null) {
 			return JobKind.ADDON;
 		}
-		boolean miner = MinerData.get(golem) != null;
-		if (miner && (MinerData.hasPickaxe(golem) || Tools.hasLost(golem, Items.COPPER_PICKAXE))) {
+		if (MinerData.get(golem) != null && (MinerData.hasPickaxe(golem) || Tools.hasLost(golem, Items.COPPER_PICKAXE))) {
 			return JobKind.MINER;
 		}
 		if (WorkerData.job(golem) != null) {
 			return JobKind.WORKER;
-		}
-		// Tool taken with a load left to bring home. Ending a job at once will make this impossible; then this step goes.
-		if ((miner || WorkerData.get(golem) != null) && !Load.of(golem).hasNothingToBringHome()) {
-			return miner ? JobKind.MINER : JobKind.WORKER;
 		}
 		return Sorter.isSorter(golem) ? JobKind.SORTER : JobKind.NONE;
 	}

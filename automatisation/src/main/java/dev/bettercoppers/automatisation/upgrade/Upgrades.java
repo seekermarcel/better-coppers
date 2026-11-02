@@ -24,7 +24,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Fitting golems (and their carts) with what the factory makes. Right-click a copper golem with:
+ * Fitting golems (and their carts) with what the factory makes. Sneak + right-click a copper golem with:
  * <ul>
  * <li><b>Iron Plating</b>: takes three quarters of every hit, {@link #PLATING} damage in all, then it is used up.</li>
  * <li><b>Copper Coating</b>: no rusting from work for {@link #COATING} energy, about three days of steady work.</li>
@@ -141,7 +141,7 @@ public final class Upgrades {
 			}
 			return InteractionResult.SUCCESS;
 		}
-		if (!(entity instanceof CopperGolem golem)) {
+		if (!(entity instanceof CopperGolem golem) || !player.isShiftKeyDown()) {
 			return InteractionResult.PASS;
 		}
 		GolemUpgrades upgrades = get(golem);

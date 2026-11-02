@@ -32,6 +32,17 @@ class LoadTest {
 	}
 
 	@Test
+	void handOverGivesPouchAndSuppliesButLeavesTheCart() {
+		SimpleContainer cart = new SimpleContainer(new ItemStack(Items.STONE, 3));
+		Load load = new Load(stacks(new ItemStack(Items.DIRT, 2)), stacks(new ItemStack(Items.SAND, 1)), cart);
+		List<ItemStack> received = new ArrayList<>();
+		load.handOver(received::add);
+		assertEquals(2, received.size());
+		assertEquals(0, total(load, Items.DIRT) + total(load, Items.SAND));
+		assertEquals(3, total(load, Items.STONE));
+	}
+
+	@Test
 	void searchesSuppliesThenPouchThenCart() {
 		// Same item in all three, told apart by the stack size.
 		SimpleContainer cart = new SimpleContainer(new ItemStack(Items.STONE, 3));

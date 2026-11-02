@@ -1,0 +1,5 @@
+# A plain click on a golem is safe; giving it something takes a sneak
+
+Vanilla throws a copper golem's held item at any player who clicks it with an empty hand. For a golem with a job that item is its tool, so one careless click would end the job, and a click with a job item would replace it. So with a job, a plain empty-hand click only shows the status. Without one it stays exactly vanilla, and shears, honeycomb and axes stay vanilla for every golem. Job items, plans, seeds, eyes, trims, wrenches and upgrades all take sneak + right-click, and a second sneak + empty-hand click within 5 seconds ends a job, after the first click's message said so. The cost is a click players have to learn, and it differs from vanilla's habit of handing things over directly.
+
+The exception is a player leading a chained cart, who hands it over with a plain empty-hand click: chaining the cart first already says what they mean. The client does not know a golem's job and runs vanilla's throw anyway, so the server resends the golem's equipment after blocking a click.
