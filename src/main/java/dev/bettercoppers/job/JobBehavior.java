@@ -2,6 +2,7 @@ package dev.bettercoppers.job;
 
 import com.google.common.collect.ImmutableMap;
 import dev.bettercoppers.home.Homes;
+import dev.bettercoppers.golem.ChestVisit;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.api.TravelWatch;
 import dev.bettercoppers.upkeep.Upkeep;
@@ -9,7 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.behavior.Behavior;
@@ -269,11 +269,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 			if (this.job.isTool(golem.getMainHandItem())) {
 				this.restock(level, golem, load, chest);
 			}
-			if (chest.getEntitiesWithContainerOpen().contains(golem)) {
-				chest.stopOpen(golem);
-			}
-			golem.clearOpenedChestPos();
-			golem.setState(CopperGolemState.IDLE);
+			ChestVisit.close(golem, chest);
 			this.returning = false;
 			this.homeTicks = 0;
 			// No tool, or the chest is full: try again in a while instead of opening it over and over.
@@ -292,17 +288,6 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 			BehaviorUtils.setWalkAndLookTargetMemories(golem, home, walkSpeed * Upkeep.speed(golem), 1);
 			return ticks;
 		}
-		Golems.stopInPlace(golem);
-		golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(home));
-		ticks++;
-		if (ticks == 1) {
-			chest.startOpen(golem);
-			golem.setOpenedChestPos(home);
-			golem.setState(CopperGolemState.DROPPING_ITEM);
-		}
-		if (ticks == Golems.SOUND_TICK) {
-			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_DROP);
-		}
-		return ticks;
+		return ChestVisit.tick(golem, chest, home, ticks, CopperGolemState.DROPPING_ITEM);
 	}
 }

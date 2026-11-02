@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import dev.bettercoppers.courier.CourierRoute;
 import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.golem.Errands;
+import dev.bettercoppers.golem.ChestVisit;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.api.TravelWatch;
@@ -24,7 +25,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
-import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.behavior.EntityTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
@@ -164,17 +164,7 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 			this.walkTo(golem, Vec3.atCenterOf(this.supply), this.supply);
 			return;
 		}
-		Golems.stopInPlace(golem);
-		golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(this.supply));
-		this.ticks++;
-		if (this.ticks == 1) {
-			chest.startOpen(golem);
-			golem.setOpenedChestPos(this.supply);
-			golem.setState(CopperGolemState.GETTING_ITEM);
-		}
-		if (this.ticks == Golems.SOUND_TICK) {
-			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET);
-		}
+		this.ticks = ChestVisit.tick(golem, chest, this.supply, this.ticks, CopperGolemState.GETTING_ITEM);
 		if (this.ticks < CHEST_TICKS) {
 			return;
 		}
@@ -268,14 +258,7 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 	}
 
 	private void closeChest(ServerLevel level, CopperGolem golem) {
-		if (this.supply != null) {
-			Container chest = Homes.containerAt(level, this.supply);
-			if (chest != null && chest.getEntitiesWithContainerOpen().contains(golem)) {
-				chest.stopOpen(golem);
-			}
-		}
-		golem.clearOpenedChestPos();
-		golem.setState(CopperGolemState.IDLE);
+		ChestVisit.close(golem, this.supply == null ? null : Homes.containerAt(level, this.supply));
 	}
 
 	// --- finding things ---

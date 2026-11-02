@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.golem.CartChaining;
+import dev.bettercoppers.golem.ChestVisit;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.api.TravelWatch;
@@ -16,7 +17,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
-import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.util.LandRandomPos;
@@ -117,18 +117,7 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 			return;
 		}
 		this.travel.reset();
-		golem.getNavigation().stop();
-		golem.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
-		golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(target));
-		this.interactionTicks++;
-		if (this.interactionTicks == 1) {
-			container.startOpen(golem);
-			golem.setOpenedChestPos(target);
-			golem.setState(carrying ? CopperGolemState.DROPPING_ITEM : container.isEmpty() ? CopperGolemState.GETTING_NO_ITEM : CopperGolemState.GETTING_ITEM);
-		}
-		if (this.interactionTicks == Golems.SOUND_TICK) {
-			golem.playSound(carrying ? SoundEvents.COPPER_GOLEM_ITEM_DROP : container.isEmpty() ? SoundEvents.COPPER_GOLEM_ITEM_NO_GET : SoundEvents.COPPER_GOLEM_ITEM_GET);
-		}
+		this.interactionTicks = ChestVisit.tick(golem, container, target, this.interactionTicks, carrying ? CopperGolemState.DROPPING_ITEM : container.isEmpty() ? CopperGolemState.GETTING_NO_ITEM : CopperGolemState.GETTING_ITEM);
 		if (this.interactionTicks < Golems.INTERACTION_TICKS) {
 			return;
 		}

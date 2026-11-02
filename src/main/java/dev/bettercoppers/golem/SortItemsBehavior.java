@@ -20,8 +20,6 @@ import java.util.Set;
 import java.util.function.ToIntFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Container;
@@ -29,7 +27,6 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
-import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
@@ -286,20 +283,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 			this.ticks = 0;
 			return;
 		}
-		this.ticks++;
-		golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(this.target));
-		Golems.stopInPlace(golem);
-		if (this.ticks == 1) {
-			container.startOpen(golem);
-			golem.setOpenedChestPos(this.target);
-			golem.setState(this.animationFor(golem, container));
-		}
-		if (this.ticks == Golems.SOUND_TICK) {
-			SoundEvent sound = soundFor(golem.getState());
-			if (sound != null) {
-				golem.playSound(sound);
-			}
-		}
+		this.ticks = ChestVisit.tick(golem, container, this.target, this.ticks, this.animationFor(golem, container));
 		if (this.ticks >= Golems.INTERACTION_TICKS) {
 			switch (this.purpose) {
 				case PICKUP -> this.pickUp(level, golem, container);
@@ -308,10 +292,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 				}
 			}
 			container.setChanged();
-			this.endInteraction(golem);
-			if (container.getEntitiesWithContainerOpen().contains(golem)) {
-				container.stopOpen(golem);
-			}
+			ChestVisit.close(golem, container);
 			this.dropTarget(golem);
 		}
 	}
@@ -326,16 +307,6 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 			case PICKUP -> container.isEmpty() ? CopperGolemState.GETTING_NO_ITEM : CopperGolemState.GETTING_ITEM;
 			case DELIVER -> Inventories.hasRoom(container, golem.getMainHandItem()) ? CopperGolemState.DROPPING_ITEM : CopperGolemState.DROPPING_NO_ITEM;
 			case DECOY -> CopperGolemState.DROPPING_NO_ITEM;
-		};
-	}
-
-	private static @Nullable SoundEvent soundFor(CopperGolemState state) {
-		return switch (state) {
-			case GETTING_ITEM -> SoundEvents.COPPER_GOLEM_ITEM_GET;
-			case GETTING_NO_ITEM -> SoundEvents.COPPER_GOLEM_ITEM_NO_GET;
-			case DROPPING_ITEM -> SoundEvents.COPPER_GOLEM_ITEM_DROP;
-			case DROPPING_NO_ITEM -> SoundEvents.COPPER_GOLEM_ITEM_NO_DROP;
-			case IDLE -> null;
 		};
 	}
 

@@ -2,6 +2,7 @@ package dev.bettercoppers.mining;
 
 import com.google.common.collect.ImmutableMap;
 import dev.bettercoppers.golem.Eyes;
+import dev.bettercoppers.golem.ChestVisit;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.api.TravelWatch;
@@ -684,9 +685,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 				// The chest is full: try again in a while instead of opening it over and over.
 				this.stopAfterReturn = true;
 			}
-			if (chest.getEntitiesWithContainerOpen().contains(golem)) {
-				chest.stopOpen(golem);
-			}
+			ChestVisit.close(golem, chest);
 			this.endReturn(golem);
 		}
 	}

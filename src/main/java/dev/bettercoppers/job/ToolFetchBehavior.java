@@ -2,6 +2,7 @@ package dev.bettercoppers.job;
 
 import com.google.common.collect.ImmutableMap;
 import dev.bettercoppers.api.TravelWatch;
+import dev.bettercoppers.golem.ChestVisit;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.upkeep.Upkeep;
@@ -13,7 +14,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
-import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
@@ -88,10 +88,7 @@ public class ToolFetchBehavior extends Behavior<CopperGolem> {
 	@Override
 	protected void stop(ServerLevel level, CopperGolem golem, long timestamp) {
 		if (this.source != null && this.ticks > 0) {
-			Container container = Homes.containerAt(level, this.source);
-			if (container != null && container.getEntitiesWithContainerOpen().contains(golem)) {
-				container.stopOpen(golem);
-			}
+			ChestVisit.close(golem, Homes.containerAt(level, this.source));
 		}
 		this.source = null;
 		golem.clearOpenedChestPos();
@@ -116,13 +113,7 @@ public class ToolFetchBehavior extends Behavior<CopperGolem> {
 			BehaviorUtils.setWalkAndLookTargetMemories(golem, source, 0.8F * Upkeep.speed(golem), 1);
 			return;
 		}
-		Golems.stopInPlace(golem);
-		golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(source));
-		if (++this.ticks == 1) {
-			container.startOpen(golem);
-			golem.setOpenedChestPos(source);
-			golem.setState(CopperGolemState.GETTING_ITEM);
-		}
+		this.ticks = ChestVisit.tick(golem, container, source, this.ticks, CopperGolemState.GETTING_ITEM);
 		if (this.ticks < TAKE_TICKS) {
 			return;
 		}
