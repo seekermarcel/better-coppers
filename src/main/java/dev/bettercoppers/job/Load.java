@@ -71,8 +71,8 @@ public final class Load {
 		return (this.cart == null || !Inventories.hasEmptySlot(this.cart)) && Inventories.count(this.pouch, stack -> true) >= limit;
 	}
 
-	/** Nothing to bring home: pouch and cart are empty. Supplies stay with the golem, so they do not count. */
-	public boolean isEmpty() {
+	/** Pouch and cart are empty. Supplies stay with the golem, so they do not count. */
+	public boolean hasNothingToBringHome() {
 		return this.pouch.isEmpty() && (this.cart == null || this.cart.isEmpty());
 	}
 
@@ -123,7 +123,7 @@ public final class Load {
 		}
 	}
 
-	/** Drops pouch and supplies when the golem dies. The cart stays where it is and keeps its items. */
+	/** Drops pouch and supplies when the golem dies or turns into a statue. The cart stays where it is and keeps its items. */
 	public void dropAll(ServerLevel level, CopperGolem golem) {
 		this.pouch.forEach(stack -> golem.spawnAtLocation(level, stack));
 		this.supplies.forEach(stack -> golem.spawnAtLocation(level, stack));

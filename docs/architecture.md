@@ -39,7 +39,7 @@ It sorts like vanilla, and the link also opts it into two things: `HomeStroll` w
 
 ## State
 
-Per-golem state lives in Fabric attachments (`ModAttachments`), and most of it is saved. `Load` holds pouch and supplies in `LOAD`; `WORKER` and `MINER` stay the signal that a player gave the job, and `LOAD` never is. `Load.isEmpty` means nothing to bring home, so supplies do not count. These are lost on restart: the `ERRAND` attachment and the static maps `Couriers.PENDING`, `HomeLinking.SELECTIONS` and `RepairBehavior.CLAIMS`.
+Per-golem state lives in Fabric attachments (`ModAttachments`), and most of it is saved. `Load` holds pouch and supplies in `LOAD`; `WORKER` and `MINER` stay the signal that a player gave the job, and `LOAD` never is. `Load.hasNothingToBringHome` ignores supplies, which stay with the golem. These are lost on restart: the `ERRAND` attachment and the static maps `Couriers.PENDING`, `HomeLinking.SELECTIONS` and `RepairBehavior.CLAIMS`.
 
 Behaviours keep per-golem fields, so every golem needs its own instance. The API takes factories for this reason.
 

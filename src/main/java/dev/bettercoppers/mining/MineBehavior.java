@@ -135,7 +135,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			return true;
 		}
 		// A load still has to go home, even when the plan is done or the pickaxe broke.
-		return !Load.of(golem).isEmpty();
+		return !Load.of(golem).hasNothingToBringHome();
 	}
 
 	@Override
@@ -685,7 +685,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			if (plan != null && !this.stopAfterReturn) {
 				this.restock(load, plan, chest);
 			}
-			if (!load.isEmpty()) {
+			if (!load.hasNothingToBringHome()) {
 				// The chest is full: try again in a while instead of opening it over and over.
 				this.stopAfterReturn = true;
 			}

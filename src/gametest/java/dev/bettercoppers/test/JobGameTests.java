@@ -232,10 +232,11 @@ public class JobGameTests {
 		give(h, golem, new ItemStack(Items.COPPER_AXE));
 		WorkerData.getOrCreate(golem).marks().add(h.absolutePos(stump));
 		Homes.set(golem, h.absolutePos(home));
-		CopperChestMinecart cart = cart(h, golem, new BlockPos(5, 1, 4), new ItemStack(Items.OAK_SAPLING));
+		CopperChestMinecart cart = cart(h, golem, new BlockPos(5, 1, 4), new ItemStack(Items.OAK_SAPLING, 2));
+		// One left in the cart proves it planted from there: a detour home would have emptied the cart first.
 		h.succeedWhen(() -> {
 			h.assertBlockPresent(Blocks.OAK_SAPLING, stump);
-			h.assertTrue(cart.isEmpty(), "sapling still in the cart");
+			h.assertValueEqual(count(cart, Items.OAK_SAPLING), 1, "saplings left in the cart");
 		});
 	}
 
@@ -245,7 +246,7 @@ public class JobGameTests {
 		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
 		give(h, golem, new ItemStack(Items.COPPER_HOE));
 		Load load = Load.of(golem);
-		h.assertTrue(load.isEmpty() && !golem.hasAttached(ModAttachments.LOAD), "reading added an attachment");
+		h.assertTrue(load.hasNothingToBringHome() && !golem.hasAttached(ModAttachments.LOAD), "reading added an attachment");
 		load.stash(new ItemStack(Items.WHEAT, 8));
 		load.addSupplies(new ItemStack(Items.WHEAT_SEEDS, 4));
 		h.assertTrue(golem.hasAttached(ModAttachments.LOAD), "writing added no attachment");

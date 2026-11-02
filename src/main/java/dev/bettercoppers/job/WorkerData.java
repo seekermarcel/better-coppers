@@ -49,7 +49,7 @@ public final class WorkerData {
 	/** Holds a job tool, or still has a load to bring home. Workers do not sort. */
 	public static boolean isWorker(CopperGolem golem) {
 		WorkerData data = get(golem);
-		return data != null && (job(golem) != null || !Load.of(golem).isEmpty());
+		return data != null && (job(golem) != null || !Load.of(golem).hasNothingToBringHome());
 	}
 
 	public List<BlockPos> marks() {

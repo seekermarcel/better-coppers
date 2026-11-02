@@ -115,6 +115,24 @@ public class MinerGameTests {
 			.thenSucceed();
 	}
 
+	@GameTest(maxTicks = 1800)
+	public void chest_broken_stops_digging_and_resumes(GameTestHelper h) {
+		Scene s = scene(h, true);
+		// It carries all it needs, so only the missing chest can stop it.
+		Load load = Load.of(s.golem());
+		load.addSupplies(new ItemStack(Items.RAIL, 16));
+		load.addSupplies(new ItemStack(Items.OAK_PLANKS, 32));
+		load.addSupplies(new ItemStack(Items.OAK_FENCE, 16));
+		h.setBlock(HOME, Blocks.AIR);
+		h.startSequence()
+			.thenExecuteAfter(300, () -> {
+				h.assertValueEqual(progress(s.golem()), 0, "plan progress without a chest");
+				h.setBlock(HOME, COPPER_CHEST);
+			})
+			.thenWaitUntil(() -> h.assertTrue(progress(s.golem()) > 0, "did not resume"))
+			.thenSucceed();
+	}
+
 	@GameTest(maxTicks = 3600)
 	public void miner_digs_ore_vein_and_carries_on(GameTestHelper h) {
 		Scene s = scene(h, true);

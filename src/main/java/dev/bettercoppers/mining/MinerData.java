@@ -43,7 +43,7 @@ public final class MinerData {
 	/** A golem that was handed a pickaxe, or still has a load to bring home. Miners do not sort. */
 	public static boolean isMiner(CopperGolem golem) {
 		MinerData data = get(golem);
-		return data != null && (hasPickaxe(golem) || Tools.hasLost(golem, Items.COPPER_PICKAXE) || !Load.of(golem).isEmpty());
+		return data != null && (hasPickaxe(golem) || Tools.hasLost(golem, Items.COPPER_PICKAXE) || !Load.of(golem).hasNothingToBringHome());
 	}
 
 	public @Nullable MinePlan plan() {

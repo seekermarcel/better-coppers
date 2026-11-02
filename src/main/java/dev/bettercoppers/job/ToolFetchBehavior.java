@@ -62,7 +62,7 @@ public class ToolFetchBehavior extends Behavior<CopperGolem> {
 
 	/** The load goes home first; the job behaviours do that by themselves. */
 	private boolean wantsTool(ServerLevel level, CopperGolem golem) {
-		return Tools.lostTool(golem) != null && !golem.isLeashed() && Homes.get(golem) != null && Upkeep.canWork(level, golem) && Load.of(golem).isEmpty();
+		return Tools.lostTool(golem) != null && !golem.isLeashed() && Homes.get(golem) != null && Upkeep.canWork(level, golem) && Load.of(golem).hasNothingToBringHome();
 	}
 
 	@Override

@@ -79,10 +79,10 @@ class LoadTest {
 	}
 
 	@Test
-	void isEmptyIgnoresSupplies() {
-		assertTrue(new Load(stacks(), stacks(new ItemStack(Items.WHEAT_SEEDS)), new SimpleContainer(1)).isEmpty());
-		assertFalse(new Load(stacks(new ItemStack(Items.STONE)), stacks(), null).isEmpty());
-		assertFalse(new Load(stacks(), stacks(), new SimpleContainer(new ItemStack(Items.STONE))).isEmpty());
+	void hasNothingToBringHomeIgnoresSupplies() {
+		assertTrue(new Load(stacks(), stacks(new ItemStack(Items.WHEAT_SEEDS)), new SimpleContainer(1)).hasNothingToBringHome());
+		assertFalse(new Load(stacks(new ItemStack(Items.STONE)), stacks(), null).hasNothingToBringHome());
+		assertFalse(new Load(stacks(), stacks(), new SimpleContainer(new ItemStack(Items.STONE))).hasNothingToBringHome());
 	}
 
 	@Test
@@ -94,7 +94,7 @@ class LoadTest {
 		assertEquals(4, supplies.getFirst().getCount());
 		assertEquals(8, chest.countItem(Items.WHEAT_SEEDS));
 		assertEquals(5, chest.countItem(Items.WHEAT));
-		assertTrue(load.isEmpty());
+		assertTrue(load.hasNothingToBringHome());
 	}
 
 	@Test
@@ -109,14 +109,14 @@ class LoadTest {
 		assertEquals(46, pouch.getFirst().getCount());
 		assertEquals(10, cart.getItem(0).getCount());
 		assertEquals(64, cart.getItem(1).getCount());
-		assertFalse(load.isEmpty());
+		assertFalse(load.hasNothingToBringHome());
 
 		// Room again: nothing was lost.
 		SimpleContainer bigger = new SimpleContainer(3);
 		load.unloadInto(bigger, stack -> 0);
 		assertEquals(56, bigger.countItem(Items.DIRT));
 		assertEquals(64, bigger.countItem(Items.STONE));
-		assertTrue(load.isEmpty());
+		assertTrue(load.hasNothingToBringHome());
 	}
 
 	@Test

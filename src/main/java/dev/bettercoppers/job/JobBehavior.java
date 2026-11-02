@@ -98,7 +98,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 		// Tool broke: its own job takes the load home. Tool taken away: the first job does, unless the miner's job will.
 		Job current = WorkerData.job(golem);
 		boolean takesLoadHome = current == this.job || current == null && this.job == Job.values()[0] && MinerData.get(golem) == null;
-		return takesLoadHome && !Load.of(golem).isEmpty();
+		return takesLoadHome && !Load.of(golem).hasNothingToBringHome();
 	}
 
 	@Override
@@ -158,7 +158,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 				return;
 			}
 			if (this.task == null) {
-				if (!load.isEmpty()) {
+				if (!load.hasNothingToBringHome()) {
 					this.requestReturn();
 				} else {
 					this.idle(golem);
@@ -283,7 +283,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 			this.returning = false;
 			this.homeTicks = 0;
 			// No tool, or the chest is full: try again in a while instead of opening it over and over.
-			if (!this.job.isTool(golem.getMainHandItem()) || !load.isEmpty()) {
+			if (!this.job.isTool(golem.getMainHandItem()) || !load.hasNothingToBringHome()) {
 				this.idle(golem);
 			}
 		}
