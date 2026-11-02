@@ -55,7 +55,7 @@ public class ToolFetchBehavior extends Behavior<CopperGolem> {
 
 	@Override
 	protected boolean canStillUse(ServerLevel level, CopperGolem golem, long timestamp) {
-		return this.shake > 0 || this.source != null && this.wantsTool(level, golem);
+		return !golem.isPanicking() && (this.shake > 0 || this.source != null && this.wantsTool(level, golem));
 	}
 
 	@Override

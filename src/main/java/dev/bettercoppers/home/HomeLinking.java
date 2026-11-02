@@ -69,7 +69,7 @@ public final class HomeLinking {
 	private record Selection(UUID golem, ResourceKey<Level> dimension, long until, @Nullable BlockPos routeStart, long endJobUntil, long lastClick) {
 	}
 
-	/** The press that ended a golem's job. */
+	/** The press that gave a golem a job or ended it. */
 	private record HandoverPress(UUID golem, long lastClick) {
 	}
 
@@ -98,6 +98,7 @@ public final class HomeLinking {
 			return InteractionResult.PASS;
 		}
 		HANDOVER_PRESSES.put(player.getUUID(), new HandoverPress(press.golem(), level.getGameTime()));
+		showHand(player, entity);
 		return InteractionResult.SUCCESS;
 	}
 
@@ -119,10 +120,15 @@ public final class HomeLinking {
 		if (hand == InteractionHand.MAIN_HAND) {
 			player.sendOverlayMessage(status(golem));
 		}
-		if (player instanceof ServerPlayer serverPlayer) {
-			serverPlayer.connection.send(new ClientboundSetEquipmentPacket(golem.getId(), List.of(Pair.of(EquipmentSlot.MAINHAND, golem.getMainHandItem().copy()))));
-		}
+		showHand(player, golem);
 		return InteractionResult.SUCCESS;
+	}
+
+	/** The client may have run vanilla's throw and shows an empty hand: tell it what the golem really holds. */
+	private static void showHand(Player player, Entity golem) {
+		if (player instanceof ServerPlayer serverPlayer && golem instanceof CopperGolem copper) {
+			serverPlayer.connection.send(new ClientboundSetEquipmentPacket(copper.getId(), List.of(Pair.of(EquipmentSlot.MAINHAND, copper.getMainHandItem().copy()))));
+		}
 	}
 
 	private static void sneakClick(Player player, ServerLevel level, CopperGolem golem) {
