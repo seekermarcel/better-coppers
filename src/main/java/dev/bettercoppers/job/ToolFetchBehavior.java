@@ -1,6 +1,8 @@
 package dev.bettercoppers.job;
 
 import com.google.common.collect.ImmutableMap;
+import dev.bettercoppers.api.TravelWatch;
+import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.upkeep.Upkeep;
 import net.minecraft.core.BlockPos;
@@ -34,12 +36,11 @@ public class ToolFetchBehavior extends Behavior<CopperGolem> {
 	private static final int SEARCH_RANGE = 16;
 	private static final int RETRY_TICKS = 600;
 	private static final int TAKE_TICKS = 20;
-	private static final int MAX_TRAVEL_TICKS = 600;
 
 	private @Nullable BlockPos source;
 	private long nextSearch;
 	private int ticks;
-	private int travelTicks;
+	private final TravelWatch travel = new TravelWatch();
 
 	public ToolFetchBehavior() {
 		super(ImmutableMap.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT));
@@ -74,7 +75,7 @@ public class ToolFetchBehavior extends Behavior<CopperGolem> {
 		Item tool = Tools.lostTool(golem);
 		this.source = tool == null ? null : findTool(level, golem, tool);
 		this.ticks = 0;
-		this.travelTicks = 0;
+		this.travel.reset();
 		if (this.source == null) {
 			// Nothing anywhere: a disappointed head shake, then wait.
 			golem.setState(CopperGolemState.GETTING_NO_ITEM);
@@ -107,7 +108,7 @@ public class ToolFetchBehavior extends Behavior<CopperGolem> {
 			return;
 		}
 		if (!new AABB(source).inflate(1.0, 1.5, 1.0).intersects(golem.getBoundingBox())) {
-			if (++this.travelTicks > MAX_TRAVEL_TICKS) {
+			if (this.travel.tick(golem, Vec3.atCenterOf(source)) > Golems.MAX_TRAVEL_TICKS) {
 				this.source = null;
 				this.nextSearch = level.getGameTime() + RETRY_TICKS;
 				return;
@@ -115,8 +116,7 @@ public class ToolFetchBehavior extends Behavior<CopperGolem> {
 			BehaviorUtils.setWalkAndLookTargetMemories(golem, source, 0.8F * Upkeep.speed(golem), 1);
 			return;
 		}
-		golem.getNavigation().stop();
-		golem.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
+		Golems.stopInPlace(golem);
 		golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(source));
 		if (++this.ticks == 1) {
 			container.startOpen(golem);

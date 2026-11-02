@@ -3,8 +3,10 @@ package dev.bettercoppers.upkeep;
 import com.google.common.collect.ImmutableMap;
 import dev.bettercoppers.api.ChargePad;
 import dev.bettercoppers.api.BetterCoppersApi;
+import dev.bettercoppers.api.TravelWatch;
 import dev.bettercoppers.block.ChargingPadBlock;
 import dev.bettercoppers.golem.Errands;
+import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.registry.ModBlocks;
@@ -39,7 +41,7 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 
 	private @Nullable BlockPos pad;
 	private int searchCooldown;
-	private int travelTicks;
+	private final TravelWatch travel = new TravelWatch();
 
 	public ChargeBehavior() {
 		super(ImmutableMap.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT));
@@ -74,7 +76,7 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 	@Override
 	protected void stop(ServerLevel level, CopperGolem golem, long timestamp) {
 		this.pad = null;
-		this.travelTicks = 0;
+		this.travel.reset();
 		golem.setState(CopperGolemState.IDLE);
 	}
 
@@ -87,14 +89,14 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 			}
 			this.searchCooldown = RESEARCH_TICKS;
 			this.pad = findPad(level, searchCentre(golem), golem, Set.of());
-			this.travelTicks = 0;
+			this.travel.reset();
 			if (this.pad == null) {
 				return;
 			}
 		}
 		BlockPos standOn = this.pad.above();
 		if (!golem.blockPosition().equals(standOn)) {
-			if (++this.travelTicks > 600) {
+			if (this.travel.tick(golem, Vec3.atBottomCenterOf(standOn)) > Golems.MAX_TRAVEL_TICKS) {
 				// Cannot get there; try another one later.
 				this.pad = null;
 				return;
@@ -102,8 +104,7 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 			BehaviorUtils.setWalkAndLookTargetMemories(golem, standOn, 1.0F, 0);
 			return;
 		}
-		golem.getNavigation().stop();
-		golem.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
+		Golems.stopInPlace(golem);
 		// A charging pad charges on redstone pulses by itself; add-on pads charge every tick.
 		ChargePad special = BetterCoppersApi.chargePad(level.getBlockState(this.pad));
 		GolemUpkeep upkeep = Upkeep.get(golem);
