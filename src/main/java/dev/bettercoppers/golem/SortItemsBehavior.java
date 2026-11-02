@@ -47,9 +47,10 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Replaces the vanilla "open every chest until one fits" search. The golem scans all containers in range and knows
- * where an item belongs: a chest that already holds it, else any barrel with room, else an empty chest. To keep some
- * charm it still opens 0-3 wrong containers per trip before the right one.
+ * A sorter's replacement for the vanilla "open every chest until one fits" search. The golem scans all containers in
+ * range and knows where an item belongs: a container with an item frame showing it, else a chest that already holds
+ * it, else any barrel with room, else an empty chest. To keep some charm it still opens 0-3 wrong containers per trip
+ * before the right one.
  * <p>
  * With a {@link CopperChestMinecart} chained to it, the golem also loads every item related to the one it picked
  * (see {@link ItemFamilies}) into the cart and delivers the whole load before returning to the copper chest.

@@ -36,7 +36,7 @@ public final class ModAttachments {
 		BetterCoppers.id("home"), builder -> builder.persistent(BlockPos.CODEC)
 	);
 
-	/** The two chests a courier carries items between, linked by the player. */
+	/** The two containers a courier carries items between, linked by the player. */
 	public static final AttachmentType<CourierRoute> ROUTE = AttachmentRegistry.create(
 		BetterCoppers.id("route"), builder -> builder.persistent(CourierRoute.CODEC)
 	);

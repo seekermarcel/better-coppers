@@ -20,16 +20,17 @@ Everything runs in the flake dev shell:
 - `combat`, `repair`: monsters, iron golem guards, repairs
 - `trim`: armour trims
 - `block`, `menu`, `entity`, `item`, `registry`: Survey Table, Copper Chest Minecart, registrations
-- `mixin`: swaps in the golem AI
-- Client code is in `src/client/java`. `tools/` holds texture generators. `automatisation/` is the add-on subproject (its own jar), built only on `api`.
+- `mixin`: adds the mod's behaviours in front of vanilla's golem AI, and gates vanilla transport
+- Client code is in `src/client/java`. `tools/` holds texture and resource generators. `automatisation/` is the add-on subproject (its own jar), meant to build on `api` (ADR 0004).
 
-Adding a job: one `Job` entry, one `JobBehavior` subclass registered in `GolemBrain.modBehaviours()`, lang keys in en_us and de_de (key-identical), one gametest.
+## Docs
+- `GLOSSARY.md`: canonical terms. Use them when naming things or writing player-facing text.
+- `docs/architecture.md`: read before changing golem AI, player interactions, saved state or generated files. It also lists code names that mislead.
+- `docs/adr/`: why things are as they are. Read before reversing a design choice, and add one for a decision that is hard to reverse, surprising and a real trade-off.
+- `CONTRIBUTING.md`: the steps for adding a job and for releases.
 
 ## The vanilla rule
-Anything that happens automatically to a golem no player touched is exactly vanilla. Mod behaviour starts only after a deliberate player action (job item, route, home link, chain, trim). "Without a job" is `!Upkeep.hasJob(golem)`, even if the golem has a home: a golem with only a home (no job item, no route) still sorts like vanilla.
+Anything that happens automatically to a golem no player touched is exactly vanilla. Mod behaviour starts only after a deliberate player action (job item, route, home link, chain, trim, eyes). "Without a job" is `!Upkeep.hasJob(golem)`, even if the golem has a home: a golem with only a home (no job item, no route) still sorts like vanilla. The one exception is the axe dispenser, which scrapes any golem in front of it, because the player built it on purpose.
 
 ## Conventions
-Tabs, short Javadocs, English. Conventional commit messages. Never commit `docs/superpowers/` (gitignored).
-
-## Multi-version
-Only the latest Minecraft version is supported for now. When more are needed, use [Stonecutter](https://stonecutter.kikugie.dev/): it builds one jar per MC version from one source tree using comment-based version conditionals. CI would then need a matrix per version.
+Tabs, short Javadocs, English. Conventional commit messages. Never commit `docs/superpowers/` (gitignored). Only the latest Minecraft version is supported (ADR 0005).

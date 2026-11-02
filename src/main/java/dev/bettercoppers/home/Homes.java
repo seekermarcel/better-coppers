@@ -17,8 +17,8 @@ import net.minecraft.world.level.block.state.properties.ChestType;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Every golem with a job belongs to exactly one copper chest, its home, which the player links by hand (see
- * {@link HomeLinking}). A golem without a home waits.
+ * A golem belongs to at most one copper chest, its home, which the player links by hand (see {@link HomeLinking}).
+ * A courier has a route instead.
  */
 public final class Homes {
 	private Homes() {

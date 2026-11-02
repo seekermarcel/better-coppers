@@ -77,7 +77,7 @@ To move a golem to another chest, link it again.
 
 The golem digs a **3×3 vanilla-style mineshaft**: plank floor over gaps, a support every 4 blocks (fence posts and a plank beam), torches on the beams, and rails laid at the end.
 
-- **No supplies, no digging.** It must carry the rails, fences and planks for what it digs. It fetches them from its chest, or waits there until you restock.
+- **No supplies, no digging.** It must carry the rails, fences, planks and torches for what it digs. It fetches them from its chest, or waits there until you restock.
 - **Ores:** it digs out every ore it can see from the tunnel, up to 16 per vein.
 - **Safety:** it plugs water and lava with cobblestone and clears gravel and sand that falls in.
 - **Slow and clumsy:** it digs at about half a player's speed and skips blocks it can't reach.
@@ -132,7 +132,7 @@ A golem towing a chained cart always walks.
 
 - **Monsters hunt working copper golems.** Every monster that goes after villagers or iron golems now goes after copper golems that have a job too: zombies, skeletons, spiders, illagers and more. Jobless golems are left alone, as in vanilla. A copper golem has only 12 health.
 - **Iron golems guard them.** An iron golem stays near the copper golems with a job that live around it and attacks any monster that hunts or hits one. Creepers are excepted, as in vanilla.
-- **Copper golems repair iron golems.** When an iron golem nearby is badly hurt, a copper golem drops what it is doing, takes **iron ingots** from its home chest (or the nearest chest with iron) and repairs it, 25 health per ingot.
+- **Copper golems repair iron golems.** When an iron golem nearby is badly hurt, a copper golem with a home or route pauses what it is doing (a sorter or courier finishes its delivery first), takes **iron ingots** from its home chest (or the nearest chest with iron) and repairs it, 25 health per ingot.
 
 So keep some iron in your chests, and build an iron golem for every work site.
 
@@ -174,7 +174,7 @@ Sorters and couriers are free. Every other job costs something:
 - **Sleeping:** when the players sleep through the night, every working golem with a free pad near its home wakes up fully charged, as if it had spent the night on the pad.
 - **Rust:** steady work makes golems rust one stage every few days. Exposed golems work at 85 % speed and weathered ones at 70 %. Fully oxidized or waxed golems don't work at all.
 - **Scraping:** use an axe by hand, or put an **axe in a dispenser**: each redstone pulse scrapes the golem in front of it by one stage.
-- **Tools** wear out and break. When its tool breaks or is taken away and its pouch is empty, a golem goes back to vanilla sorting until it gets a new tool, and it may pick up a job tool from a copper chest by itself.
+- **Tools** wear out and break. A golem whose tool breaks keeps its job and fetches a new one (see [Tools and eyes](#tools-and-eyes)). When its tool is taken away and its pouch is empty, it goes back to vanilla sorting until it gets a new tool, and it may pick up a job tool from a copper chest by itself.
 
 ---
 
@@ -229,7 +229,7 @@ src/main/java/dev/bettercoppers/
   home/      Homes, HomeLinking (linking homes and routes), HomeDisplay (particle lines)
   block/, menu/  Survey Table and its menu
   entity/, item/  Copper Chest Minecart
-  api/       hooks for add-ons: jobs, brain behaviours, link targets
+  api/       hooks for add-ons: jobs, brain behaviours, link targets, modifiers, pads, handbook
   mixin/     adds the mod's behaviours in front of vanilla's golem AI (vanilla AI kept), goal accessors
 src/client/java/dev/bettercoppers/client/
   render/    cart renderer with its chain, GolemTrimLayer, GolemAntennaLayer, GolemBobberRenderer

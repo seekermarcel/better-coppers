@@ -26,8 +26,8 @@ import org.jspecify.annotations.Nullable;
  * <ul>
  * <li>right-click with a pickaxe: the golem holds it (and stops sorting);</li>
  * <li>right-click with a marked plan: the golem keeps the plan and starts digging;</li>
- * <li>sneak + right-click with an empty hand: the golem hands the plan back, progress included;</li>
- * <li>right-click with an empty hand (vanilla): the golem hands over what it holds, i.e. the pickaxe.</li>
+ * <li>right-click with an empty hand (vanilla): the golem hands over what it holds, i.e. the pickaxe, and the plan
+ * comes back with it, progress included.</li>
  * </ul>
  */
 public final class MinerInteractions {

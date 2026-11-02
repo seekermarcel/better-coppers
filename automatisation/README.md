@@ -2,7 +2,7 @@
 
 **An add-on for [Better Coppers](../README.md): a golem-run factory of conveyor belts, presses, saws and grabber arms, whose products go back into your golems.**
 
-It feels a bit like Create, but there is no power network, no water wheels and no rotation to route. **Every machine has a crank, and a copper golem has to turn it.** No golem, no movement. Your golems walk to their machines in the morning, crank away all day, repair them when they jam, and go to their charge pads at night.
+It feels a bit like Create, but there is no power network, no water wheels and no rotation to route. **Every machine has a crank, and a copper golem has to turn it.** No golem, no movement. Your golems walk to their machines in the morning, crank away all day, repair them when they jam, and go to their Charging Pads or Charging Stations at night.
 
 The add-on adds its own chapters to the **Golem Handbook** and its own **advancement tab**, which leads you from the first wrench to a golem with every upgrade.
 

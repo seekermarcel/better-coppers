@@ -11,14 +11,17 @@
 - `./gradlew build` runs both, so run it before you push.
 
 ## The vanilla rule
-Anything that happens automatically to a golem no player touched is exactly vanilla. Mod behaviour starts only after a deliberate player action (job item, route, home link, chain, trim). "Without a job" means `!Upkeep.hasJob(golem)`, even if the golem has a home.
+See [The vanilla rule](CLAUDE.md#the-vanilla-rule) and [why it works the way it does](docs/adr/0002-vanilla-rule-rests-on-one-predicate.md).
 
 ## Adding a job
-1. One entry in the `Job` enum.
+These steps are for a job that shares the home-chest routine of `JobBehavior`. Miner, sorter and courier have their own code. An add-on job uses `BetterCoppersApi.registerJob` and `registerBehavior` instead of steps 1 to 3.
+
+1. One entry in the `Job` enum. The first entry also brings the pouch home for a golem whose tool was taken away (`JobBehavior`), so check that when you reorder.
 2. One class extending `JobBehavior`.
 3. Register it in `GolemBrain.modBehaviours()`.
 4. Lang keys in both `en_us.json` and `de_de.json` (keep them key-identical).
-5. One gametest.
+5. Add the job to `tools/gen_guide.py` (advancements and handbook text) and rerun it. Then check the `Guide.job` switch: a job with no matching advancement is skipped silently.
+6. One gametest in `JobGameTests`.
 
 ## Code style
 Tabs, English. Short Javadoc on anything non-obvious.
