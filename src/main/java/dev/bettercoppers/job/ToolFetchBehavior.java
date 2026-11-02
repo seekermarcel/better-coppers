@@ -91,8 +91,6 @@ public class ToolFetchBehavior extends Behavior<CopperGolem> {
 			ChestVisit.close(golem, Homes.containerAt(level, this.source));
 		}
 		this.source = null;
-		golem.clearOpenedChestPos();
-		golem.setState(CopperGolemState.IDLE);
 	}
 
 	@Override
@@ -124,7 +122,6 @@ public class ToolFetchBehavior extends Behavior<CopperGolem> {
 				golem.setGuaranteedDrop(EquipmentSlot.MAINHAND);
 				container.setChanged();
 				Tools.clearLost(golem);
-				golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET);
 				break;
 			}
 		}

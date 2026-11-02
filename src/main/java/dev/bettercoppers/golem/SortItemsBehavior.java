@@ -56,12 +56,14 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 	private static final int HORIZONTAL_RANGE = 32;
 	private static final int VERTICAL_RANGE = 8;
 	private static final int IDLE_COOLDOWN = 140;
+	private static final int MAX_QUEUE_TICKS = 600;
 	private static final int MAX_DECOYS = 3;
 	private static final int MAX_PATH_ATTEMPTS = 4;
 	private static final double QUEUE_DISTANCE = 3.0;
 	private static final double KEEP_INTERACTING_DISTANCE = 2.0;
 
 	private final TravelWatch travel = new TravelWatch();
+	private int queueTicks;
 
 	private enum Purpose {
 		PICKUP,
@@ -232,6 +234,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 		this.interacting = false;
 		this.ticks = 0;
 		this.travel.reset();
+		this.queueTicks = 0;
 		golem.clearOpenedChestPos();
 		golem.setState(CopperGolemState.IDLE);
 	}
@@ -265,6 +268,10 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 	private void tickTravel(ServerLevel level, CopperGolem golem, Container container, long now) {
 		if (isWithinReach(level, golem, this.target, QUEUE_DISTANCE) && isOpenedByOthers(container, golem)) {
 			Golems.stopInPlace(golem);
+			if (++this.queueTicks > MAX_QUEUE_TICKS) {
+				this.ignore(this.target, now);
+				this.dropTarget(golem);
+			}
 		} else if (isWithinReach(level, golem, this.target, interactionRange(golem))) {
 			this.interacting = true;
 			this.ticks = 0;
