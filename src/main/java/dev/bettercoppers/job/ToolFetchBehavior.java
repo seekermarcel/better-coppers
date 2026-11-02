@@ -87,9 +87,7 @@ public class ToolFetchBehavior extends Behavior<CopperGolem> {
 
 	@Override
 	protected void stop(ServerLevel level, CopperGolem golem, long timestamp) {
-		if (this.source != null && this.ticks > 0) {
-			ChestVisit.close(golem, Homes.containerAt(level, this.source));
-		}
+		ChestVisit.close(golem, this.source != null && this.ticks > 0 ? Homes.containerAt(level, this.source) : null);
 		this.source = null;
 	}
 

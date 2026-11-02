@@ -355,6 +355,25 @@ public class JobGameTests {
 		h.succeedWhen(() -> h.assertTrue(count(match, Items.COBBLESTONE) == 2, "cobblestone not delivered yet"));
 	}
 
+	@GameTest(maxTicks = 400)
+	public void tool_fetch_without_a_spare_tool_ends_idle(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(2, 1, 4);
+		GameTests.chest(h, home, COPPER_CHEST);
+		CopperGolem golem = GameTests.golem(h, new BlockPos(3, 1, 4));
+		GameTests.energize(golem);
+		WorkerData.getOrCreate(golem);
+		loseTool(golem, Items.COPPER_HOE);
+		Homes.set(golem, h.absolutePos(home));
+		golem.getBrain().eraseMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS);
+		ToolFetchBehavior fetch = new ToolFetchBehavior();
+		h.assertTrue(fetch.tryStart(h.getLevel(), golem, 0L), "fetch did not start");
+		h.assertTrue(golem.getState() == net.minecraft.world.entity.animal.golem.CopperGolemState.GETTING_NO_ITEM, "no head shake");
+		fetch.tickOrStop(h.getLevel(), golem, 1L);
+		h.assertTrue(golem.getState() == net.minecraft.world.entity.animal.golem.CopperGolemState.IDLE, "still shaking its head");
+		h.succeed();
+	}
+
 	@GameTest(maxTicks = 1200)
 	public void stale_data_does_not_stop_a_sorter(GameTestHelper h) {
 		scene(h);
