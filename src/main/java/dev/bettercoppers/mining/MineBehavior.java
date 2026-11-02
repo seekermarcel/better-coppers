@@ -77,8 +77,10 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	private static final float WALK_SPEED = 0.9F;
 	private static final int ENERGY_PER_DIG = 2;
 	private static final int ENERGY_PER_BUILD = 1;
-	/** Miners further than this from a sorting golem cannot be the reason to leave a chest alone. */
+	/** How long a miner waits before it looks again for a chest. */
 	private static final int IDLE_COOLDOWN = 200;
+	/** How long it idles once the job is done and the load is home. */
+	private static final int DONE_COOLDOWN = 140;
 
 	private enum Mode {
 		WORKING,
@@ -661,7 +663,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		golem.setState(CopperGolemState.IDLE);
 		if (this.stopAfterReturn) {
 			// Nothing left to do: idle for a while like a sorting golem with an empty chest.
-			golem.getBrain().setMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS, 140);
+			golem.getBrain().setMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS, DONE_COOLDOWN);
 		}
 	}
 

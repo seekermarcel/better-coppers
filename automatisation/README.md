@@ -31,7 +31,7 @@ The machines themselves wear out and are repaired with sheets, so every factory 
 
 ## The operator
 
-1. Craft a **Copper Wrench** and right-click a copper golem with it.
+1. Craft a **Copper Wrench** and sneak + right-click a copper golem with it.
 2. Link the golem to a machine: sneak + right-click the golem with an empty hand, then right-click the machine (within 32 blocks).
 
 The golem is now an **operator**. Whenever its machine has work, it walks over (within about 2 blocks) and turns the crank. You'll see its arm reach out and hear the crank clank. With nothing to do, it potters about nearby. Copper golems walk across belts; belts don't carry them.
@@ -42,7 +42,7 @@ Operators pay the usual Better Coppers running costs:
 - **Rest:** they stop at night.
 - **Rust:** rusty golems crank more slowly.
 
-One golem works one machine. To get the wrench back, right-click the golem with an empty hand.
+One golem works one machine. To get the wrench back, end the golem's job: sneak + right-click it with an empty hand twice, within 5 seconds.
 
 ### Wear and repairs
 Machines wear out with use. A worn-out machine **jams**: it stops and smokes. Its operator then fetches a spare part from any chest or barrel within 8 blocks of the machine and repairs it. Without a spare part nearby, it waits.
@@ -126,12 +126,12 @@ A workshop with 9 slots. Right-click it to open it, or fill it with hoppers, fun
 - New golems have no job yet. Sneak + right-click them with one, like any other golem.
 
 ### Charging Station
-A gilded charging pad. It needs **no redstone clock** and charges a golem in about 12 seconds, twice as fast as a Charging Pad on the fastest clock. Put it within 16 blocks of a golem's home or machine.
+A gilded charging pad. It needs **no redstone clock** and charges a golem in about 12 seconds, twice as fast as a Charging Pad on the fastest clock. Put it within 16 blocks of the machine a golem works at, or of its home if it has no machine.
 
 ---
 
 ## Golem upgrades
-Right-click a copper golem with the item. Sneak + right-click the golem with an empty hand to see what it's wearing.
+Sneak + right-click a copper golem with the item. Sneak + right-click the golem with an empty hand to see what it's wearing.
 
 - **Iron Plating:** takes three quarters of every hit until it has taken 40 damage, then it's gone. Golems wearing it shrug off zombies.
 - **Copper Coating:** the golem doesn't rust from work for 3000 energy, about three days of steady work.

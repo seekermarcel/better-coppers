@@ -10,8 +10,8 @@ Everything runs in the flake dev shell:
 
 ## Package map (`src/main/java/dev/bettercoppers/`)
 - `api`: BetterCoppersApi, TravelWatch, hooks for add-ons (jobs, behaviours, link targets, modifiers, pads, handbook)
-- `golem`: GolemBrain (registers behaviours), Golems, Inventories, ItemFamilies, Sorter, SortItemsBehavior, Errands, RideBehavior, CartChaining, Eyes, HomeStroll
-- `job`: Jobs (what a golem's job is and where it belongs), Load (what it carries), Job enum, JobBehavior, WorkerData, WorkerInteractions, Tools, ToolFetchBehavior, Farm/Forest/Fish/Keeper/CraftBehavior
+- `golem`: GolemBrain (registers behaviours), Golems, Inventories, ItemFamilies, Sorter, SortingDestinations, SortItemsBehavior, WorkingStock, ChestVisit, Errands, RideBehavior, CartChaining, Eyes, HomeStroll
+- `job`: Jobs (what a golem's job is and where it belongs), Load (what it carries), Job enum, JobHandover (starting and ending jobs), JobBehavior, WorkerData, WorkerInteractions, Tools, ToolFetchBehavior, Farm/Forest/Fish/Keeper/CraftBehavior
 - `guide`: Golem Handbook, guide advancements
 - `mining`: miner job, mine layout and plan
 - `courier`: routes and chunk tickets
@@ -21,7 +21,7 @@ Everything runs in the flake dev shell:
 - `trim`: armour trims
 - `block`, `menu`, `entity`, `item`, `registry`: Survey Table, Copper Chest Minecart, registrations
 - `mixin`: adds the mod's behaviours in front of vanilla's golem AI, and gates vanilla transport
-- Client code is in `src/client/java`. `tools/` holds texture and resource generators. `automatisation/` is the add-on subproject (its own jar), meant to build on `api` (ADR 0004).
+- Client code is in `src/client/java`. `tools/` holds texture and resource generators. `automatisation/` is the add-on subproject (its own jar), imports only `api` (ADR 0004).
 
 ## Docs
 - `GLOSSARY.md`: canonical terms. Use them when naming things or writing player-facing text.
