@@ -19,13 +19,15 @@ Right-clicks run through the `UseEntityCallback` handlers in the order `BetterCo
 
 Client and server both run these handlers, but job attachments are not synced, so the client cannot call `Jobs.has`. Decide on the server. Vanilla's throw also runs on the client, so `HomeLinking` resends the golem's main hand after blocking a click.
 
+The server only sees clicks, and a held button repeats one every 4 ticks. So `HomeLinking` counts clicks within 5 ticks as one press, and only a later press within 100 ticks ends a job. Giving a job closes that window.
+
 ## What a job is in code
 
 A job is derived from what the golem holds and which data it has, with no stored job field. Miners and the `Job` enum's jobs need both the tool and a player-created attachment, which is what stops an untouched golem from gaining a job by picking up a tool. A sorter holds its bundle in the off hand, which vanilla transport leaves alone, and a courier is defined by its route.
 
 `Jobs` answers from those facts. When a golem seems to have two jobs the first match wins: route, add-on job, job tool in hand or lost, bundle. So a courier carrying a hoe is a courier, and data without its tool means nothing.
 
-`JobHandover` is the only way a job starts over or ends. It gives the player the held items, plan, pouch and supplies, removes the job's data and calls `GolemJob.onEnded`, so no job data outlives its job: an ex-worker that picks up a hoe through vanilla transport stays jobless. `giveTool` and `clear` keep a chained cart for the next job, and `end` unchains it. A broken tool is not a job end: the job stays and `ToolFetchBehavior` restocks it. `Jobs.has` is the vanilla rule's predicate and runs for every golem, so it must stay free of entity searches for an untouched golem. `Jobs.place` is the workplace, then the home, which stays linked underneath.
+`JobHandover` is how a job starts over or ends, with one exception: linking a courier to a home ends its route in `HomeLinking`, and the cargo in its hand stays for vanilla to deliver. `JobHandover` gives the player the held items, plan, pouch, supplies and repair iron, removes the job's data and calls `GolemJob.onEnded`, so no job data outlives its job: an ex-worker that picks up a hoe through vanilla transport stays jobless. `giveTool` and `clear` keep a chained cart for the next job, and `end` unchains it. A broken tool is not a job end: the job stays and `ToolFetchBehavior` restocks it. `Jobs.has` is the vanilla rule's predicate and runs for every golem, so it must stay free of entity searches for an untouched golem. `Jobs.place` is the workplace, then the home, which stays linked underneath.
 
 `WorkerData.job` is narrower than it sounds: it names the job of the tool, given worker data. Ask `Jobs.of` what the golem's job is.
 

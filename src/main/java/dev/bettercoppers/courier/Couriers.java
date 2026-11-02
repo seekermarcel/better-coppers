@@ -53,6 +53,7 @@ public final class Couriers {
 	public static void setRoute(CopperGolem golem, @Nullable CourierRoute route) {
 		if (route == null) {
 			golem.removeAttached(ModAttachments.ROUTE);
+			PENDING.remove(golem.getUUID());
 		} else {
 			golem.setAttached(ModAttachments.ROUTE, route);
 			Homes.set(golem, null);

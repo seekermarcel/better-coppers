@@ -59,7 +59,7 @@ To move a golem to another chest, link it again.
 ## Jobs
 
 ### Sorter
-- Needs a **bundle**, which it keeps in its off hand. It only empties its own home chest.
+- Sneak + right-click it with a **bundle**, which it keeps in its off hand. It only empties its own home chest.
 - It knows every container within 32 blocks (8 up/down) and where each item belongs:
   1. a chest or barrel with an **item frame** showing that item (a framed container only takes what its frames show),
   2. otherwise a chest that already holds that item,
@@ -73,7 +73,7 @@ To move a golem to another chest, link it again.
 1. Make a **Survey Table** (2 paper / 2 copper ingots / 2 planks, stacked in that order).
 2. Put paper in, choose a length (8–128) and take out the **mineshaft plan**.
 3. Mark the entrance by using the plan on the ground (or on a wall). The tunnel heads the way you look.
-4. Give the golem a **copper pickaxe** and the plan, then link it to a copper chest near the entrance.
+4. Sneak + right-click the golem with a **copper pickaxe**, then with the plan, then link it to a copper chest near the entrance.
 
 The golem digs a **3×3 vanilla-style mineshaft**: plank floor over gaps, a support every 4 blocks (fence posts and a plank beam), torches on the beams, and rails laid at the end.
 
@@ -86,7 +86,7 @@ The golem digs a **3×3 vanilla-style mineshaft**: plank floor over gaps, a supp
 - **Getting things back:** end its job to get the pickaxe and the plan back. The plan keeps its progress. It takes the pickaxe first, then the plan.
 
 ### Farmer
-- Give it a **copper hoe**. Its field is everything within 8 blocks of its home chest.
+- Sneak + right-click it with a **copper hoe**. Its field is everything within 8 blocks of its home chest.
 - It harvests ripe wheat, carrots, potatoes, beetroot and nether wart and replants them right away. Empty farmland gets what the neighbouring rows grow.
 - It picks pumpkins and melons and leaves the stems, and cuts sugar cane and bamboo once they are 3 high.
 - It keeps 16 of every seed for replanting and never tills new land. You build the field.
@@ -161,7 +161,7 @@ It also widens animal pens, how far a miner follows a vein and where an add-on o
 Sneak + right-click a golem with an **armour trim smithing template**, then with a **trim material** (iron, gold, copper, emerald, amethyst…). The trim shows in the material's colour, exactly like on armour, and all 18 vanilla patterns are supported.
 - The material is used up. The template stays with the golem.
 - A new template or material changes the trim.
-- **Shears** take the trim off and give the template back.
+- **Sneak + right-click with shears** takes the trim off and gives the template back. A flower comes off first.
 
 Trims are only for looks.
 
@@ -174,7 +174,7 @@ Sorters and couriers are free. Every other job costs something:
 - **Sleeping:** when the players sleep through the night, every working golem with a free pad near its home wakes up fully charged, as if it had spent the night on the pad.
 - **Rust:** steady work makes golems rust one stage every few days. Exposed golems work at 85 % speed and weathered ones at 70 %. Fully oxidized or waxed golems don't work at all.
 - **Scraping:** use an axe by hand, or put an **axe in a dispenser**: each redstone pulse scrapes the golem in front of it by one stage.
-- **Tools** wear out and break. A golem whose tool breaks keeps its job and fetches a new one (see [Tools and eyes](#tools-and-eyes)). When its tool is taken away and its pouch is empty, it goes back to vanilla sorting until it gets a new tool, and it may pick up a job tool from a copper chest by itself.
+- **Tools** wear out and break. A golem whose tool breaks keeps its job and fetches a new one (see [Tools and eyes](#tools-and-eyes)). When you end its job, it goes back to vanilla sorting.
 
 ---
 
@@ -190,7 +190,7 @@ Sorters and couriers are free. Every other job costs something:
 | Right-click golem (empty hand) | With a job: shows its status. Without: hands over what it holds, as in vanilla |
 | Sneak + right-click golem with an iron, gold or diamond block | Eye upgrade: bigger work radius |
 | Sneak + right-click golem with template, then material | Gives it an armour trim |
-| Right-click golem with shears | Removes the trim |
+| Sneak + right-click golem with shears | Removes the trim |
 | Right-click cart with an iron or copper chain, then a golem with an empty hand | Hands the cart over |
 | Sneak (just hold it) | Shows lines from golems to their homes |
 

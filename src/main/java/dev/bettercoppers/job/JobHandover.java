@@ -6,9 +6,11 @@ import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.golem.CartChaining;
 import dev.bettercoppers.golem.Inventories;
+import dev.bettercoppers.home.HomeLinking;
 import dev.bettercoppers.mining.MinerData;
 import dev.bettercoppers.mining.MinerInteractions;
 import dev.bettercoppers.registry.ModAttachments;
+import dev.bettercoppers.repair.RepairBehavior;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
@@ -32,6 +34,7 @@ public final class JobHandover {
 		held.consume(1, player);
 		if (isSameJob(golem, tool)) {
 			giveBack(player, golem, EquipmentSlot.MAINHAND);
+			HomeLinking.closeEndJobWindow(golem);
 		} else {
 			clear(player, golem);
 		}
@@ -46,6 +49,7 @@ public final class JobHandover {
 		giveBack(player, golem, EquipmentSlot.MAINHAND);
 		giveBack(player, golem, EquipmentSlot.OFFHAND);
 		Load.of(golem).handOver(stack -> Inventories.giveOrDrop(player, stack));
+		RepairBehavior.giveCarried(player, golem);
 		MinerData miner = golem.getAttached(ModAttachments.MINER);
 		if (miner != null && miner.plan() != null) {
 			MinerInteractions.returnPlan(player, golem, miner);
@@ -55,6 +59,7 @@ public final class JobHandover {
 		golem.removeAttached(ModAttachments.LOST_TOOL);
 		golem.removeAttached(ModAttachments.EXCITED);
 		Couriers.setRoute(golem, null);
+		HomeLinking.closeEndJobWindow(golem);
 		for (GolemJob job : BetterCoppersApi.jobs()) {
 			job.onEnded(golem);
 		}

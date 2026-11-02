@@ -217,7 +217,7 @@ With nothing to do, a golem with a home strolls about within 6 blocks of its che
 Sneak + right-click a golem twice with an empty hand, within 5 seconds. You get its tool or bundle, its plan and everything it carries; what does not fit lands at your feet. A chained cart unchains and stays where it is, still loaded. Home, eyes and trim stay with the golem.
 
 # Changing jobs
-Give it a different job item. You get the old tool and everything it carries, and a chained cart stays chained. A new tool for the same job only swaps the tools."""),
+Sneak + right-click it with a different job item. You get the old tool and everything it carries, and a chained cart stays chained. A new tool for the same job only swaps the tools."""),
               ("Zuhause und Zustand", """Jeder arbeitende Golem gehört zu einer Kupfertruhe, seinem Zuhause. Dorthin bringt er, was er erarbeitet, und dort holt er seinen Nachschub.
 
 # Verbinden
@@ -236,8 +236,8 @@ Hat er nichts zu tun, schlendert ein Golem mit Zuhause höchstens 6 Blöcke um s
 Zweimal Schleichen + Rechtsklick mit leerer Hand auf den Golem, innerhalb von 5 Sekunden. Du bekommst sein Werkzeug oder Bündel, seinen Plan und alles, was er trägt; was nicht passt, landet vor deinen Füßen. Eine angekettete Lore wird gelöst und bleibt beladen stehen. Zuhause, Augen und Besatz bleiben beim Golem.
 
 # Beruf wechseln
-Gib ihm einen anderen Arbeitsgegenstand. Du bekommst das alte Werkzeug und alles, was er trägt, und eine angekettete Lore bleibt angekettet. Ein neues Werkzeug für denselben Beruf tauscht nur das Werkzeug.""")),
-    "sorter": (("Sorter", """Give a golem a bundle. It keeps it in its off hand and empties its home chest, item by item.
+Schleichen + Rechtsklick mit einem anderen Arbeitsgegenstand auf ihn. Du bekommst das alte Werkzeug und alles, was er trägt, und eine angekettete Lore bleibt angekettet. Ein neues Werkzeug für denselben Beruf tauscht nur das Werkzeug.""")),
+    "sorter": (("Sorter", """Sneak + right-click a golem with a bundle. It keeps it in its off hand and empties its home chest, item by item.
 
 # Where things go
 1. a chest that already holds that item,
@@ -258,7 +258,7 @@ This also holds when the golems are linked to the two halves of a double chest.
 It carries 16 items per trip. Now and then it opens a wrong chest first and shakes its head: that is just its character.
 
 Sorters are free to run: no energy, no rust."""),
-               ("Sortierer", """Gib einem Golem ein Bündel. Er trägt es in der Nebenhand und leert seine Heimattruhe, Gegenstand für Gegenstand.
+               ("Sortierer", """Schleichen + Rechtsklick mit einem Bündel auf einen Golem. Er trägt es in der Nebenhand und leert seine Heimattruhe, Gegenstand für Gegenstand.
 
 # Wohin damit?
 1. in eine Truhe, die diesen Gegenstand schon enthält,
@@ -305,7 +305,7 @@ Craft a Survey Table: 2 paper over 2 copper ingots over 2 planks. Put paper in, 
 Use the plan on the ground where the mine should start. The tunnel heads the way you look.
 
 # The golem
-Give it a copper pickaxe first, then the plan: without a pickaxe in hand it refuses the plan. Then link it to a copper chest near the entrance.
+Sneak + right-click it with a copper pickaxe first, then with the plan: without a pickaxe in hand it refuses the plan. Then link it to a copper chest near the entrance.
 
 # Supplies
 No supplies, no digging. Keep planks, fences, rails and torches in its chest; it fetches them when it needs them.
@@ -325,7 +325,7 @@ Stelle einen Vermessungstisch her: 2 Papier über 2 Kupferbarren über 2 Bretter
 Benutze den Plan auf dem Boden, wo der Stollen beginnen soll. Er führt in deine Blickrichtung.
 
 # Der Golem
-Gib ihm erst eine Kupferspitzhacke, dann den Plan: Ohne Spitzhacke in der Hand lehnt er den Plan ab. Verbinde ihn dann mit einer Kupfertruhe nahe am Eingang.
+Schleichen + Rechtsklick auf ihn, erst mit einer Kupferspitzhacke, dann mit dem Plan: Ohne Spitzhacke in der Hand lehnt er den Plan ab. Verbinde ihn dann mit einer Kupfertruhe nahe am Eingang.
 
 # Nachschub
 Ohne Material wird nicht gegraben. Lege Bretter, Zäune, Schienen und Fackeln in seine Truhe; er holt sie, wenn er sie braucht.
@@ -337,22 +337,24 @@ Er baut jedes Erz ab, das er sieht (bis zu 16 pro Ader), stopft Wasser und Lava 
 Findet er Diamanten, baut er die ganze Ader ab und eilt dann mit blinkender Antenne nach Hause, um sie dir zu zeigen.
 
 Beendest du seinen Beruf, bekommst du Spitzhacke und Plan zurück. Der Plan merkt sich den Fortschritt.""")),
-    "farmer": (("Farmer", """Give a golem a copper hoe. Its field is everything within 8 blocks of its home chest.
+    "farmer": (("Farmer", """Sneak + right-click a golem with a copper hoe. Its field is everything within 8 blocks of its home chest.
 
 - It harvests ripe wheat, carrots, potatoes, beetroot and nether wart and replants them right away.
 - It picks pumpkins and melons and leaves the stems.
 - It cuts sugar cane and bamboo once they are 3 high.
 
 It keeps 16 of every seed for replanting. It never tills new land: you build the field, the golem looks after it. Sneak + right-click the farmer with seeds to give it some."""),
-               ("Bauer", """Gib einem Golem eine Kupferhacke. Sein Feld ist alles im Umkreis von 8 Blöcken um seine Heimattruhe.
+               ("Bauer", """Schleichen + Rechtsklick mit einer Kupferhacke auf einen Golem. Sein Feld ist alles im Umkreis von 8 Blöcken um seine Heimattruhe.
 
 - Er erntet reifen Weizen, Karotten, Kartoffeln, Rote Bete und Netherwarzen und pflanzt sofort nach.
 - Er erntet Kürbisse und Melonen und lässt die Stiele stehen.
 - Er schneidet Zuckerrohr und Bambus, sobald sie 3 hoch sind.
 
 Er behält 16 von jedem Saatgut zum Nachpflanzen. Neues Land pflügt er nie: Du legst das Feld an, der Golem pflegt es. Schleichen + Rechtsklick mit Saatgut auf den Bauern gibt ihm welches.""")),
-    "workers": (("Forester, Fisher, Keeper, Crafter", """# Forester: a copper axe
-Fells natural trees within 12 blocks, never logs you placed. It collects saplings, apples and sticks and replants every stump. Give the axe to a clean golem; on a rusty one it scrapes instead.
+    "workers": (("Forester, Fisher, Keeper, Crafter", """Sneak + right-click a golem with one of these items to give it the job.
+
+# Forester: a copper axe
+Fells natural trees within 12 blocks, never logs you placed. It collects saplings, apples and sticks and replants every stump. The axe only works on a clean golem; a rusty one it scrapes instead.
 
 # Fisher: a fishing rod
 Casts its line into open water within 10 blocks and waits for the float to dip: a catch every 20 to 50 seconds, fish and junk but no treasure.
@@ -362,8 +364,10 @@ Feeds pairs of animals with food from its chest so they breed, up to 16 of each 
 
 # Crafter: a crafting table
 Crafts what the item frames on or next to its chest show, from the ingredients in that chest."""),
-                ("Förster, Fischer, Tierpfleger, Handwerker", """# Förster: eine Kupferaxt
-Fällt natürliche Bäume im Umkreis von 12 Blöcken, nie Stämme, die du gesetzt hast. Er sammelt Setzlinge, Äpfel und Stöcke und pflanzt jeden Baum nach. Gib die Axt einem sauberen Golem; einen rostigen kratzt sie stattdessen ab.
+                ("Förster, Fischer, Tierpfleger, Handwerker", """Schleichen + Rechtsklick mit einem dieser Gegenstände auf einen Golem gibt ihm den Beruf.
+
+# Förster: eine Kupferaxt
+Fällt natürliche Bäume im Umkreis von 12 Blöcken, nie Stämme, die du gesetzt hast. Er sammelt Setzlinge, Äpfel und Stöcke und pflanzt jeden Baum nach. Die Axt geht nur bei einem sauberen Golem; einen rostigen kratzt sie stattdessen ab.
 
 # Fischer: eine Angel
 Wirft die Angel in offenes Wasser im Umkreis von 10 Blöcken aus und wartet, bis der Schwimmer abtaucht: alle 20 bis 50 Sekunden ein Fang, Fisch und Plunder, aber keine Schätze.
@@ -468,12 +472,12 @@ Arbeitswerkzeuge nutzen sich ab und gehen kaputt.""")),
 
 Sneak + right-click a golem with an armour trim smithing template, then with a trim material (iron, gold, copper, emerald, amethyst...). The material is used up; the template stays with the golem.
 
-A new template or material changes the trim. Shears take it off and give the template back."""),
+A new template or material changes the trim. Sneak + right-click with shears takes it off and gives the template back. If it wears a flower, the flower comes off first."""),
               ("Rüstungsbesätze", """Golems können Rüstungsbesätze tragen, nur zur Zierde.
 
 Schleichen + Rechtsklick auf einen Golem mit einer Schmiedevorlage, dann mit einem Besatzmaterial (Eisen, Gold, Kupfer, Smaragd, Amethyst ...). Das Material wird verbraucht, die Vorlage bleibt beim Golem.
 
-Eine neue Vorlage oder ein neues Material ändert den Besatz. Eine Schere nimmt ihn ab und gibt dir die Vorlage zurück.""")),
+Eine neue Vorlage oder ein neues Material ändert den Besatz. Schleichen + Rechtsklick mit einer Schere nimmt ihn ab und gibt dir die Vorlage zurück. Trägt er eine Blume, kommt zuerst die Blume ab.""")),
     "reference": (("Quick Reference", """# Job items
 Bundle: sorter
 Copper pickaxe + plan: miner

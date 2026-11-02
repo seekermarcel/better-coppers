@@ -30,6 +30,7 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.animal.golem.CopperGolemState;
 import net.minecraft.world.entity.animal.golem.IronGolem;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.AABB;
@@ -88,7 +89,7 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 
 	@Override
 	protected boolean canStillUse(ServerLevel level, CopperGolem golem, long timestamp) {
-		return this.patient != null && !golem.isPanicking() && !golem.isLeashed() && needsRepair(this.patient);
+		return this.patient != null && !golem.isPanicking() && !golem.isLeashed() && hasPlace(golem) && needsRepair(this.patient);
 	}
 
 	@Override
@@ -328,6 +329,15 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 			golem.removeAttached(ModAttachments.CARRIED_IRON);
 		} else {
 			golem.setAttached(ModAttachments.CARRIED_IRON, count);
+		}
+	}
+
+	/** Hands the iron a golem was carrying to the player, when its job ends. */
+	public static void giveCarried(Player player, CopperGolem golem) {
+		int count = carried(golem);
+		if (count > 0) {
+			Inventories.giveOrDrop(player, new ItemStack(Items.IRON_INGOT, count));
+			setCarried(golem, 0);
 		}
 	}
 

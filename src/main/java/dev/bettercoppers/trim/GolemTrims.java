@@ -31,7 +31,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * Armour trims for copper golems, purely for looks. Sneak + right-click a golem with a smithing template, then with a
  * trim material; the material is used up, the template stays with the golem. A new template or material changes the
- * trim. A plain click with shears takes it off again (after any flower on its head) and gives the template back.
+ * trim. Sneak + right-click with shears takes it off again (after any flower on its head) and gives the template back.
  */
 public final class GolemTrims {
 	private static final String TEMPLATE_SUFFIX = "_armor_trim_smithing_template";
@@ -44,19 +44,10 @@ public final class GolemTrims {
 	}
 
 	public static InteractionResult onUseEntity(Player player, Level level, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-		if (!(entity instanceof CopperGolem golem) || player.isSpectator() || hand != InteractionHand.MAIN_HAND) {
+		if (!(entity instanceof CopperGolem golem) || player.isSpectator() || hand != InteractionHand.MAIN_HAND || !player.isShiftKeyDown()) {
 			return InteractionResult.PASS;
 		}
 		ItemStack held = player.getItemInHand(hand);
-		if (!player.isShiftKeyDown()) {
-			if (held.is(Items.SHEARS) && golem.getItemBySlot(CopperGolem.EQUIPMENT_SLOT_ANTENNA).isEmpty()) {
-				if (level instanceof ServerLevel serverLevel) {
-					return removeTrim(serverLevel, player, golem, held);
-				}
-				return trim(golem) != null ? InteractionResult.SUCCESS : InteractionResult.PASS;
-			}
-			return InteractionResult.PASS;
-		}
 		if (isTemplate(held)) {
 			if (level instanceof ServerLevel serverLevel) {
 				return applyTemplate(serverLevel, player, golem, held);
@@ -66,6 +57,12 @@ public final class GolemTrims {
 		Holder<TrimMaterial> material = held.get(DataComponents.PROVIDES_TRIM_MATERIAL);
 		if (material != null && level instanceof ServerLevel serverLevel) {
 			return applyMaterial(serverLevel, player, golem, held, material);
+		}
+		if (held.is(Items.SHEARS) && golem.getItemBySlot(CopperGolem.EQUIPMENT_SLOT_ANTENNA).isEmpty()) {
+			if (level instanceof ServerLevel serverLevel) {
+				return removeTrim(serverLevel, player, golem, held);
+			}
+			return trim(golem) != null ? InteractionResult.SUCCESS : InteractionResult.PASS;
 		}
 		return InteractionResult.PASS;
 	}

@@ -69,12 +69,17 @@ public class OperatorGameTests {
 		h.assertTrue(Operators.isOperator(golem), "the wrench gave no job");
 		golem.setAttached(AutoAttachments.MACHINE, h.absolutePos(new BlockPos(1, 1, 1)));
 		click(h, player, golem, true, ItemStack.EMPTY);
-		click(h, player, golem, true, ItemStack.EMPTY);
-		h.assertTrue(player.getInventory().countItem(AutoItems.COPPER_WRENCH) == 1, "wrench not back");
-		h.assertFalse(golem.hasAttached(AutoAttachments.OPERATOR), "operator marker left");
-		h.assertFalse(golem.hasAttached(AutoAttachments.MACHINE), "machine link left");
-		h.onEachTick(() -> h.assertTrue(BetterCoppersApi.jobOf(golem) == null, "ex-operator got the job back"));
-		h.succeedWhen(() -> h.assertTrue(target.countItem(AutoItems.COPPER_WRENCH) == 2, "wrench not sorted yet"));
+		h.startSequence()
+			// Far enough apart to count as a second press.
+			.thenExecuteAfter(6, () -> {
+				click(h, player, golem, true, ItemStack.EMPTY);
+				h.assertTrue(player.getInventory().countItem(AutoItems.COPPER_WRENCH) == 1, "wrench not back");
+				h.assertFalse(golem.hasAttached(AutoAttachments.OPERATOR), "operator marker left");
+				h.assertFalse(golem.hasAttached(AutoAttachments.MACHINE), "machine link left");
+				h.onEachTick(() -> h.assertTrue(BetterCoppersApi.jobOf(golem) == null, "ex-operator got the job back"));
+			})
+			.thenWaitUntil(() -> h.assertTrue(target.countItem(AutoItems.COPPER_WRENCH) == 2, "wrench not sorted yet"))
+			.thenSucceed();
 	}
 
 	@GameTest

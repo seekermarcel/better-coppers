@@ -6,7 +6,9 @@ import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.golem.Sorter;
 import dev.bettercoppers.home.Homes;
+import dev.bettercoppers.golem.Errands;
 import dev.bettercoppers.job.Job;
+import dev.bettercoppers.job.JobHandover;
 import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.job.Jobs.JobKind;
 import dev.bettercoppers.job.Load;
@@ -19,6 +21,7 @@ import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.registry.ModComponents;
 import dev.bettercoppers.registry.ModEntities;
 import dev.bettercoppers.registry.ModItems;
+import dev.bettercoppers.trim.GolemTrims;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
@@ -28,8 +31,11 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
+import net.minecraft.world.entity.animal.golem.IronGolem;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -39,10 +45,12 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 /** Starting and ending jobs, and which clicks do what. Clicks go through the callbacks and then vanilla, as in the game. */
 public class HandoverGameTests {
 	private static final BlockPos GOLEM = new BlockPos(4, 1, 4);
+	private static final int NEW_PRESS = 6;
 
 	private static Player player(GameTestHelper h) {
 		Player player = h.makeMockPlayer(GameType.SURVIVAL);
@@ -69,9 +77,15 @@ public class HandoverGameTests {
 		click(h, player, golem, true, new ItemStack(item));
 	}
 
-	private static void endJob(GameTestHelper h, Player player, CopperGolem golem) {
+	/** Two presses of sneak + empty hand, far enough apart not to count as one; then the checks, then success. */
+	private static void endJob(GameTestHelper h, Player player, CopperGolem golem, Runnable checks) {
 		click(h, player, golem, true, ItemStack.EMPTY);
-		click(h, player, golem, true, ItemStack.EMPTY);
+		h.startSequence()
+			.thenExecuteAfter(NEW_PRESS, () -> {
+				click(h, player, golem, true, ItemStack.EMPTY);
+				checks.run();
+			})
+			.thenSucceed();
 	}
 
 	private static void plainClick(GameTestHelper h, Player player, CopperGolem golem) {
@@ -99,8 +113,24 @@ public class HandoverGameTests {
 		h.assertFalse(golem.hasAttached(ModAttachments.LOAD), "load left");
 	}
 
+	/** How many of this item lie within a block of the player, who stands well away from the golem. */
+	private static int droppedAt(GameTestHelper h, Player player, Item item) {
+		return h.getLevel().getEntitiesOfClass(ItemEntity.class, player.getBoundingBox().inflate(1.0), entity -> entity.getItem().is(item)).stream()
+			.mapToInt(entity -> entity.getItem().getCount()).sum();
+	}
+
 	private static CourierRoute route(GameTestHelper h) {
 		return new CourierRoute(h.absolutePos(new BlockPos(1, 1, 1)), h.absolutePos(new BlockPos(6, 1, 6)));
+	}
+
+	/** The plan in the player's inventory, or null. */
+	private static @Nullable MinePlan planInInventory(Player player) {
+		for (ItemStack stack : player.getInventory()) {
+			if (stack.is(ModItems.MINESHAFT_PLAN)) {
+				return stack.get(ModComponents.MINE_PLAN);
+			}
+		}
+		return null;
 	}
 
 	private static ItemStack markedPlan(GameTestHelper h) {
@@ -129,11 +159,16 @@ public class HandoverGameTests {
 		CopperGolem golem = GameTests.golem(h, GOLEM);
 		give(h, player, golem, Items.COPPER_HOE);
 		Homes.set(golem, h.absolutePos(home));
-		endJob(h, player, golem);
-		assertHas(h, player, Items.COPPER_HOE, 1);
-		h.onEachTick(() -> h.assertFalse(Jobs.has(golem), "the hoe gave it its job back"));
-		// Vanilla transport carried the spare hoe over.
-		h.succeedWhen(() -> h.assertValueEqual(target.countItem(Items.COPPER_HOE), 2, "hoes in the chest"));
+		click(h, player, golem, true, ItemStack.EMPTY);
+		h.startSequence()
+			.thenExecuteAfter(NEW_PRESS, () -> {
+				click(h, player, golem, true, ItemStack.EMPTY);
+				assertHas(h, player, Items.COPPER_HOE, 1);
+				h.onEachTick(() -> h.assertFalse(Jobs.has(golem), "the hoe gave it its job back"));
+			})
+			// Vanilla transport carried the spare hoe over.
+			.thenWaitUntil(() -> h.assertValueEqual(target.countItem(Items.COPPER_HOE), 2, "hoes in the chest"))
+			.thenSucceed();
 	}
 
 	@GameTest
@@ -144,15 +179,15 @@ public class HandoverGameTests {
 		BlockPos home = h.absolutePos(new BlockPos(1, 1, 1));
 		Homes.set(golem, home);
 		CopperChestMinecart cart = JobGameTests.cart(h, golem, new BlockPos(5, 1, 4), new ItemStack(Items.CARROT, 5));
-		endJob(h, player, golem);
-		assertFarmerGaveEverything(h, player, golem);
-		h.assertFalse(Jobs.has(golem), "still has a job");
-		h.assertTrue(golem.getMainHandItem().isEmpty(), "still holds something");
-		h.assertFalse(cart.isChainedTo(golem), "cart still chained");
-		h.assertTrue(cart.isAlive(), "cart gone");
-		h.assertValueEqual(cart.countItem(Items.CARROT), 5, "carrots in the cart");
-		h.assertValueEqual(Homes.get(golem), home, "home");
-		h.succeed();
+		endJob(h, player, golem, () -> {
+			assertFarmerGaveEverything(h, player, golem);
+			h.assertFalse(Jobs.has(golem), "still has a job");
+			h.assertTrue(golem.getMainHandItem().isEmpty(), "still holds something");
+			h.assertFalse(cart.isChainedTo(golem), "cart still chained");
+			h.assertTrue(cart.isAlive(), "cart gone");
+			h.assertValueEqual(cart.countItem(Items.CARROT), 5, "carrots in the cart");
+			h.assertValueEqual(Homes.get(golem), home, "home");
+		});
 	}
 
 	@GameTest
@@ -163,12 +198,12 @@ public class HandoverGameTests {
 		for (int slot = 1; slot < 36; slot++) {
 			player.getInventory().setItem(slot, new ItemStack(Items.STONE, 64));
 		}
-		endJob(h, player, golem);
-		// The empty hand's slot takes the hoe.
-		assertHas(h, player, Items.COPPER_HOE, 1);
-		h.assertValueEqual(GameTests.dropped(h, Items.WHEAT), 8, "wheat at the player's feet");
-		h.assertValueEqual(GameTests.dropped(h, Items.WHEAT_SEEDS), 4, "seeds at the player's feet");
-		h.succeed();
+		endJob(h, player, golem, () -> {
+			// The empty hand's slot takes the hoe.
+			assertHas(h, player, Items.COPPER_HOE, 1);
+			h.assertValueEqual(droppedAt(h, player, Items.WHEAT), 8, "wheat at the player's feet");
+			h.assertValueEqual(droppedAt(h, player, Items.WHEAT_SEEDS), 4, "seeds at the player's feet");
+		});
 	}
 
 	@GameTest
@@ -182,29 +217,36 @@ public class HandoverGameTests {
 		Load.of(golem).addSupplies(new ItemStack(Items.WHEAT_SEEDS, 4));
 		Tools.wear(golem, golem.getMainHandItem());
 		h.assertValueEqual(WorkerData.job(golem), Job.FARMER, "job after the tool broke");
-		endJob(h, player, golem);
-		h.assertFalse(Jobs.has(golem), "still has a job");
-		h.assertFalse(golem.hasAttached(ModAttachments.LOST_TOOL), "still looks for its tool");
-		assertHas(h, player, Items.WHEAT_SEEDS, 4);
-		h.succeed();
+		endJob(h, player, golem, () -> {
+			h.assertFalse(Jobs.has(golem), "still has a job");
+			h.assertFalse(golem.hasAttached(ModAttachments.LOST_TOOL), "still looks for its tool");
+			assertHas(h, player, Items.WHEAT_SEEDS, 4);
+		});
 	}
 
 	@GameTest
-	public void ending_works_for_sorter_and_courier(GameTestHelper h) {
+	public void ending_works_for_a_sorter(GameTestHelper h) {
 		JobGameTests.scene(h);
 		Player player = player(h);
 		CopperGolem sorter = GameTests.golem(h, GOLEM);
 		give(h, player, sorter, Items.BUNDLE);
-		endJob(h, player, sorter);
-		h.assertFalse(Jobs.has(sorter), "sorter still has a job");
-		assertHas(h, player, Items.BUNDLE, 1);
+		endJob(h, player, sorter, () -> {
+			h.assertFalse(Jobs.has(sorter), "sorter still has a job");
+			assertHas(h, player, Items.BUNDLE, 1);
+		});
+	}
+
+	@GameTest
+	public void ending_works_for_a_courier(GameTestHelper h) {
+		JobGameTests.scene(h);
+		Player player = player(h);
 		CopperGolem courier = GameTests.golem(h, GOLEM);
 		Couriers.setRoute(courier, route(h));
 		courier.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_INGOT, 3));
-		endJob(h, player, courier);
-		h.assertFalse(Jobs.has(courier), "courier still has a job");
-		assertHas(h, player, Items.IRON_INGOT, 3);
-		h.succeed();
+		endJob(h, player, courier, () -> {
+			h.assertFalse(Jobs.has(courier), "courier still has a job");
+			assertHas(h, player, Items.IRON_INGOT, 3);
+		});
 	}
 
 	@GameTest(maxTicks = 200)
@@ -218,21 +260,180 @@ public class HandoverGameTests {
 			.thenExecuteAfter(101, () -> {
 				click(h, player, golem, true, ItemStack.EMPTY);
 				h.assertTrue(Jobs.has(golem), "ended after the window");
+			})
+			.thenExecuteAfter(NEW_PRESS, () -> {
 				click(h, player, golem, true, ItemStack.EMPTY);
 				h.assertFalse(Jobs.has(golem), "not ended by a click in the window");
 			})
 			.thenSucceed();
 	}
 
-	@GameTest
+	/** The button held down repeats the click every 4 ticks: one press, however long. */
+	@GameTest(maxTicks = 100)
+	public void held_button_is_one_press_and_a_new_press_ends_the_job(GameTestHelper h) {
+		JobGameTests.scene(h);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		give(h, player, golem, Items.COPPER_HOE);
+		Runnable sneakClick = () -> click(h, player, golem, true, ItemStack.EMPTY);
+		sneakClick.run();
+		h.startSequence()
+			.thenExecuteAfter(4, () -> {
+				sneakClick.run();
+				h.assertTrue(Jobs.has(golem), "ended at t+4");
+			})
+			.thenExecuteAfter(4, () -> {
+				sneakClick.run();
+				h.assertTrue(Jobs.has(golem), "ended at t+8");
+			})
+			.thenExecuteAfter(7, () -> {
+				sneakClick.run();
+				h.assertFalse(Jobs.has(golem), "not ended at t+15");
+			})
+			.thenSucceed();
+	}
+
+	/** The button held from giving the hoe: it also repeats on the now empty hand. */
+	@GameTest(maxTicks = 100)
+	public void held_button_after_giving_a_tool_does_not_end_the_job(GameTestHelper h) {
+		JobGameTests.scene(h);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		give(h, player, golem, Items.COPPER_HOE);
+		h.startSequence()
+			.thenExecuteAfter(4, () -> click(h, player, golem, true, ItemStack.EMPTY))
+			.thenExecuteAfter(4, () -> {
+				click(h, player, golem, true, ItemStack.EMPTY);
+				h.assertTrue(Jobs.has(golem), "ended while the button was held");
+			})
+			.thenSucceed();
+	}
+
+	@GameTest(maxTicks = 100)
 	public void first_click_must_have_said_the_second_ends_the_job(GameTestHelper h) {
 		JobGameTests.scene(h);
 		Player player = player(h);
 		CopperGolem golem = GameTests.golem(h, GOLEM);
 		click(h, player, golem, true, ItemStack.EMPTY);
+		h.startSequence()
+			.thenExecuteAfter(NEW_PRESS, () -> give(h, player, golem, Items.COPPER_HOE))
+			.thenExecuteAfter(NEW_PRESS, () -> {
+				click(h, player, golem, true, ItemStack.EMPTY);
+				h.assertTrue(Jobs.has(golem), "first click on a jobless golem counted");
+			})
+			.thenSucceed();
+	}
+
+	@GameTest(maxTicks = 100)
+	public void giving_a_job_closes_the_window_to_end_one(GameTestHelper h) {
+		JobGameTests.scene(h);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
 		give(h, player, golem, Items.COPPER_HOE);
 		click(h, player, golem, true, ItemStack.EMPTY);
-		h.assertTrue(Jobs.has(golem), "first click on a jobless golem counted");
+		h.startSequence()
+			.thenExecuteAfter(NEW_PRESS, () -> give(h, player, golem, Items.COPPER_PICKAXE))
+			.thenExecuteAfter(NEW_PRESS, () -> {
+				click(h, player, golem, true, ItemStack.EMPTY);
+				h.assertValueEqual(Jobs.of(golem), JobKind.MINER, "the new job");
+			})
+			.thenSucceed();
+	}
+
+	@GameTest
+	public void ending_a_miners_job_returns_its_plan_with_progress(GameTestHelper h) {
+		JobGameTests.scene(h);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		give(h, player, golem, Items.COPPER_PICKAXE);
+		click(h, player, golem, true, markedPlan(h));
+		MinerData data = MinerData.get(golem);
+		data.setPlan(data.plan().withProgress(5));
+		golem.setAttached(ModAttachments.EXCITED, true);
+		endJob(h, player, golem, () -> {
+			h.assertValueEqual(planInInventory(player).progress(), 5, "plan's progress");
+			assertHas(h, player, Items.COPPER_PICKAXE, 1);
+			h.assertFalse(golem.hasAttached(ModAttachments.MINER), "miner data left");
+			h.assertFalse(golem.hasAttached(ModAttachments.EXCITED), "still excited");
+		});
+	}
+
+	@GameTest
+	public void a_new_plan_returns_the_old_one(GameTestHelper h) {
+		JobGameTests.scene(h);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		give(h, player, golem, Items.COPPER_PICKAXE);
+		click(h, player, golem, true, markedPlan(h));
+		MinerData data = MinerData.get(golem);
+		data.setPlan(data.plan().withProgress(5));
+		click(h, player, golem, true, markedPlan(h));
+		h.assertValueEqual(data.plan().progress(), 0, "the new plan");
+		h.assertValueEqual(planInInventory(player).progress(), 5, "the old plan's progress");
+		h.succeed();
+	}
+
+	@GameTest
+	public void miner_with_a_lost_pickaxe_ends_and_its_plan_comes_back(GameTestHelper h) {
+		JobGameTests.scene(h);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		ItemStack worn = new ItemStack(Items.COPPER_PICKAXE);
+		worn.setDamageValue(worn.getMaxDamage() - 1);
+		click(h, player, golem, true, worn);
+		click(h, player, golem, true, markedPlan(h));
+		Tools.wear(golem, golem.getMainHandItem());
+		h.assertValueEqual(Jobs.of(golem), JobKind.MINER, "job after the pickaxe broke");
+		endJob(h, player, golem, () -> {
+			h.assertFalse(Jobs.has(golem), "still has a job");
+			h.assertFalse(golem.hasAttached(ModAttachments.LOST_TOOL), "still looks for its pickaxe");
+			h.assertTrue(planInInventory(player) != null, "plan not back");
+		});
+	}
+
+	@GameTest
+	public void ending_returns_repair_iron(GameTestHelper h) {
+		JobGameTests.scene(h);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		Couriers.setRoute(golem, route(h));
+		golem.setAttached(ModAttachments.CARRIED_IRON, 2);
+		endJob(h, player, golem, () -> {
+			assertHas(h, player, Items.IRON_INGOT, 2);
+			h.assertFalse(golem.hasAttached(ModAttachments.CARRIED_IRON), "iron left on the golem");
+		});
+	}
+
+	/** With nowhere to belong the errand stops at once, or it would go on fetching iron from the chest nearby. */
+	@GameTest(maxTicks = 400)
+	public void ex_courier_drops_its_repair_errand(GameTestHelper h) {
+		JobGameTests.scene(h);
+		GameTests.chest(h, new BlockPos(1, 1, 4), Blocks.CHEST).setItem(0, new ItemStack(Items.IRON_INGOT, 64));
+		IronGolem patient = h.spawn(EntityTypes.IRON_GOLEM, new BlockPos(6, 1, 6));
+		patient.setHealth(20.0F);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		Couriers.setRoute(golem, route(h));
+		h.startSequence()
+			.thenWaitUntil(() -> h.assertTrue(Errands.isBusy(golem), "no errand yet"))
+			.thenExecute(() -> click(h, player, golem, true, ItemStack.EMPTY))
+			.thenExecuteAfter(NEW_PRESS, () -> click(h, player, golem, true, ItemStack.EMPTY))
+			.thenExecuteAfter(3, () -> {
+				h.assertFalse(Couriers.isCourier(golem), "still a courier");
+				h.assertFalse(Errands.isBusy(golem), "still on its errand");
+			})
+			.thenSucceed();
+	}
+
+	@GameTest
+	public void ending_a_job_cancels_a_pending_route(GameTestHelper h) {
+		JobGameTests.scene(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		golem.discard();
+		Couriers.assign(h.getLevel(), golem.getUUID(), route(h));
+		JobHandover.clear(player(h), golem);
+		Couriers.onEntityLoad(golem, h.getLevel());
+		h.assertFalse(Couriers.isCourier(golem), "got the route back");
 		h.succeed();
 	}
 
@@ -500,6 +701,26 @@ public class HandoverGameTests {
 		click(h, player, golem, true, new ItemStack(Items.COPPER_AXE));
 		h.assertValueEqual(golem.getWeatherState(), WeatheringCopper.WeatherState.UNAFFECTED, "rust");
 		h.assertValueEqual(WorkerData.job(golem), Job.FARMER, "job");
+		h.succeed();
+	}
+
+	@GameTest
+	public void shears_take_a_trim_off_only_with_a_sneak_and_after_the_flower(GameTestHelper h) {
+		JobGameTests.scene(h);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		give(h, player, golem, Items.SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE);
+		give(h, player, golem, Items.IRON_INGOT);
+		h.assertTrue(GolemTrims.trim(golem) != null, "no trim");
+		click(h, player, golem, false, new ItemStack(Items.SHEARS));
+		h.assertTrue(GolemTrims.trim(golem) != null, "plain shears took the trim off");
+		golem.setItemSlot(CopperGolem.EQUIPMENT_SLOT_ANTENNA, new ItemStack(Items.POPPY));
+		click(h, player, golem, true, new ItemStack(Items.SHEARS));
+		h.assertTrue(golem.getItemBySlot(CopperGolem.EQUIPMENT_SLOT_ANTENNA).isEmpty(), "the flower stayed");
+		h.assertTrue(GolemTrims.trim(golem) != null, "the trim came off before the flower");
+		click(h, player, golem, true, new ItemStack(Items.SHEARS));
+		h.assertTrue(GolemTrims.trim(golem) == null, "sneak shears left the trim on");
+		assertHas(h, player, Items.SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE, 1);
 		h.succeed();
 	}
 

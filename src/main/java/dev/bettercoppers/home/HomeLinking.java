@@ -58,11 +58,13 @@ public final class HomeLinking {
 	private static final int SELECTION_TICKS = 600;
 	private static final int ROUTE_TICKS = 12000;
 	private static final int END_JOB_TICKS = 100;
+	/** A held button repeats a click every 4 ticks, and the server only sees the clicks. Closer than this is one press. */
+	private static final int SAME_PRESS_TICKS = 5;
 	private static final double MAX_DISTANCE = 32.0;
 	/** A route this long earns the "Long Haul" guide step. */
 	private static final int LONG_HAUL = 500;
 
-	private record Selection(UUID golem, ResourceKey<Level> dimension, long until, @Nullable BlockPos routeStart, long endJobUntil) {
+	private record Selection(UUID golem, ResourceKey<Level> dimension, long until, @Nullable BlockPos routeStart, long endJobUntil, long lastClick) {
 	}
 
 	private static final Map<UUID, Selection> SELECTIONS = new HashMap<>();
@@ -97,8 +99,13 @@ public final class HomeLinking {
 	private static void sneakClick(Player player, ServerLevel level, CopperGolem golem) {
 		long now = level.getGameTime();
 		Selection previous = SELECTIONS.get(player.getUUID());
+		boolean sameGolem = previous != null && previous.golem().equals(golem.getUUID());
+		if (sameGolem && now - previous.lastClick() <= SAME_PRESS_TICKS) {
+			SELECTIONS.put(player.getUUID(), new Selection(previous.golem(), previous.dimension(), previous.until(), previous.routeStart(), previous.endJobUntil(), now));
+			return;
+		}
 		boolean hasJob = Jobs.has(golem);
-		if (hasJob && previous != null && previous.golem().equals(golem.getUUID()) && now <= previous.endJobUntil()) {
+		if (hasJob && sameGolem && now <= previous.endJobUntil()) {
 			SELECTIONS.remove(player.getUUID());
 			golem.removeEffect(MobEffects.GLOWING);
 			JobHandover.end(player, golem);
@@ -106,10 +113,16 @@ public final class HomeLinking {
 			player.sendOverlayMessage(Component.translatable("message.bettercoppers.job_ended"));
 			return;
 		}
-		SELECTIONS.put(player.getUUID(), new Selection(golem.getUUID(), level.dimension(), now + SELECTION_TICKS, null, hasJob ? now + END_JOB_TICKS : 0L));
+		SELECTIONS.put(player.getUUID(), new Selection(golem.getUUID(), level.dimension(), now + SELECTION_TICKS, null, hasJob ? now + END_JOB_TICKS : 0L, now));
 		golem.addEffect(new MobEffectInstance(MobEffects.GLOWING, SELECTION_TICKS, 0, false, false));
 		golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET, 0.6F, 1.4F);
 		player.sendSystemMessage(Component.translatable(hasJob ? "message.bettercoppers.selected_job" : "message.bettercoppers.selected", status(golem)));
+	}
+
+	/** The golem got a job, which no first click warned about: the next sneak-click must not end it. */
+	public static void closeEndJobWindow(CopperGolem golem) {
+		SELECTIONS.replaceAll((player, s) -> s.golem().equals(golem.getUUID())
+			? new Selection(s.golem(), s.dimension(), s.until(), s.routeStart(), 0L, s.lastClick()) : s);
 	}
 
 	/** Job, place, energy and rust, for the status message. */
@@ -180,7 +193,7 @@ public final class HomeLinking {
 			if (refuseRoute(player, serverLevel, selection)) {
 				return InteractionResult.FAIL;
 			}
-			SELECTIONS.put(player.getUUID(), new Selection(selection.golem(), selection.dimension(), serverLevel.getGameTime() + ROUTE_TICKS, pos, 0L));
+			SELECTIONS.put(player.getUUID(), new Selection(selection.golem(), selection.dimension(), serverLevel.getGameTime() + ROUTE_TICKS, pos, 0L, selection.lastClick()));
 			serverLevel.playSound(null, pos, SoundEvents.COPPER_GOLEM_ITEM_GET, SoundSource.NEUTRAL, 1.0F, 1.2F);
 			player.sendOverlayMessage(Component.translatable("message.bettercoppers.route_start"));
 			return InteractionResult.SUCCESS;
