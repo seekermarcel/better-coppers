@@ -5,6 +5,7 @@ import dev.bettercoppers.api.GolemJob;
 import dev.bettercoppers.courier.CourierRoute;
 import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.entity.CopperChestMinecart;
+import dev.bettercoppers.golem.HomeStroll;
 import dev.bettercoppers.golem.SortItemsBehavior;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.CraftBehavior;
@@ -248,7 +249,15 @@ public class JobGameTests {
 		ADDON_WORKPLACES.remove(golem.getUUID());
 		h.assertValueEqual(Jobs.place(golem), home, "home again when the job ends");
 		Couriers.setRoute(golem, new CourierRoute(home, workplace));
-		h.assertTrue(Jobs.place(golem) == null, "courier has a place");
+		h.assertTrue(Jobs.place(golem) == null, "a route did not clear the home");
+		// A home set on a courier is its place too, and only the courier check in HomeStroll keeps it on its route.
+		BlockPos far = h.absolutePos(new BlockPos(30, 1, 30));
+		Homes.set(golem, far);
+		h.assertValueEqual(Jobs.place(golem), far, "courier with a home");
+		golem.getBrain().setMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS, 400);
+		h.assertFalse(new HomeStroll().tryStart(h.getLevel(), golem, 0L), "walked a courier back from its route");
+		Couriers.setRoute(golem, null);
+		h.assertTrue(new HomeStroll().tryStart(h.getLevel(), golem, 0L), "did not walk back a golem far from home");
 		h.succeed();
 	}
 

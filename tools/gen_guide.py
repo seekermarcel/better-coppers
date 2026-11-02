@@ -511,6 +511,8 @@ AUTO_BOOK = {
 
 Whenever the machine has work, the operator walks over and cranks. One golem works one machine. Operators need energy and rust like other workers.
 
+An operator stays and charges around its machine, even if it also has a home. Keep its pad within 16 blocks of the machine.
+
 # Where to start
 Build a press first: most things are made from sheets."""),
                  ("Maschinen und Maschinisten", """Die Erweiterung Automatisation bringt eine Fabrik, die Golems betreiben. Es gibt kein Stromnetz: Jede Maschine hat eine Kurbel, und ein Kupfergolem muss sie drehen.
@@ -520,6 +522,8 @@ Build a press first: most things are made from sheets."""),
 2. Schleichen + Rechtsklick auf den Golem, dann Rechtsklick auf die Maschine (bis 32 Blöcke).
 
 Hat die Maschine Arbeit, geht der Maschinist hin und kurbelt. Ein Golem bedient eine Maschine. Maschinisten brauchen Energie und rosten wie andere Arbeiter.
+
+Ein Maschinist bleibt und lädt bei seiner Maschine, auch wenn er ein Zuhause hat. Stelle sein Ladefeld höchstens 16 Blöcke von der Maschine entfernt auf.
 
 # Wo anfangen?
 Bau zuerst eine Presse: Das meiste wird aus Blechen gemacht.""")),
@@ -631,7 +635,7 @@ Schleichen + Rechtsklick auf einen Golem zeigt, was er trägt.""")),
 Builds new copper golems. Fill its 9 slots by hand or with hoppers, funnels or an arm. One golem needs 4 copper sheets, 2 copper gears, a carved pumpkin and redstone dust. With room in front, its operator cranks for 20 seconds and a new golem steps out.
 
 # Charging Station
-A charging pad that needs no redstone clock and charges twice as fast as a Charging Pad on the fastest clock. Put it within 16 blocks of a golem's home or machine.
+A charging pad that needs no redstone clock and charges twice as fast as a Charging Pad on the fastest clock. Put it within 16 blocks of a golem's home, or of the machine for an operator.
 
 # Supplies
 4 iron sheets and a stick make 16 rails. The saw makes fences and slabs for miners, and the press makes paper for plans."""),
@@ -639,7 +643,7 @@ A charging pad that needs no redstone clock and charges twice as fast as a Charg
 Baut neue Kupfergolems. Fülle seine 9 Plätze von Hand oder mit Trichtern, Kupfertrichtern oder einem Arm. Ein Golem braucht 4 Kupferbleche, 2 Kupferzahnräder, einen geschnitzten Kürbis und Redstone-Staub. Ist vorne Platz, kurbelt sein Maschinist 20 Sekunden und ein neuer Golem tritt heraus.
 
 # Ladestation
-Ein Ladefeld, das keinen Taktgeber braucht und doppelt so schnell lädt wie ein normales Ladefeld am schnellsten Takt. Stelle es höchstens 16 Blöcke vom Zuhause oder der Maschine eines Golems auf.
+Ein Ladefeld, das keinen Taktgeber braucht und doppelt so schnell lädt wie ein normales Ladefeld am schnellsten Takt. Stelle es höchstens 16 Blöcke vom Zuhause eines Golems auf, bei einem Maschinisten von seiner Maschine.
 
 # Nachschub
 4 Eisenbleche und ein Stock ergeben 16 Schienen. Die Säge macht Zäune und Stufen für Bergleute, die Presse Papier für Pläne.""")),

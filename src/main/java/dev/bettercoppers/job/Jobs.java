@@ -79,14 +79,8 @@ public final class Jobs {
 		return Component.translatable("job.bettercoppers." + id);
 	}
 
-	/**
-	 * Where the golem belongs: its add-on job's workplace, else its home, which stays linked underneath. Null if neither,
-	 * and for a courier, which belongs on its route.
-	 */
+	/** Where the golem belongs: its add-on job's workplace, else its home, which stays linked underneath, else null. */
 	public static @Nullable BlockPos place(CopperGolem golem) {
-		if (Couriers.isCourier(golem)) {
-			return null;
-		}
 		GolemJob job = BetterCoppersApi.jobOf(golem);
 		BlockPos workplace = job == null ? null : job.workplace(golem);
 		return workplace != null ? workplace : Homes.get(golem);

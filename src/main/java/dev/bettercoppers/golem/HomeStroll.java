@@ -15,9 +15,9 @@ import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Keeps idle golems near home: vanilla's random stroll has no anchor, so a golem with nothing to do drifts away from
- * its chest. Once it is more than {@link #RADIUS} blocks out, this walks it back. Inside that it strolls like vanilla,
- * and a golem no player linked to anything never starts this at all.
+ * Keeps idle golems near their {@link Jobs#place place}, the workplace or else the home chest: vanilla's random stroll
+ * has no anchor, so a golem with nothing to do drifts away. Once it is more than {@link #RADIUS} blocks out, this walks
+ * it back. Inside that it strolls like vanilla, and a golem no player linked to anything never starts this at all.
  */
 public class HomeStroll extends Behavior<CopperGolem> {
 	private static final int RADIUS = 6;

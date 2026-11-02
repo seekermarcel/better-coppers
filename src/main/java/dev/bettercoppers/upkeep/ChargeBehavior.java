@@ -26,10 +26,10 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * At night, and whenever it runs out of energy, a working golem walks to a free {@link ChargingPadBlock charging pad}
- * near its home and stands on it. The pad charges it with every redstone pulse, so it needs a clock; add-on pads
+ * near its {@link Jobs#place place} and stands on it. The pad charges it with every redstone pulse, so it needs a clock; add-on pads
  * (like the Automatisation Charging Station) charge it every tick instead. Without a pad nearby the golem just waits.
  * <p>
- * When the players sleep through the night, every working golem with a free pad near its home wakes up fully charged,
+ * When the players sleep through the night, every working golem with a free pad near its place wakes up fully charged,
  * as if it had spent the night on it ({@link #rechargeOvernight}).
  */
 public class ChargeBehavior extends Behavior<CopperGolem> {
@@ -120,7 +120,7 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 	}
 
 	/**
-	 * The night was slept through: every working golem with a free pad near its home is fully charged, as if it had
+	 * The night was slept through: every working golem with a free pad near its place is fully charged, as if it had
 	 * spent the night there. Each pad charges one golem.
 	 */
 	public static void rechargeOvernight(ServerLevel level) {
