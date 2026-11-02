@@ -30,12 +30,15 @@ public class MinerGameTests {
 	private static final BlockPos ENTRANCE = new BlockPos(4, 1, 5);
 	/** Beside the shaft (its east wall is x = 5), in the second slice. */
 	private static final BlockPos WALL = new BlockPos(6, 2, 4);
+	private static final BlockPos START = new BlockPos(4, 1, 6);
+	/** A slice is 9 digs and 3 floors, plus supports; every step counts as one progress. */
+	private static final int TWO_SLICES = 24;
 
 	private record Scene(CopperGolem golem, Container chest, MinePlan plan) {
 	}
 
 	/** Stone block, daytime, a miner with plan and pickaxe, and a home chest with supplies or empty. */
-	private static Scene scene(GameTestHelper h, boolean supplies) {
+	private static Scene scene(GameTestHelper h, boolean supplies, BlockPos start) {
 		ServerLevel level = h.getLevel();
 		level.clockManager().setTotalTicks(level.dimensionType().defaultClock().orElseThrow(), 1000L);
 		for (int x = 0; x < 8; x++) {
@@ -57,7 +60,7 @@ public class MinerGameTests {
 			chest.setItem(2, new ItemStack(Items.OAK_FENCE, 16));
 			chest.setItem(3, new ItemStack(Items.TORCH, 16));
 		}
-		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 6));
+		CopperGolem golem = GameTests.golem(h, start);
 		GameTests.energize(golem);
 		MinePlan plan = MinePlan.blank(MinePattern.MINESHAFT, 8).marked(h.absolutePos(ENTRANCE), Direction.NORTH);
 		ItemStack planStack = new ItemStack(ModItems.MINESHAFT_PLAN);
@@ -80,38 +83,51 @@ public class MinerGameTests {
 
 	@GameTest(maxTicks = 600)
 	public void miner_without_supplies_waits_at_home(GameTestHelper h) {
-		Scene s = scene(h, false);
+		// Starts 6 blocks from home, so a golem that never moves fails the "at home" check.
+		Scene s = scene(h, false, new BlockPos(7, 1, 7));
 		var firstSlice = MineLayout.build(s.plan(), h.getLevel().getMinY()).stream()
 			.filter(step -> step.action() == MineLayout.Action.DIG && MineLayout.sliceOf(s.plan(), step.pos()) == 0)
 			.toList();
+		// The idle miner strolls around a bit, so check that it came to the chest at some point, not where it ends up.
+		int[] closest = {Integer.MAX_VALUE};
+		for (int t = 5; t < 500; t += 5) {
+			h.runAfterDelay(t, () -> closest[0] = Math.min(closest[0], s.golem().blockPosition().distManhattan(h.absolutePos(HOME))));
+		}
 		h.runAfterDelay(500, () -> {
+			h.assertTrue(closest[0] <= 3, "never came to the chest, closest distance " + closest[0]);
 			for (var step : firstSlice) {
 				h.assertTrue(!h.getLevel().getBlockState(step.pos()).isAir(), "dug without supplies: " + step.pos());
 			}
 			h.assertTrue(progress(s.golem()) == 0, "plan advanced without supplies");
-			h.assertTrue(s.golem().blockPosition().distManhattan(h.absolutePos(HOME)) <= 4, "not waiting at home: " + s.golem().blockPosition());
 			h.succeed();
 		});
 	}
 
+	/** Positive control for the test above: the same scene with supplies in the chest does make progress. */
+	@GameTest(maxTicks = 1200)
+	public void miner_with_supplies_makes_progress(GameTestHelper h) {
+		Scene s = scene(h, true, new BlockPos(7, 1, 7));
+		h.succeedWhen(() -> h.assertTrue(progress(s.golem()) > 0, "no progress yet"));
+	}
+
 	@GameTest(maxTicks = 3600)
 	public void miner_digs_ore_vein_and_carries_on(GameTestHelper h) {
-		Scene s = scene(h, true);
+		Scene s = scene(h, true, START);
 		h.setBlock(WALL, Blocks.COAL_ORE);
 		h.succeedWhen(() -> {
 			h.assertTrue(h.getBlockState(WALL).isAir(), "ore not dug yet");
 			h.assertTrue(s.chest().countItem(Items.COAL) >= 1, "no coal in the chest yet");
-			h.assertTrue(progress(s.golem()) > 8, "plan did not carry on: " + progress(s.golem()));
+			h.assertTrue(progress(s.golem()) > TWO_SLICES, "plan did not carry on: " + progress(s.golem()));
 		});
 	}
 
 	@GameTest(maxTicks = 3600)
 	public void miner_seals_fluid_with_filler(GameTestHelper h) {
-		Scene s = scene(h, true);
+		Scene s = scene(h, true, START);
 		h.setBlock(WALL, Blocks.WATER);
 		h.succeedWhen(() -> {
 			h.assertTrue(h.getBlockState(WALL).is(Blocks.COBBLESTONE) || h.getBlockState(WALL).is(Blocks.STONE), "water not plugged yet");
-			h.assertTrue(progress(s.golem()) > 8, "plan did not carry on: " + progress(s.golem()));
+			h.assertTrue(progress(s.golem()) > TWO_SLICES, "plan did not carry on: " + progress(s.golem()));
 		});
 	}
 }

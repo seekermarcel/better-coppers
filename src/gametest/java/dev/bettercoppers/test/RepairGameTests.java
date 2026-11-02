@@ -7,6 +7,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.animal.golem.IronGolem;
 import net.minecraft.world.item.ItemStack;
@@ -18,7 +19,7 @@ import net.minecraft.world.level.block.Blocks;
 public class RepairGameTests {
 	private static final Block COPPER_CHEST = Blocks.COPPER_CHEST.weathering().unaffected();
 
-	@GameTest(maxTicks = 2400)
+	@GameTest(maxTicks = 1200)
 	public void golem_repairs_iron_golem_from_chest(GameTestHelper h) {
 		ServerLevel level = h.getLevel();
 		level.clockManager().setTotalTicks(level.dimensionType().defaultClock().orElseThrow(), 1000L);
@@ -35,6 +36,9 @@ public class RepairGameTests {
 		CopperGolem golem = GameTests.golem(h, new BlockPos(3, 1, 3));
 		GameTests.energize(golem);
 		Homes.set(golem, h.absolutePos(home));
+		// A golem with only a home sorts like vanilla, and vanilla can lift the whole ingot stack into its hand first;
+		// repairs then refuse to start (see report). The cooldown keeps vanilla away; repairing clears it.
+		golem.getBrain().setMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS, 2000);
 		// 60 health missing is two ingots: 25 each, until under half an ingot's worth is left.
 		h.succeedWhen(() -> {
 			h.assertTrue(patient.getHealth() >= 90.0F, "iron golem not repaired yet: " + patient.getHealth());
