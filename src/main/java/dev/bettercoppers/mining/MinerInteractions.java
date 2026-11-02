@@ -1,6 +1,7 @@
 package dev.bettercoppers.mining;
 
 import dev.bettercoppers.golem.Inventories;
+import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.job.WorkerInteractions;
 import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.registry.ModComponents;
@@ -15,6 +16,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jspecify.annotations.Nullable;
@@ -40,7 +42,7 @@ public final class MinerInteractions {
 		if (held.is(ModItems.MINESHAFT_PLAN)) {
 			return givePlan(player, level, golem, held);
 		}
-		if (held.is(ItemTags.PICKAXES)) {
+		if (held.is(Items.COPPER_PICKAXE)) {
 			return givePickaxe(player, level, golem, held);
 		}
 		if (held.isEmpty() && !player.isShiftKeyDown() && MinerData.hasPickaxe(golem)) {
@@ -74,6 +76,8 @@ public final class MinerInteractions {
 			golem.playSound(SoundEvents.BOOK_PAGE_TURN);
 			if (!MinerData.hasPickaxe(golem)) {
 				player.sendOverlayMessage(Component.translatable("message.bettercoppers.needs_pickaxe"));
+			} else {
+				Guide.job(player, "miner");
 			}
 		}
 		return InteractionResult.SUCCESS;
@@ -85,6 +89,8 @@ public final class MinerInteractions {
 			MinerData data = MinerData.getOrCreate(golem);
 			if (data.plan() == null) {
 				player.sendOverlayMessage(Component.translatable("message.bettercoppers.needs_plan"));
+			} else {
+				Guide.job(player, "miner");
 			}
 		}
 		return InteractionResult.SUCCESS;

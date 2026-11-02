@@ -19,6 +19,8 @@ jobs:
       - run: nix develop -c ./gradlew build "-Pversion=$VERSION"
       - uses: softprops/action-gh-release@v2
         with:
-          files: build/libs/bettercoppers-${{ env.VERSION }}.jar
+          files: |
+            build/libs/bettercoppers-${{ env.VERSION }}.jar
+            automatisation/build/libs/bettercoppers-automatisation-${{ env.VERSION }}.jar
           fail_on_unmatched_files: true
           generate_release_notes: true

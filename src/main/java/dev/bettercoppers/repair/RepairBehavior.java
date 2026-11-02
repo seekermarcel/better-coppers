@@ -7,6 +7,7 @@ import dev.bettercoppers.golem.Errands;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.golem.TravelWatch;
+import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.upkeep.Upkeep;
@@ -206,6 +207,7 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 			return;
 		}
 		target.heal(HEAL_PER_INGOT);
+		Guide.awardNearby(level, target.position(), "repair");
 		setCarried(golem, carried(golem) - 1);
 		float pitch = 1.0F + (golem.getRandom().nextFloat() - golem.getRandom().nextFloat()) * 0.2F;
 		level.playSound(null, target, SoundEvents.IRON_GOLEM_REPAIR, target.getSoundSource(), 1.0F, pitch);

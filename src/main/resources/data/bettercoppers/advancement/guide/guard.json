@@ -1,0 +1,25 @@
+{
+  "parent": "bettercoppers:guide/build_golem",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "minecraft:poppy"
+    },
+    "title": {
+      "translate": "advancements.bettercoppers.guide.guard.title"
+    },
+    "description": {
+      "translate": "advancements.bettercoppers.guide.guard.description"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

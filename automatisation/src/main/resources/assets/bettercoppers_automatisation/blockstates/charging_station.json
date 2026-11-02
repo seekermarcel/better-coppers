@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "bettercoppers_automatisation:block/charging_station"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "parent": "bettercoppers_automatisation:guide/operator",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "bettercoppers_automatisation:conveyor_belt"
+    },
+    "title": {
+      "translate": "advancements.bettercoppers_automatisation.guide.belt.title"
+    },
+    "description": {
+      "translate": "advancements.bettercoppers_automatisation.guide.belt.description"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

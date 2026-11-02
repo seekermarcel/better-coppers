@@ -1,6 +1,7 @@
 package dev.bettercoppers.job;
 
 import dev.bettercoppers.golem.Inventories;
+import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.upkeep.Upkeep;
@@ -55,6 +56,7 @@ public final class WorkerInteractions {
 			giveTool(player, golem, held);
 			WorkerData.getOrCreate(golem);
 			Component jobName = Component.translatable("job.bettercoppers." + job.id());
+			Guide.job(player, job.id());
 			player.sendOverlayMessage(
 				Homes.get(golem) == null
 					? Component.translatable("message.bettercoppers.worker_no_chest", jobName)
@@ -73,6 +75,7 @@ public final class WorkerInteractions {
 		golem.setItemSlot(EquipmentSlot.MAINHAND, held.copyWithCount(1));
 		golem.setGuaranteedDrop(EquipmentSlot.MAINHAND);
 		held.consume(1, player);
+		Tools.clearLost(golem);
 		golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET);
 	}
 

@@ -8,6 +8,7 @@
 		"CopperGolemMixin",
 		"MobAccessor",
 		"NearestAttackableTargetGoalAccessor",
+		"ServerLevelMixin",
 		"TransportItemsBetweenContainersMixin"
 	],
 	"injectors": {

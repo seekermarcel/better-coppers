@@ -1,5 +1,6 @@
 package dev.bettercoppers.upkeep;
 
+import dev.bettercoppers.guide.Guide;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -42,6 +43,7 @@ public class AxeDispenseBehavior extends DefaultDispenseItemBehavior {
 			if (Upkeep.scrape(level, golem)) {
 				stack.hurtAndBreak(1, level, null, item -> {});
 				this.scraped = true;
+				Guide.awardNearby(level, golem.position(), "scrape");
 				break;
 			}
 		}

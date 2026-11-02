@@ -1,0 +1,12 @@
+{
+  "values": [
+    "bettercoppers_automatisation:belt_drive",
+    "bettercoppers_automatisation:funnel",
+    "bettercoppers_automatisation:chute",
+    "bettercoppers_automatisation:press",
+    "bettercoppers_automatisation:saw",
+    "bettercoppers_automatisation:grabber_arm",
+    "bettercoppers_automatisation:golem_assembler",
+    "bettercoppers_automatisation:charging_station"
+  ]
+}

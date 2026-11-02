@@ -1,5 +1,7 @@
 package dev.bettercoppers.home;
 
+import dev.bettercoppers.api.GolemJob;
+import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.courier.CourierRoute;
 import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.upkeep.Upkeep;
@@ -38,7 +40,11 @@ public final class HomeDisplay {
 			for (CopperGolem golem : level.getEntitiesOfClass(CopperGolem.class, player.getBoundingBox().inflate(RANGE))) {
 				CourierRoute route = Couriers.route(golem);
 				BlockPos home = Homes.get(golem);
-				if (route != null) {
+				GolemJob addonJob = BetterCoppersApi.jobOf(golem);
+				BlockPos workplace = addonJob == null ? null : addonJob.workplace(golem);
+				if (workplace != null) {
+					drawLine(level, golem, workplace, player);
+				} else if (route != null) {
 					for (BlockPos end : new BlockPos[] {route.from(), route.to()}) {
 						if (end.closerToCenterThan(golem.position(), ROUTE_LINE_RANGE)) {
 							drawLine(level, golem, end, player);

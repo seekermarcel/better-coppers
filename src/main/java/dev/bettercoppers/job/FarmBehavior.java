@@ -1,6 +1,7 @@
 package dev.bettercoppers.job;
 
 import dev.bettercoppers.golem.CartChaining;
+import dev.bettercoppers.golem.Eyes;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.home.Homes;
@@ -71,7 +72,8 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 		Task best = null;
 		double bestDistance = Double.MAX_VALUE;
 		boolean seedsAtHome = false;
-		for (BlockPos mutable : BlockPos.betweenClosed(home.offset(-FIELD_RADIUS, -FIELD_HEIGHT, -FIELD_RADIUS), home.offset(FIELD_RADIUS, FIELD_HEIGHT, FIELD_RADIUS))) {
+		int radius = Eyes.radius(golem, FIELD_RADIUS);
+		for (BlockPos mutable : BlockPos.betweenClosed(home.offset(-radius, -FIELD_HEIGHT, -radius), home.offset(radius, FIELD_HEIGHT, radius))) {
 			if (!level.isLoaded(mutable)) {
 				continue;
 			}
@@ -230,7 +232,7 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 			List<ItemStack> drops = Block.getDrops(state, level, pos, null, golem, tool);
 			level.destroyBlock(pos, false, golem);
 			if (state.getDestroySpeed(level, pos) > 0.0F) {
-				tool.hurtAndBreak(1, golem, EquipmentSlot.MAINHAND);
+				Tools.wear(golem, tool);
 			}
 			drops.forEach(drop -> stash(golem, data.pouch(), drop));
 			Upkeep.spend(golem, ENERGY_PER_ACTION);

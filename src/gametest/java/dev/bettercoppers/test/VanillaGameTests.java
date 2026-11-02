@@ -1,5 +1,6 @@
 package dev.bettercoppers.test;
 
+import dev.bettercoppers.golem.HomeStroll;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.mixin.CopperGolemAccessor;
 import dev.bettercoppers.upkeep.Upkeep;
@@ -9,6 +10,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.zombie.Zombie;
@@ -48,6 +50,19 @@ public class VanillaGameTests {
 		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
 		Homes.set(golem, h.absolutePos(SOURCE));
 		h.succeedWhen(() -> h.assertTrue(target.countItem(Items.COBBLESTONE) == 5, "cobblestone not sorted yet"));
+	}
+
+	@GameTest
+	public void only_a_golem_with_a_home_is_walked_back(GameTestHelper h) {
+		CopperGolem golem = GameTests.golem(h, new BlockPos(7, 1, 7));
+		golem.getBrain().setMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS, 400);
+		h.assertFalse(new HomeStroll().tryStart(h.getLevel(), golem, 0L), "walked a golem nobody linked");
+		Homes.set(golem, h.absolutePos(new BlockPos(6, 1, 6)));
+		h.assertFalse(new HomeStroll().tryStart(h.getLevel(), golem, 0L), "walked a golem already near home");
+		Homes.set(golem, h.absolutePos(new BlockPos(0, 1, 0)));
+		h.assertTrue(new HomeStroll().tryStart(h.getLevel(), golem, 0L), "did not walk a golem far from home");
+		h.assertTrue(golem.getBrain().hasMemoryValue(MemoryModuleType.WALK_TARGET), "no walk target");
+		h.succeed();
 	}
 
 	@GameTest(maxTicks = 300)

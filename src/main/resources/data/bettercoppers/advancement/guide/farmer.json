@@ -1,0 +1,25 @@
+{
+  "parent": "bettercoppers:guide/home",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "minecraft:copper_hoe"
+    },
+    "title": {
+      "translate": "advancements.bettercoppers.guide.farmer.title"
+    },
+    "description": {
+      "translate": "advancements.bettercoppers.guide.farmer.description"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

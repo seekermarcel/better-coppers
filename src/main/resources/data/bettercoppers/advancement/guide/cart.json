@@ -1,0 +1,25 @@
+{
+  "parent": "bettercoppers:guide/sorter",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "bettercoppers:copper_chest_minecart"
+    },
+    "title": {
+      "translate": "advancements.bettercoppers.guide.cart.title"
+    },
+    "description": {
+      "translate": "advancements.bettercoppers.guide.cart.description"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

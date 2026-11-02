@@ -4,12 +4,14 @@ import dev.bettercoppers.courier.CourierRoute;
 import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.Job;
+import dev.bettercoppers.job.Tools;
 import dev.bettercoppers.job.WorkerData;
 import dev.bettercoppers.mining.MineLayout;
 import dev.bettercoppers.mining.MinePattern;
 import dev.bettercoppers.mining.MinePlan;
 import dev.bettercoppers.registry.ModComponents;
 import dev.bettercoppers.registry.ModItems;
+import dev.bettercoppers.upkeep.Upkeep;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
@@ -19,6 +21,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
+import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -81,7 +84,7 @@ public class JobGameTests {
 		}
 		CopperGolem golem = GameTests.golem(h, new BlockPos(2, 1, 2));
 		GameTests.energize(golem);
-		give(h, golem, new ItemStack(Items.IRON_HOE));
+		give(h, golem, new ItemStack(Items.COPPER_HOE));
 		Homes.set(golem, h.absolutePos(home));
 		h.succeedWhen(() -> {
 			h.assertTrue(count(chest, Items.WHEAT) >= 1, "no wheat delivered yet");
@@ -113,7 +116,7 @@ public class JobGameTests {
 		MinePlan plan = MinePlan.blank(MinePattern.MINESHAFT, 16).marked(h.absolutePos(new BlockPos(4, 1, 5)), Direction.NORTH);
 		ItemStack planStack = new ItemStack(ModItems.MINESHAFT_PLAN);
 		planStack.set(ModComponents.MINE_PLAN, plan);
-		give(h, golem, new ItemStack(Items.IRON_PICKAXE));
+		give(h, golem, new ItemStack(Items.COPPER_PICKAXE));
 		give(h, golem, planStack);
 		Homes.set(golem, h.absolutePos(home));
 		var firstSlice = MineLayout.build(plan, h.getLevel().getMinY()).stream()
@@ -143,10 +146,64 @@ public class JobGameTests {
 	public void job_item_assigns_job(GameTestHelper h) {
 		scene(h);
 		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
-		give(h, golem, new ItemStack(Items.IRON_AXE));
+		give(h, golem, new ItemStack(Items.COPPER_AXE));
 		h.assertValueEqual(WorkerData.job(golem), Job.FORESTER, "job");
-		give(h, golem, new ItemStack(Items.IRON_HOE));
+		give(h, golem, new ItemStack(Items.COPPER_HOE));
 		h.assertValueEqual(WorkerData.job(golem), Job.FARMER, "job");
 		h.succeed();
+	}
+
+	@GameTest
+	public void non_copper_tool_is_refused(GameTestHelper h) {
+		scene(h);
+		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
+		give(h, golem, new ItemStack(Items.IRON_HOE));
+		h.assertTrue(golem.getMainHandItem().isEmpty(), "golem took an iron hoe");
+		h.assertTrue(!Upkeep.hasJob(golem), "golem got a job from an iron hoe");
+		h.succeed();
+	}
+
+	@GameTest(maxTicks = 1200)
+	public void broken_tool_keeps_job_and_is_refetched(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.COPPER_HOE));
+		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
+		GameTests.energize(golem);
+		ItemStack worn = new ItemStack(Items.COPPER_HOE);
+		worn.setDamageValue(worn.getMaxDamage() - 1);
+		give(h, golem, worn);
+		Homes.set(golem, h.absolutePos(home));
+		Tools.wear(golem, golem.getMainHandItem());
+		h.assertTrue(golem.getMainHandItem().isEmpty(), "hoe did not break");
+		h.assertValueEqual(WorkerData.job(golem), Job.FARMER, "job after the tool broke");
+		h.succeedWhen(() -> {
+			h.assertTrue(golem.getMainHandItem().is(Items.COPPER_HOE), "no new hoe yet");
+			h.assertTrue(count(chest, Items.COPPER_HOE) == 0, "hoe still in the chest");
+		});
+	}
+
+	@GameTest(maxTicks = 2400)
+	public void sorter_prefers_chest_with_item_frame(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(2, 1, 4);
+		GameTests.chest(h, home, COPPER_CHEST).setItem(0, new ItemStack(Items.COBBLESTONE, 4));
+		// A chest that already holds cobblestone would win, if not for the frame on the other one.
+		Container matching = GameTests.chest(h, new BlockPos(6, 1, 1), Blocks.CHEST);
+		matching.setItem(0, new ItemStack(Items.COBBLESTONE));
+		BlockPos framedPos = new BlockPos(6, 1, 6);
+		Container framed = GameTests.chest(h, framedPos, Blocks.CHEST);
+		ItemFrame frame = new ItemFrame(h.getLevel(), h.absolutePos(framedPos.west()), Direction.WEST);
+		frame.setItem(new ItemStack(Items.COBBLESTONE));
+		h.getLevel().addFreshEntity(frame);
+		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
+		GameTests.energize(golem);
+		give(h, golem, new ItemStack(Items.BUNDLE));
+		Homes.set(golem, h.absolutePos(home));
+		h.succeedWhen(() -> {
+			h.assertTrue(count(framed, Items.COBBLESTONE) == 4, "not delivered to the framed chest yet");
+			h.assertTrue(count(matching, Items.COBBLESTONE) == 1, "delivered to the unframed chest");
+		});
 	}
 }

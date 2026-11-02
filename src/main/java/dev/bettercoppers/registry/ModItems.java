@@ -1,6 +1,7 @@
 package dev.bettercoppers.registry;
 
 import dev.bettercoppers.BetterCoppers;
+import dev.bettercoppers.guide.GolemHandbookItem;
 import dev.bettercoppers.item.CopperChestMinecartItem;
 import dev.bettercoppers.item.MineshaftPlanItem;
 import java.util.function.Function;
@@ -18,6 +19,7 @@ public final class ModItems {
 		"copper_chest_minecart", p -> new CopperChestMinecartItem(ModEntities.COPPER_CHEST_MINECART, p), new Item.Properties().stacksTo(1)
 	);
 	public static final Item MINESHAFT_PLAN = register("mineshaft_plan", MineshaftPlanItem::new, new Item.Properties().stacksTo(1));
+	public static final Item GOLEM_HANDBOOK = register("golem_handbook", GolemHandbookItem::new, new Item.Properties().stacksTo(1));
 
 	private ModItems() {
 	}
@@ -32,5 +34,9 @@ public final class ModItems {
 			.register(output -> output.insertAfter(Items.CHEST_MINECART, COPPER_CHEST_MINECART));
 		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS)
 			.register(output -> output.insertAfter(Items.CARTOGRAPHY_TABLE, ModBlocks.SURVEY_TABLE));
+		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.REDSTONE_BLOCKS)
+			.register(output -> output.insertAfter(Items.TARGET, ModBlocks.CHARGING_PAD));
+		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.TOOLS_AND_UTILITIES)
+			.register(output -> output.insertAfter(Items.WRITABLE_BOOK, GOLEM_HANDBOOK));
 	}
 }

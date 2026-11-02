@@ -1,0 +1,25 @@
+{
+  "parent": "bettercoppers_automatisation:guide/sheets",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "bettercoppers_automatisation:cart_extension"
+    },
+    "title": {
+      "translate": "advancements.bettercoppers_automatisation.guide.cart_extension.title"
+    },
+    "description": {
+      "translate": "advancements.bettercoppers_automatisation.guide.cart_extension.description"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

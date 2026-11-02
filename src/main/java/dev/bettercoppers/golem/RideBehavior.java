@@ -1,6 +1,7 @@
 package dev.bettercoppers.golem;
 
 import com.google.common.collect.ImmutableMap;
+import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.upkeep.Upkeep;
 import java.util.HashMap;
 import java.util.Map;
@@ -191,6 +192,9 @@ public class RideBehavior extends Behavior<CopperGolem> {
 		}
 		if (golem.startRiding(ride)) {
 			this.riding = true;
+			if (golem.level() instanceof ServerLevel level) {
+				Guide.awardNearby(level, golem.position(), "ride");
+			}
 			this.ticks = 0;
 			golem.getNavigation().stop();
 		} else {

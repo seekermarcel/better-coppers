@@ -3,23 +3,29 @@ package dev.bettercoppers.mining;
 import com.google.common.collect.ImmutableMap;
 import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.golem.CartChaining;
+import dev.bettercoppers.golem.Eyes;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.golem.TravelWatch;
+import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.JobBehavior;
+import dev.bettercoppers.job.Tools;
+import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.registry.ModTags;
 import dev.bettercoppers.upkeep.Upkeep;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalBlockTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
@@ -36,6 +42,7 @@ import net.minecraft.world.entity.animal.golem.CopperGolemState;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FallingBlock;
@@ -44,7 +51,6 @@ import net.minecraft.world.level.block.WallTorchBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -200,6 +206,16 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			this.startReturn(level, golem, data, true);
 			return;
 		}
+		if (isExcited(golem)) {
+			if (level.getGameTime() % 10 == 0) {
+				level.sendParticles(ParticleTypes.WAX_ON, golem.getX(), golem.getY() + 1.3, golem.getZ(), 1, 0.1, 0.1, 0.1, 0.0);
+			}
+			if (this.work == null && this.oreDigs.stream().noneMatch(ore -> isDiamond(level.getBlockState(ore.pos())))) {
+				// The whole vein is out: off home to show the diamonds.
+				this.startReturn(level, golem, data, false);
+				return;
+			}
+		}
 		if (this.work == null && !this.chooseWork(level, golem, data, plan)) {
 			return;
 		}
@@ -212,7 +228,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		if (this.nextExtraDig(level, golem, data)) {
 			return this.work != null;
 		}
-		this.oreBudget = ORE_BUDGET;
+		this.oreBudget = Eyes.radius(golem, ORE_BUDGET);
 
 		List<MineLayout.Step> steps = this.steps(level, plan);
 		while (plan.progress() < steps.size()) {
@@ -351,6 +367,14 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		return !state.requiresCorrectToolForDrops() || golem.getMainHandItem().isCorrectToolForDrops(state);
 	}
 
+	private static boolean isDiamond(BlockState state) {
+		return state.is(ConventionalBlockTags.DIAMOND_ORES);
+	}
+
+	private static boolean isExcited(CopperGolem golem) {
+		return Boolean.TRUE.equals(golem.getAttached(ModAttachments.EXCITED));
+	}
+
 	private static boolean isOre(BlockState state) {
 		return state.is(ConventionalBlockTags.ORES);
 	}
@@ -456,11 +480,18 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		level.destroyBlock(pos, false, golem);
 		state.spawnAfterBreak(level, pos, tool, true);
 		if (state.getDestroySpeed(level, pos) > 0.0F) {
-			tool.hurtAndBreak(1, golem, EquipmentSlot.MAINHAND);
+			Tools.wear(golem, tool);
 		}
 		Upkeep.spend(golem, ENERGY_PER_DIG);
 		for (ItemStack drop : drops) {
 			JobBehavior.stash(golem, data.loot(), drop);
+		}
+		if (isDiamond(state) && !isExcited(golem)) {
+			golem.setAttached(ModAttachments.EXCITED, true);
+			level.playSound(null, golem, SoundEvents.AMETHYST_BLOCK_CHIME, golem.getSoundSource(), 1.0F, 1.6F);
+			level.playSound(null, golem, SoundEvents.COPPER_GOLEM_ITEM_GET, golem.getSoundSource(), 1.0F, 1.5F);
+			level.sendParticles(ParticleTypes.HAPPY_VILLAGER, golem.getX(), golem.getY() + 1.2, golem.getZ(), 10, 0.3, 0.3, 0.3, 0.0);
+			Guide.awardNearby(level, golem.position(), "diamonds");
 		}
 
 		this.recentDigs.addLast(step);
@@ -662,10 +693,15 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			this.endReturn(golem);
 			return;
 		}
-		this.workTicks = JobBehavior.tickReturn(golem, this.home, chest, this.workTicks, WALK_SPEED);
+		// Hurrying when it has diamonds to show.
+		this.workTicks = JobBehavior.tickReturn(golem, this.home, chest, this.workTicks, WALK_SPEED * (isExcited(golem) ? 1.3F : 1.0F));
 		if (this.workTicks >= Golems.INTERACTION_TICKS) {
 			// Keep some plain stone back for plugging leaks and patching floors.
 			JobBehavior.unload(level, golem, data.loot(), data.supplies(), stack -> isFiller(stack) ? FILLER_RESERVE - countFillers(data) : 0, chest);
+			if (golem.removeAttached(ModAttachments.EXCITED) != null) {
+				level.sendParticles(ParticleTypes.HAPPY_VILLAGER, golem.getX(), golem.getY() + 1.2, golem.getZ(), 12, 0.4, 0.3, 0.4, 0.0);
+				golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_DROP, 1.0F, 1.5F);
+			}
 			MinePlan plan = data.plan();
 			if (plan != null && !this.stopAfterReturn) {
 				this.restock(data, plan, chest);

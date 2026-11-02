@@ -1,0 +1,25 @@
+{
+  "parent": "bettercoppers_automatisation:guide/gears",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "bettercoppers_automatisation:golem_assembler"
+    },
+    "title": {
+      "translate": "advancements.bettercoppers_automatisation.guide.assembler.title"
+    },
+    "description": {
+      "translate": "advancements.bettercoppers_automatisation.guide.assembler.description"
+    },
+    "frame": "goal"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

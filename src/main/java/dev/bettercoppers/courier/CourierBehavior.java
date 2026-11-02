@@ -1,6 +1,7 @@
 package dev.bettercoppers.courier;
 
 import com.google.common.collect.ImmutableMap;
+import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.golem.CartChaining;
 import dev.bettercoppers.golem.Golems;
@@ -148,7 +149,7 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 	}
 
 	private static void load(CopperGolem golem, Container from) {
-		ItemStack hand = Inventories.takeFirst(from, Golems.HAND_LIMIT, stack -> true);
+		ItemStack hand = Inventories.takeFirst(from, BetterCoppersApi.carryLimit(golem, Golems.HAND_LIMIT), stack -> true);
 		golem.setItemSlot(EquipmentSlot.MAINHAND, hand);
 		golem.setGuaranteedDrop(EquipmentSlot.MAINHAND);
 		CopperChestMinecart cart = CartChaining.findCart(golem);

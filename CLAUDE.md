@@ -9,8 +9,10 @@ Everything runs in the flake dev shell:
 - `nix develop -c ./gradlew runClient` starts the game.
 
 ## Package map (`src/main/java/dev/bettercoppers/`)
-- `golem`: GolemBrain (registers behaviours), Golems, Inventories, ItemFamilies, Sorter, SortItemsBehavior, Errands, RideBehavior, CartChaining, TravelWatch
-- `job`: Job enum, JobBehavior, WorkerData, WorkerInteractions, Farm/Forest/Fish/Keeper/CraftBehavior
+- `api`: BetterCoppersApi, hooks for add-ons (jobs, behaviours, link targets, modifiers, pads, handbook)
+- `golem`: GolemBrain (registers behaviours), Golems, Inventories, ItemFamilies, Sorter, SortItemsBehavior, Errands, RideBehavior, CartChaining, TravelWatch, Eyes, HomeStroll
+- `job`: Job enum, JobBehavior, WorkerData, WorkerInteractions, Tools, ToolFetchBehavior, Farm/Forest/Fish/Keeper/CraftBehavior
+- `guide`: Golem Handbook, guide advancements
 - `mining`: miner job, mine layout and plan
 - `courier`: routes and chunk tickets
 - `home`: home linking and particle lines
@@ -19,7 +21,7 @@ Everything runs in the flake dev shell:
 - `trim`: armour trims
 - `block`, `menu`, `entity`, `item`, `registry`: Survey Table, Copper Chest Minecart, registrations
 - `mixin`: swaps in the golem AI
-- Client code is in `src/client/java`. `tools/` holds texture generators.
+- Client code is in `src/client/java`. `tools/` holds texture generators. `automatisation/` is the add-on subproject (its own jar), built only on `api`.
 
 Adding a job: one `Job` entry, one `JobBehavior` subclass registered in `GolemBrain.modBehaviours()`, lang keys in en_us and de_de (key-identical), one gametest.
 

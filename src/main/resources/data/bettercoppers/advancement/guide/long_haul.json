@@ -1,0 +1,25 @@
+{
+  "parent": "bettercoppers:guide/courier",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "minecraft:compass"
+    },
+    "title": {
+      "translate": "advancements.bettercoppers.guide.long_haul.title"
+    },
+    "description": {
+      "translate": "advancements.bettercoppers.guide.long_haul.description"
+    },
+    "frame": "goal"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

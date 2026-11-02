@@ -1,0 +1,32 @@
+{
+  "parent": "bettercoppers:guide/home",
+  "criteria": {
+    "mineshaft_plan": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "bettercoppers:mineshaft_plan"
+          }
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "bettercoppers:survey_table"
+    },
+    "title": {
+      "translate": "advancements.bettercoppers.guide.survey.title"
+    },
+    "description": {
+      "translate": "advancements.bettercoppers.guide.survey.description"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "mineshaft_plan"
+    ]
+  ]
+}

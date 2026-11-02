@@ -3,9 +3,11 @@ package dev.bettercoppers;
 import dev.bettercoppers.combat.GolemGuards;
 import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.golem.CartChaining;
+import dev.bettercoppers.golem.Eyes;
 import dev.bettercoppers.golem.Sorter;
 import dev.bettercoppers.home.HomeDisplay;
 import dev.bettercoppers.home.HomeLinking;
+import dev.bettercoppers.job.Tools;
 import dev.bettercoppers.job.WorkerInteractions;
 import dev.bettercoppers.mining.MinerInteractions;
 import dev.bettercoppers.registry.ModAttachments;
@@ -23,8 +25,8 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
-import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.animal.golem.CopperGolem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +47,9 @@ public class BetterCoppers implements ModInitializer {
 		ModItems.init();
 		ModMenus.init();
 		Couriers.init();
+		// First, so non-copper tools are refused before any job takes them.
+		UseEntityCallback.EVENT.register(Tools::onUseEntity);
+		UseEntityCallback.EVENT.register(Eyes::onUseEntity);
 		UseEntityCallback.EVENT.register(HomeLinking::onUseEntity);
 		UseEntityCallback.EVENT.register(GolemTrims::onUseEntity);
 		UseEntityCallback.EVENT.register(MinerInteractions::onUseEntity);
