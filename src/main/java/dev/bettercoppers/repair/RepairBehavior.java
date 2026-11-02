@@ -207,6 +207,7 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 		ItemStack iron = new ItemStack(Items.IRON_INGOT, count);
 		if (golem.getMainHandItem().isEmpty()) {
 			golem.setItemSlot(EquipmentSlot.MAINHAND, iron);
+			golem.setGuaranteedDrop(EquipmentSlot.MAINHAND);
 			setCarried(golem, 0);
 			return;
 		}
