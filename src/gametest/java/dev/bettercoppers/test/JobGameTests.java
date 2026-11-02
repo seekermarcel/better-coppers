@@ -2,6 +2,7 @@ package dev.bettercoppers.test;
 
 import dev.bettercoppers.courier.CourierRoute;
 import dev.bettercoppers.courier.Couriers;
+import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.Job;
 import dev.bettercoppers.job.Tools;
@@ -10,6 +11,7 @@ import dev.bettercoppers.mining.MineLayout;
 import dev.bettercoppers.mining.MinePattern;
 import dev.bettercoppers.mining.MinePlan;
 import dev.bettercoppers.registry.ModComponents;
+import dev.bettercoppers.registry.ModEntities;
 import dev.bettercoppers.registry.ModItems;
 import dev.bettercoppers.upkeep.Upkeep;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
@@ -181,6 +183,38 @@ public class JobGameTests {
 		h.succeedWhen(() -> {
 			h.assertTrue(golem.getMainHandItem().is(Items.COPPER_HOE), "no new hoe yet");
 			h.assertTrue(count(chest, Items.COPPER_HOE) == 0, "hoe still in the chest");
+		});
+	}
+
+	/** A cart the golem tows, with the given items already in it. */
+	private static CopperChestMinecart cart(GameTestHelper h, CopperGolem golem, BlockPos rel, ItemStack... contents) {
+		CopperChestMinecart cart = h.spawn(ModEntities.COPPER_CHEST_MINECART, rel);
+		for (int slot = 0; slot < contents.length; slot++) {
+			cart.setItem(slot, contents[slot]);
+		}
+		cart.chainTo(golem);
+		return cart;
+	}
+
+	@GameTest(maxTicks = 1200)
+	public void lost_tool_with_loaded_cart_goes_home_then_refetches(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.COPPER_HOE));
+		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
+		GameTests.energize(golem);
+		ItemStack worn = new ItemStack(Items.COPPER_HOE);
+		worn.setDamageValue(worn.getMaxDamage() - 1);
+		give(h, golem, worn);
+		Homes.set(golem, h.absolutePos(home));
+		CopperChestMinecart cart = cart(h, golem, new BlockPos(5, 1, 4), new ItemStack(Items.WHEAT, 8));
+		Tools.wear(golem, golem.getMainHandItem());
+		h.assertTrue(golem.getMainHandItem().isEmpty(), "hoe did not break");
+		h.succeedWhen(() -> {
+			h.assertTrue(count(chest, Items.WHEAT) == 8, "cart not unloaded yet");
+			h.assertTrue(cart.isEmpty(), "cart still loaded");
+			h.assertTrue(golem.getMainHandItem().is(Items.COPPER_HOE), "no new hoe yet");
 		});
 	}
 

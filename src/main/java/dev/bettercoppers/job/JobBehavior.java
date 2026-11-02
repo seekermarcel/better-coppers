@@ -101,6 +101,11 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 		if (this.job.isTool(tool)) {
 			return true;
 		}
+		// Tool broke: its own job drives a loaded cart home, or ToolFetchBehavior would wait for that forever.
+		CopperChestMinecart cart = WorkerData.job(golem) == this.job ? CartChaining.findCart(golem) : null;
+		if (cart != null && !cart.isEmpty()) {
+			return true;
+		}
 		// Tool taken away: one of the job behaviours (the first) still brings the pouch home.
 		return this.job == Job.values()[0] && Job.forTool(tool) == null && data.pouchCount() > 0;
 	}
