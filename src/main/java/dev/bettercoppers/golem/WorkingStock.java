@@ -71,8 +71,10 @@ public final class WorkingStock {
 			Job job = kind == Jobs.JobKind.WORKER ? WorkerData.job(golem) : null;
 			if (job != null) {
 				reserves.add(reserveOf(job));
-			} else if (kind == Jobs.JobKind.MINER && isMarked(golem)) {
-				reserves.add(stack -> stack.is(Items.COPPER_PICKAXE) || MineBehavior.isSupply(stack) ? ALL : 0);
+			} else if (kind == Jobs.JobKind.MINER) {
+				// The spare pickaxe stays with any miner; supplies only with a marked plan.
+				boolean marked = isMarked(golem);
+				reserves.add(stack -> stack.is(Items.COPPER_PICKAXE) || marked && MineBehavior.isSupply(stack) ? ALL : 0);
 			}
 		}
 		return stack -> {
