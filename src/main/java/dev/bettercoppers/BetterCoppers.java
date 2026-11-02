@@ -20,6 +20,7 @@ import dev.bettercoppers.registry.ModMenus;
 import dev.bettercoppers.trim.GolemTrims;
 import dev.bettercoppers.upkeep.AxeDispenseBehavior;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -47,8 +48,11 @@ public class BetterCoppers implements ModInitializer {
 		ModItems.init();
 		ModMenus.init();
 		Couriers.init();
-		UseEntityCallback.EVENT.register(HomeLinking::onEndingPress);
-		// Next, so non-copper tools are refused before any job takes them.
+		// In a phase of its own, as an add-on's handlers can register before these: mod load order varies.
+		Identifier endingPress = id("ending_press");
+		UseEntityCallback.EVENT.addPhaseOrdering(endingPress, Event.DEFAULT_PHASE);
+		UseEntityCallback.EVENT.register(endingPress, HomeLinking::onEndingPress);
+		// First of the rest, so non-copper tools are refused before any job takes them.
 		UseEntityCallback.EVENT.register(Tools::onUseEntity);
 		// Before HomeLinking, which stops every other plain empty-hand click on a golem with a job.
 		UseEntityCallback.EVENT.register(CartChaining::onUseEntity);

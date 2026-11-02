@@ -13,13 +13,13 @@ Each behaviour decides for itself whether it applies, in its start conditions, w
 
 ## How a player action reaches a golem
 
-Right-clicks run through the `UseEntityCallback` handlers in the order `BetterCoppers.onInitialize` registers them, and the first result other than `PASS` wins. `Tools` comes early, so non-copper tools are refused before a job takes them. Handing a golem anything takes sneak + right-click (ADR 0009).
+Right-clicks run through the `UseEntityCallback` handlers, and the first result other than `PASS` wins. The base mod's handlers run in the order `BetterCoppers.onInitialize` registers them, and `Tools` comes early, so non-copper tools are refused before a job takes them. Mod load order varies, so an add-on's handlers can run before or after those. They must not depend on that: `Operators` and `Upgrades` only react to the add-on's own items, which no base handler takes. A handler that must beat every other one needs an event phase, as `HomeLinking.onEndingPress` has. Handing a golem anything takes sneak + right-click (ADR 0009).
 
 `HomeLinking` owns empty-hand clicks: sneak starts the link, and a plain click on a golem with a job shows its status and returns `SUCCESS`, which stops vanilla's item throw. `CartChaining` runs before it, for a player leading a cart. Vanilla throws for any empty hand, so the same check covers the off hand when the main hand's item did nothing.
 
 Client and server both run these handlers, but job attachments are not synced, so the client cannot call `Jobs.has`. Decide on the server. Vanilla's throw also runs on the client, so `HomeLinking` resends the golem's main hand after blocking a click.
 
-The server only sees clicks, and a held button repeats one every 4 ticks. So `HomeLinking` counts clicks within 5 ticks as one press, and only a later press within 100 ticks ends a job. Giving a job closes that window. The rest of the press that ended a job does nothing (`HomeLinking.onEndingPress`, registered first): the tool that came back can land in the selected hand, and a repeat would hand it over again.
+The server only sees clicks, and a held button repeats one every 4 ticks. So `HomeLinking` counts clicks within 5 ticks as one press, and only a later press within 100 ticks ends a job. Giving a job closes that window. The rest of the press that ended a job does nothing (`HomeLinking.onEndingPress`, in a phase before all other handlers): the tool that came back can land in the selected hand, and a repeat would hand it over again.
 
 ## What a job is in code
 

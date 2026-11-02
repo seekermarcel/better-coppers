@@ -80,7 +80,7 @@ public final class HomeLinking {
 	}
 
 	/**
-	 * Registered first, so it stops every other handler and vanilla. The tool that came back can land in the selected
+	 * Runs in a phase before all other handlers, add-ons' included, so it stops them and vanilla. The tool that came back can land in the selected
 	 * hand, and a held button would then hand it straight over again.
 	 */
 	public static InteractionResult onEndingPress(Player player, Level level, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
