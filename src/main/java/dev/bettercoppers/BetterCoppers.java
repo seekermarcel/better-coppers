@@ -7,6 +7,7 @@ import dev.bettercoppers.golem.Eyes;
 import dev.bettercoppers.golem.Sorter;
 import dev.bettercoppers.home.HomeDisplay;
 import dev.bettercoppers.home.HomeLinking;
+import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.job.Tools;
 import dev.bettercoppers.job.WorkerInteractions;
 import dev.bettercoppers.mining.MinerInteractions;
@@ -18,7 +19,6 @@ import dev.bettercoppers.registry.ModItems;
 import dev.bettercoppers.registry.ModMenus;
 import dev.bettercoppers.trim.GolemTrims;
 import dev.bettercoppers.upkeep.AxeDispenseBehavior;
-import dev.bettercoppers.upkeep.Upkeep;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
@@ -62,7 +62,7 @@ public class BetterCoppers implements ModInitializer {
 		ServerEntityEvents.ENTITY_LOAD.register(Couriers::onEntityLoad);
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
 			if (entity instanceof CopperGolem golem) {
-				Upkeep.dropJobItems(golem);
+				Jobs.dropJobItems(golem);
 			}
 		});
 		AxeDispenseBehavior.register();

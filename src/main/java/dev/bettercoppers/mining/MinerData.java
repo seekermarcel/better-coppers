@@ -3,7 +3,6 @@ package dev.bettercoppers.mining;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.bettercoppers.job.Load;
-import dev.bettercoppers.job.Tools;
 import dev.bettercoppers.registry.ModAttachments;
 import java.util.Optional;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
@@ -38,12 +37,6 @@ public final class MinerData {
 
 	public static boolean hasPickaxe(CopperGolem golem) {
 		return golem.getMainHandItem().is(Items.COPPER_PICKAXE);
-	}
-
-	/** A golem that was handed a pickaxe, or still has a load to bring home. Miners do not sort. */
-	public static boolean isMiner(CopperGolem golem) {
-		MinerData data = get(golem);
-		return data != null && (hasPickaxe(golem) || Tools.hasLost(golem, Items.COPPER_PICKAXE) || !Load.of(golem).hasNothingToBringHome());
 	}
 
 	public @Nullable MinePlan plan() {

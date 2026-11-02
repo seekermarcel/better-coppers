@@ -2,12 +2,19 @@ package dev.bettercoppers.job;
 
 import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.api.GolemJob;
+import dev.bettercoppers.api.GolemModifier;
 import dev.bettercoppers.courier.Couriers;
+import dev.bettercoppers.golem.Eyes;
 import dev.bettercoppers.golem.Sorter;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.mining.MinerData;
+import dev.bettercoppers.mining.MinerInteractions;
+import dev.bettercoppers.registry.ModAttachments;
+import dev.bettercoppers.repair.RepairBehavior;
+import dev.bettercoppers.trim.GolemTrims;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.item.Items;
 import org.jspecify.annotations.Nullable;
@@ -83,5 +90,23 @@ public final class Jobs {
 		GolemJob job = BetterCoppersApi.jobOf(golem);
 		BlockPos workplace = job == null ? null : job.workplace(golem);
 		return workplace != null ? workplace : Homes.get(golem);
+	}
+
+	/** Drops everything a working golem carries for its job (on death or when turning into a statue). */
+	public static void dropJobItems(CopperGolem golem) {
+		MinerInteractions.dropAll(golem);
+		golem.removeAttached(ModAttachments.WORKER);
+		if (golem.level() instanceof ServerLevel level) {
+			Load.of(golem).dropAll(level, golem);
+			Eyes.drop(level, golem);
+			RepairBehavior.dropCarried(level, golem);
+			GolemTrims.dropAll(level, golem);
+			for (GolemJob job : BetterCoppersApi.jobs()) {
+				job.dropItems(level, golem);
+			}
+			for (GolemModifier modifier : BetterCoppersApi.modifiers()) {
+				modifier.dropItems(level, golem);
+			}
+		}
 	}
 }

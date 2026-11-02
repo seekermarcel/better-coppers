@@ -1,16 +1,22 @@
 package dev.bettercoppers.home;
 
 import dev.bettercoppers.api.GolemLinkTarget;
+import dev.bettercoppers.api.GolemModifier;
 import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.courier.CourierRoute;
 import dev.bettercoppers.courier.Couriers;
+import dev.bettercoppers.golem.Eyes;
 import dev.bettercoppers.guide.Guide;
+import dev.bettercoppers.job.Jobs;
+import dev.bettercoppers.job.Tools;
+import dev.bettercoppers.upkeep.GolemUpkeep;
 import dev.bettercoppers.upkeep.Upkeep;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,6 +30,8 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -62,9 +70,43 @@ public final class HomeLinking {
 			SELECTIONS.put(player.getUUID(), new Selection(golem.getUUID(), serverLevel.dimension(), serverLevel.getGameTime() + SELECTION_TICKS, null));
 			golem.addEffect(new MobEffectInstance(MobEffects.GLOWING, SELECTION_TICKS, 0, false, false));
 			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET, 0.6F, 1.4F);
-			player.sendSystemMessage(Component.translatable("message.bettercoppers.selected", Upkeep.status(serverLevel, golem)));
+			player.sendSystemMessage(Component.translatable("message.bettercoppers.selected", status(golem)));
 		}
 		return InteractionResult.SUCCESS;
+	}
+
+	/** Job, place, energy and rust, for the status message. */
+	private static Component status(CopperGolem golem) {
+		Component job = Jobs.name(golem);
+		CourierRoute route = Couriers.route(golem);
+		BlockPos place = Jobs.place(golem);
+		Component placeText = route != null
+			? Component.translatable("status.bettercoppers.route", route.from().toShortString(), route.to().toShortString())
+			: place == null
+				? Component.translatable("status.bettercoppers.no_home")
+				: Component.translatable(place.equals(Homes.get(golem)) ? "status.bettercoppers.home" : "status.bettercoppers.workplace", place.getX(), place.getY(), place.getZ());
+		if (!Jobs.isPaying(golem)) {
+			return Component.translatable("message.bettercoppers.status_free", job, placeText);
+		}
+		int percent = Upkeep.get(golem).energy() * 100 / GolemUpkeep.MAX_ENERGY;
+		String rust = Upkeep.isWaxed(golem) ? "waxed" : golem.getWeatherState().getSerializedName();
+		MutableComponent status = Component.translatable(
+			"message.bettercoppers.status", job, placeText, percent, Component.translatable("rust.bettercoppers." + rust)
+		);
+		Item lost = Tools.lostTool(golem);
+		if (lost != null) {
+			status.append(", ").append(Component.translatable("status.bettercoppers.lost_tool", new ItemStack(lost).getHoverName()));
+		}
+		if (Eyes.tier(golem) > 0) {
+			status.append(", ").append(Component.translatable("status.bettercoppers.eyes", Math.round(Eyes.multiplier(golem) * 100)));
+		}
+		for (GolemModifier modifier : BetterCoppersApi.modifiers()) {
+			Component extra = modifier.status(golem);
+			if (extra != null) {
+				status.append(", ").append(extra);
+			}
+		}
+		return status;
 	}
 
 	public static InteractionResult onUseBlock(Player player, Level level, InteractionHand hand, BlockHitResult hitResult) {
