@@ -1,0 +1,25 @@
+{
+  "parent": "bettercoppers:guide/build_golem",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "minecraft:coast_armor_trim_smithing_template"
+    },
+    "title": {
+      "translate": "advancements.bettercoppers.guide.trim.title"
+    },
+    "description": {
+      "translate": "advancements.bettercoppers.guide.trim.description"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

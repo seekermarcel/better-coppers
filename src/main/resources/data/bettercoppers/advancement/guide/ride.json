@@ -1,0 +1,25 @@
+{
+  "parent": "bettercoppers:guide/home",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "minecraft:minecart"
+    },
+    "title": {
+      "translate": "advancements.bettercoppers.guide.ride.title"
+    },
+    "description": {
+      "translate": "advancements.bettercoppers.guide.ride.description"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

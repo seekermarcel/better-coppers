@@ -1,0 +1,16 @@
+{
+	"required": true,
+	"package": "dev.bettercoppers.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"CopperGolemAccessor",
+		"CopperGolemAiMixin",
+		"CopperGolemMixin",
+		"MobAccessor",
+		"NearestAttackableTargetGoalAccessor",
+		"ServerLevelMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

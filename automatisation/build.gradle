@@ -6,19 +6,19 @@ version = project.version
 group = project.group
 
 base {
-	archivesName = 'mioscoppergolems-automatisation'
+	archivesName = 'bettercoppers-automatisation'
 }
 
 loom {
 	splitEnvironmentSourceSets()
 
 	mods {
-		"mioscoppergolems_automatisation" {
+		"bettercoppers_automatisation" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}
 		// The base mod, so runClient / runServer here start with both.
-		"mioscoppergolems" {
+		"bettercoppers" {
 			sourceSet rootProject.sourceSets.main
 			sourceSet rootProject.sourceSets.client
 		}

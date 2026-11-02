@@ -1,24 +1,24 @@
 {
 	"schemaVersion": 1,
-	"id": "mioscoppergolems",
+	"id": "bettercoppers",
 	"version": "${version}",
-	"name": "Mios Coppergolems",
+	"name": "Better Coppers",
 	"description": "Copper golems that do real work: jobs, homes, couriers, minecart and boat rides, armour trims, and iron golems to keep them safe.",
 	"authors": ["Miodnr"],
 	"license": "All-Rights-Reserved",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"dev.mioscoppergolems.MiosCoppergolems"
+			"dev.bettercoppers.BetterCoppers"
 		],
 		"client": [
-			"dev.mioscoppergolems.client.MiosCoppergolemsClient"
+			"dev.bettercoppers.client.BetterCoppersClient"
 		]
 	},
 	"mixins": [
-		"mioscoppergolems.mixins.json",
+		"bettercoppers.mixins.json",
 		{
-			"config": "mioscoppergolems.client.mixins.json",
+			"config": "bettercoppers.client.mixins.json",
 			"environment": "client"
 		}
 	],

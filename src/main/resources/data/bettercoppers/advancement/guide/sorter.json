@@ -1,0 +1,25 @@
+{
+  "parent": "bettercoppers:guide/home",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "minecraft:bundle"
+    },
+    "title": {
+      "translate": "advancements.bettercoppers.guide.sorter.title"
+    },
+    "description": {
+      "translate": "advancements.bettercoppers.guide.sorter.description"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

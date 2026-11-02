@@ -1,0 +1,25 @@
+{
+  "parent": "bettercoppers:guide/miner",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "minecraft:diamond"
+    },
+    "title": {
+      "translate": "advancements.bettercoppers.guide.diamonds.title"
+    },
+    "description": {
+      "translate": "advancements.bettercoppers.guide.diamonds.description"
+    },
+    "frame": "goal"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

@@ -1,4 +1,4 @@
-# Mios Coppergolems
+# Better Coppers
 
 **Copper Golems that do real work.** A Fabric mod for **Minecraft 26.3** that turns the copper golem from a chest shuffler into a small, slightly clumsy worker. It sorts your storage, digs mineshafts, farms and fishes, carries goods across the world, rides minecarts and boats, and gets hunted by monsters. It also needs iron golems to keep it safe, and it patches those iron golems up with your iron.
 
@@ -34,7 +34,7 @@ On top of the jobs:
 
 ## Getting started
 
-**New to the mod?** You get a **Golem Handbook** the first time you join a world (lost it? book + copper ingot). It explains everything, chapter by chapter, in English and German. The **Mios Coppergolems advancement tab** (press L) is the quest line: each step tells you what to try next, from building your first golem to "Full Employment" with a golem in every job. The add-on brings its own handbook chapters and its own tab.
+**New to the mod?** You get a **Golem Handbook** the first time you join a world (lost it? book + copper ingot). It explains everything, chapter by chapter, in English and German. The **Better Coppers advancement tab** (press L) is the quest line: each step tells you what to try next, from building your first golem to "Full Employment" with a golem in every job. The add-on brings its own handbook chapters and its own tab.
 
 1. **Give a golem its job item.** Right-click the golem with it (see the table above).
 2. **Give it a home.** Sneak + right-click the golem with an empty hand. It glows and tells you its job, home, energy and rust. Then right-click the **copper chest** it should belong to (within 32 blocks).
@@ -183,7 +183,7 @@ Sorters and couriers are free. Every other job costs something:
 
 ---
 
-## Add-on: Mios Coppergolems Automatisation
+## Add-on: Better Coppers Automatisation
 
 The [`automatisation/`](automatisation/README.md) folder holds an add-on with **conveyor belts, funnels, chutes, presses, saws, grabber arms and a golem assembler**, in the spirit of Create but more mechanical. There is no power network: every machine has a crank that a copper golem with a **Copper Wrench** has to turn, and repairs when it jams. What the factory makes goes back into the colony: armour plating, rust coating and faster gearwork for golems, satchels and double carts for bigger loads, cheap rails and fences for miners, a faster charging station, and new golems. See its [README](automatisation/README.md).
 
@@ -203,7 +203,7 @@ $env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot"
 ## Project structure
 
 ```
-src/main/java/dev/mioscoppergolems/
+src/main/java/dev/bettercoppers/
   golem/     SortItemsBehavior (sorting AI), ItemFamilies (what counts as related), CartChaining, Inventories
   courier/   CourierBehavior, Couriers (routes, chunk tickets), CourierRoute
   travel/    RideBehavior (minecarts and boats)
@@ -219,7 +219,7 @@ src/main/java/dev/mioscoppergolems/
   entity/, item/  Copper Chest Minecart
   api/       hooks for add-ons: jobs, brain behaviours, link targets
   mixin/     swaps in the new golem AI, goal accessors
-src/client/java/dev/mioscoppergolems/client/
+src/client/java/dev/bettercoppers/client/
   render/    cart renderer with its chain, GolemTrimLayer, GolemAntennaLayer, GolemBobberRenderer
 automatisation/  the Automatisation add-on (its own Gradle subproject)
 tools/       TrimGen.java (golem trim textures from the vanilla armour trims), SurveyGen.java (Survey Table textures),

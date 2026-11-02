@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "cooling=false": {
+      "model": "bettercoppers:block/charging_pad"
+    },
+    "cooling=true": {
+      "model": "bettercoppers:block/charging_pad_lit"
+    }
+  }
+}

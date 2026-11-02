@@ -1,6 +1,6 @@
-# Mios Coppergolems Automatisation
+# Better Coppers Automatisation
 
-**An add-on for [Mios Coppergolems](../README.md): a golem-run factory of conveyor belts, presses, saws and grabber arms, whose products go back into your golems.**
+**An add-on for [Better Coppers](../README.md): a golem-run factory of conveyor belts, presses, saws and grabber arms, whose products go back into your golems.**
 
 It feels a bit like Create, but there is no power network, no water wheels and no rotation to route. **Every machine has a crank, and a copper golem has to turn it.** No golem, no movement. Your golems walk to their machines in the morning, crank away all day, repair them when they jam, and go to their charge pads at night.
 
@@ -36,7 +36,7 @@ The machines themselves wear out and are repaired with sheets, so every factory 
 
 The golem is now an **operator**. Whenever its machine has work, it walks over (within about 2 blocks) and turns the crank. You'll see its arm reach out and hear the crank clank. With nothing to do, it potters about nearby. Copper golems walk across belts; belts don't carry them.
 
-Operators pay the usual Mios Coppergolems running costs:
+Operators pay the usual Better Coppers running costs:
 - **Energy:** one point per second of cranking.
 - **Charging:** they recharge near their machine, on a Charging Pad (with a redstone clock) or a Charging Station.
 - **Rest:** they stop at night.
@@ -182,7 +182,7 @@ You need the press before anything else, since most of these are made from sheet
 ---
 
 ## For developers
-The add-on hooks into Mios Coppergolems through its small API (`dev.mioscoppergolems.api`):
+The add-on hooks into Better Coppers through its small API (`dev.bettercoppers.api`):
 - `registerJob`: the operator job (status message, running costs, particle line to its workplace).
 - `registerBehavior`: the operator's brain behaviour, including repairs.
 - `registerLinkTarget`: linking golems to machines.

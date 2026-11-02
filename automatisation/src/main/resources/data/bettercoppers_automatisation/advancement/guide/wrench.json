@@ -1,0 +1,32 @@
+{
+  "parent": "bettercoppers_automatisation:guide/root",
+  "criteria": {
+    "copper_wrench": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "bettercoppers_automatisation:copper_wrench"
+          }
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "bettercoppers_automatisation:copper_wrench"
+    },
+    "title": {
+      "translate": "advancements.bettercoppers_automatisation.guide.wrench.title"
+    },
+    "description": {
+      "translate": "advancements.bettercoppers_automatisation.guide.wrench.description"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "copper_wrench"
+    ]
+  ]
+}

@@ -4,7 +4,7 @@ import java.nio.file.Files;
 import javax.imageio.ImageIO;
 
 /**
- * Textures for Mios Coppergolems Automatisation: the conveyor belt (still and moving), the funnel faces, the copper
+ * Textures for Better Coppers Automatisation: the conveyor belt (still and moving), the funnel faces, the copper
  * wrench and the metal sheets. Everything else reuses vanilla textures.
  * args: vanillaTexturesDir outAssetsTexturesDir previewFile
  */

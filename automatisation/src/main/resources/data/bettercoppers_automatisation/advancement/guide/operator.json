@@ -1,0 +1,25 @@
+{
+  "parent": "bettercoppers_automatisation:guide/wrench",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "bettercoppers_automatisation:press"
+    },
+    "title": {
+      "translate": "advancements.bettercoppers_automatisation.guide.operator.title"
+    },
+    "description": {
+      "translate": "advancements.bettercoppers_automatisation.guide.operator.description"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "parent": "bettercoppers_automatisation:guide/sheets",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "bettercoppers_automatisation:iron_plating"
+    },
+    "title": {
+      "translate": "advancements.bettercoppers_automatisation.guide.upgrade.title"
+    },
+    "description": {
+      "translate": "advancements.bettercoppers_automatisation.guide.upgrade.description"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

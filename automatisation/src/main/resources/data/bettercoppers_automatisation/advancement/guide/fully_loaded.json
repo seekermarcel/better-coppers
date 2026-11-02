@@ -1,0 +1,25 @@
+{
+  "parent": "bettercoppers_automatisation:guide/upgrade",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "bettercoppers_automatisation:gold_gearwork"
+    },
+    "title": {
+      "translate": "advancements.bettercoppers_automatisation.guide.fully_loaded.title"
+    },
+    "description": {
+      "translate": "advancements.bettercoppers_automatisation.guide.fully_loaded.description"
+    },
+    "frame": "challenge"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

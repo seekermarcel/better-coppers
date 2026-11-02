@@ -1,0 +1,25 @@
+{
+  "parent": "bettercoppers:guide/recharge",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "minecraft:dispenser"
+    },
+    "title": {
+      "translate": "advancements.bettercoppers.guide.scrape.title"
+    },
+    "description": {
+      "translate": "advancements.bettercoppers.guide.scrape.description"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}

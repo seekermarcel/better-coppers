@@ -4,7 +4,7 @@ import os
 import sys
 
 ROOT = sys.argv[1]  # automatisation/src/main/resources
-NS = "mioscoppergolems_automatisation"
+NS = "bettercoppers_automatisation"
 A = os.path.join(ROOT, "assets", NS)
 D = os.path.join(ROOT, "data", NS)
 

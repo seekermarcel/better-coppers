@@ -1,5 +1,5 @@
 """Writes the guide: advancement trees, the handbook recipe and loot table, and all guide texts (advancements and
-Golem Handbook chapters, English and German) for Mios Coppergolems and the Automatisation add-on.
+Golem Handbook chapters, English and German) for Better Coppers and the Automatisation add-on.
 
 Run from the repository root: python tools/gen_guide.py
 Lang entries are merged into the existing lang files; everything else is overwritten.
@@ -7,8 +7,8 @@ Lang entries are merged into the existing lang files; everything else is overwri
 import json
 import os
 
-MAIN = "mioscoppergolems"
-AUTO = "mioscoppergolems_automatisation"
+MAIN = "bettercoppers"
+AUTO = "bettercoppers_automatisation"
 RES = {MAIN: "src/main/resources", AUTO: "automatisation/src/main/resources"}
 
 
@@ -94,8 +94,8 @@ AUTO_TREE = [
 
 # name -> (title, description), English then German
 MAIN_ADV = {
-    "root": (("Mios Coppergolems", "Copper golems that work for you. Read the Golem Handbook!"),
-             ("Mios Coppergolems", "Kupfergolems, die für dich arbeiten. Lies das Golem-Handbuch!")),
+    "root": (("Better Coppers", "Copper golems that work for you. Read the Golem Handbook!"),
+             ("Better Coppers", "Kupfergolems, die für dich arbeiten. Lies das Golem-Handbuch!")),
     "build_golem": (("A Little Helper", "Build a copper golem: a carved pumpkin on a copper block"),
                     ("Ein kleiner Helfer", "Baue einen Kupfergolem: ein geschnitzter Kürbis auf einem Kupferblock")),
     "home": (("Home Sweet Chest", "Link a golem to a copper chest: sneak + right-click it, then the chest"),
@@ -137,8 +137,8 @@ MAIN_ADV = {
 }
 
 AUTO_ADV = {
-    "root": (("Mios Coppergolems Automatisation", "A golem-run factory: no power network, golems turn every crank"),
-             ("Mios Coppergolems Automatisation", "Eine Fabrik von Golems: kein Stromnetz, Golems drehen jede Kurbel")),
+    "root": (("Better Coppers Automatisation", "A golem-run factory: no power network, golems turn every crank"),
+             ("Better Coppers Automatisation", "Eine Fabrik von Golems: kein Stromnetz, Golems drehen jede Kurbel")),
     "wrench": (("Grease Monkey", "Craft a Copper Wrench"),
                ("Schrauber", "Stelle einen Kupferschraubenschlüssel her")),
     "operator": (("Turn the Crank", "Give a golem a wrench and link it to a machine"),
@@ -182,7 +182,7 @@ Put a carved pumpkin on a copper block. The golem appears, and the copper block 
 3. Right-click its copper chest (within 32 blocks). That is now its home.
 
 # The guide
-Open your advancements (L). The Mios Coppergolems tab leads you through everything, one step at a time."""),
+Open your advancements (L). The Better Coppers tab leads you through everything, one step at a time."""),
                 ("Willkommen", """Kupfergolems sind in dieser Mod kleine, etwas tollpatschige Arbeiter. Gib einem einen Arbeitsgegenstand und eine Heimattruhe, und er sortiert, gräbt, erntet, angelt oder trägt Waren für dich.
 
 # Dein erster Golem
@@ -194,7 +194,7 @@ Setze einen geschnitzten Kürbis auf einen Kupferblock. Der Golem erscheint, und
 3. Rechtsklicke seine Kupfertruhe (bis 32 Blöcke entfernt). Das ist jetzt sein Zuhause.
 
 # Der Leitfaden
-Öffne deine Fortschritte (L). Der Reiter Mios Coppergolems führt dich Schritt für Schritt durch alles.""")),
+Öffne deine Fortschritte (L). Der Reiter Better Coppers führt dich Schritt für Schritt durch alles.""")),
     "homes": (("Homes and Status", """Every working golem belongs to a copper chest, its home. It brings what it makes there and fetches its supplies from there.
 
 # Linking
@@ -649,13 +649,13 @@ AUTO_CHAPTERS = list(AUTO_BOOK)
 
 # Other texts: tools, eyes, the fishing float.
 MESSAGES = [
-    ("message.mioscoppergolems.copper_tools_only", "Copper golems only work with copper tools.", "Kupfergolems arbeiten nur mit Kupferwerkzeug."),
-    ("message.mioscoppergolems.job_ended", "The golem gives up its job.", "Der Golem gibt seinen Beruf auf."),
-    ("message.mioscoppergolems.eyes_courier", "Couriers don't need sharper eyes: they go wherever their route leads.", "Kuriere brauchen keine schärferen Augen: Sie gehen, wohin ihre Route führt."),
-    ("message.mioscoppergolems.eyes_set", "The golem's eyes glow: it now works %s%% as far from home.", "Die Augen des Golems leuchten: Er arbeitet jetzt %s %% so weit von zu Hause."),
-    ("status.mioscoppergolems.lost_tool", "looking for a new %s", "sucht Ersatz: %s"),
-    ("status.mioscoppergolems.eyes", "eyes %s%%", "Augen %s %%"),
-    ("entity.mioscoppergolems.golem_bobber", "Golem Bobber", "Golem-Schwimmer"),
+    ("message.bettercoppers.copper_tools_only", "Copper golems only work with copper tools.", "Kupfergolems arbeiten nur mit Kupferwerkzeug."),
+    ("message.bettercoppers.job_ended", "The golem gives up its job.", "Der Golem gibt seinen Beruf auf."),
+    ("message.bettercoppers.eyes_courier", "Couriers don't need sharper eyes: they go wherever their route leads.", "Kuriere brauchen keine schärferen Augen: Sie gehen, wohin ihre Route führt."),
+    ("message.bettercoppers.eyes_set", "The golem's eyes glow: it now works %s%% as far from home.", "Die Augen des Golems leuchten: Er arbeitet jetzt %s %% so weit von zu Hause."),
+    ("status.bettercoppers.lost_tool", "looking for a new %s", "sucht Ersatz: %s"),
+    ("status.bettercoppers.eyes", "eyes %s%%", "Augen %s %%"),
+    ("entity.bettercoppers.golem_bobber", "Golem Bobber", "Golem-Schwimmer"),
 ]
 
 
@@ -686,8 +686,8 @@ def main():
                 title, text = value[i]
                 lang[ns][i][f"handbook.{ns}.{chapter}.title"] = title
                 lang[ns][i][f"handbook.{ns}.{chapter}.text"] = text
-    lang[MAIN][0]["item.mioscoppergolems.golem_handbook"] = "Golem Handbook"
-    lang[MAIN][1]["item.mioscoppergolems.golem_handbook"] = "Golem-Handbuch"
+    lang[MAIN][0]["item.bettercoppers.golem_handbook"] = "Golem Handbook"
+    lang[MAIN][1]["item.bettercoppers.golem_handbook"] = "Golem-Handbuch"
     for key, en, de in MESSAGES:
         lang[MAIN][0][key] = en
         lang[MAIN][1][key] = de
