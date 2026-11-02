@@ -5,7 +5,7 @@ The language of a mod in which copper golems take on jobs for the player. Docs, 
 ## Golems
 
 **Job**:
-Any work a player assigned to a golem: sorter, miner, farmer, forester, fisher, animal keeper, crafter, courier, or an add-on job such as operator.
+Any work a player assigned to a golem: sorter, miner, farmer, forester, fisher, animal keeper, crafter, courier, or an add-on job such as operator. Only a player can change a golem's job.
 _Avoid_: Occupation, role
 
 **Jobless golem**:
@@ -27,8 +27,11 @@ _Avoid_: Tool, when the item is a bundle or crafting table
 **Lost tool**:
 A job tool that broke in a golem's hand. The golem keeps its job and looks for a replacement.
 
+**Load**:
+Everything a golem with a paying job carries for that job: its pouch, its supplies and the contents of its chained Copper Chest Minecart.
+
 **Pouch**:
-What a golem carries for its job, on top of what is in its hand.
+What a golem has gathered and is bringing home.
 _Avoid_: Loot
 
 **Supplies**:
@@ -40,6 +43,18 @@ _Avoid_: Upgrade
 
 **Trim**:
 An armour trim worn by a golem, purely for looks.
+
+## Sorting
+
+**Reserved chest**:
+A chest or barrel with item frames on it, which only takes the items its frames show.
+
+**Working stock**:
+What a sorter leaves in a shared home chest so the other golem's job can carry on, including spare job tools.
+_Avoid_: Reserve
+
+**Decoy**:
+A chest a sorter looks into before making its delivery.
 
 ## Places and links
 

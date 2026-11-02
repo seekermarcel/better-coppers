@@ -34,3 +34,7 @@ Anything that happens automatically to a golem no player touched is exactly vani
 
 ## Conventions
 Tabs, short Javadocs, English. Conventional commit messages. Never commit `docs/superpowers/` (gitignored). Only the latest Minecraft version is supported (ADR 0005).
+
+Any change players can notice updates the Golem Handbook in the same commit, in English and German, through `tools/gen_guide.py`.
+
+The add-on imports from the base mod only through `dev.bettercoppers.api`. If it needs something else, add a hook to `api`. Do not import the internal class (ADR 0004).
