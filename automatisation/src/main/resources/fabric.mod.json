@@ -5,7 +5,7 @@
 	"name": "Better Coppers Automatisation",
 	"description": "Conveyor belts, funnels, chutes, presses, saws and grabber arms, all worked by copper golems.",
 	"authors": ["Miodnr"],
-	"license": "All-Rights-Reserved",
+	"license": "LGPL-3.0-only",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
