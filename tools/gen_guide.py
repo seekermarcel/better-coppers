@@ -385,7 +385,7 @@ Stellt her, was die Rahmen an oder neben seiner Truhe zeigen, aus den Zutaten in
 
 It takes 16 items per trip, or a cart load with a chained cart. On the road it keeps the chunks around it loaded, so the route keeps working while you are far away. If the destination is full, it waits.
 
-A golem with a job takes no route: end its job first. Linking it to a home copper chest ends the route."""),
+A golem with a job takes no route, except a courier: give it a new route and it keeps what it carries and delivers it on the new route. Other jobs have to be ended first. Linking it to a home copper chest ends the route."""),
                 ("Kurier", """Ein Kurier trägt alles von einer Truhe zu einer anderen, egal wie weit sie auseinander stehen.
 
 1. Schleichen + Rechtsklick mit leerer Hand auf den Golem.
@@ -394,7 +394,7 @@ A golem with a job takes no route: end its job first. Linking it to a home coppe
 
 Er nimmt 16 Gegenstände pro Gang mit, mit angeketteter Lore eine ganze Ladung. Unterwegs hält er die Chunks um sich geladen, damit die Route auch funktioniert, wenn du weit weg bist. Ist das Ziel voll, wartet er.
 
-Ein Golem mit Beruf nimmt keine Route an: Beende erst seinen Beruf. Verbindest du ihn mit einer Kupfertruhe als Zuhause, endet die Route.""")),
+Ein Golem mit Beruf nimmt keine Route an, außer ein Kurier: Gib ihm eine neue Route, dann behält er, was er trägt, und liefert es auf der neuen Route aus. Andere Berufe musst du erst beenden. Verbindest du ihn mit einer Kupfertruhe als Zuhause, endet die Route.""")),
     "travel": (("Minecarts and Boats", """A golem heading somewhere more than 24 blocks away looks around for a ride.
 
 # Minecart

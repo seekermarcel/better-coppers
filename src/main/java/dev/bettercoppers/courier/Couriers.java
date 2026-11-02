@@ -72,8 +72,8 @@ public final class Couriers {
 	public static void onEntityLoad(Entity entity, ServerLevel level) {
 		if (entity instanceof CopperGolem golem) {
 			CourierRoute route = PENDING.remove(golem.getUUID());
-			// Given a job since the route was started: the job stays.
-			if (route != null && !Jobs.has(golem)) {
+			// Given a job other than courier since the route was started: the job stays.
+			if (route != null && Jobs.takesRoute(golem)) {
 				setRoute(golem, route);
 			}
 		}
