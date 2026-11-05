@@ -437,7 +437,7 @@ Eisengolems bleiben in der Nähe der Kupfergolems mit Beruf und greifen jedes Mo
 Ist ein Eisengolem in der Nähe schwer verletzt, holt ein Kupfergolem Eisenbarren aus seiner Heimattruhe (oder der nächsten Truhe mit Eisen) und repariert ihn: 25 Lebenspunkte pro Barren. Ein Golem, der nur ein Zuhause hat, nutzt auch Eisenbarren, die er schon in der Hand hält, und gibt zurück, was übrig bleibt.
 
 Bau also für jeden Arbeitsplatz einen Eisengolem und halte etwas Eisen in deinen Truhen bereit.""")),
-    "upkeep": (("Energy and Rust", """Sorters and couriers are free. Every other job costs something.
+    "running_costs": (("Energy and Rust", """Sorters and couriers are free. Every other job costs something.
 
 # Energy
 Work uses energy. At night, or when it runs empty, the golem walks to a free Charging Pad near its home (3 copper ingots, lightning rod, redstone) and stands on it.
@@ -703,7 +703,7 @@ MESSAGES = [
     ("message.bettercoppers.eyes_set", "The golem's eyes glow: it now works %s%% as far from home.", "Die Augen des Golems leuchten: Er arbeitet jetzt %s %% so weit von zu Hause."),
     ("status.bettercoppers.lost_tool", "looking for a new %s", "sucht Ersatz: %s"),
     ("status.bettercoppers.eyes", "eyes %s%%", "Augen %s %%"),
-    ("entity.bettercoppers.golem_bobber", "Golem Bobber", "Golem-Schwimmer"),
+    ("entity.bettercoppers.golem_float", "Golem Float", "Golem-Schwimmer"),
 ]
 
 

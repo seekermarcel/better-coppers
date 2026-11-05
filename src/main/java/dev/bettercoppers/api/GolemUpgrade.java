@@ -5,10 +5,10 @@ import net.minecraft.world.entity.animal.golem.CopperGolem;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Changes how a golem works, for upgrades from add-ons. Every registered modifier is asked for every golem; return the
+ * Changes how a golem works, for upgrades from add-ons. Every registered upgrade is asked for every golem; return the
  * neutral value for golems it does not apply to.
  */
-public interface GolemModifier {
+public interface GolemUpgrade {
 	/** Multiplies how fast the golem walks and works (1 = unchanged). */
 	default float speed(CopperGolem golem) {
 		return 1.0F;

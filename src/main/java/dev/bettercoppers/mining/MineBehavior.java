@@ -14,7 +14,7 @@ import dev.bettercoppers.job.Load;
 import dev.bettercoppers.job.Tools;
 import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.registry.ModTags;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.runningcosts.RunningCosts;
 import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.List;
@@ -115,12 +115,12 @@ public class MineBehavior extends Behavior<CopperGolem> {
 
 	@Override
 	protected boolean checkExtraStartConditions(ServerLevel level, CopperGolem golem) {
-		return this.hasWork(level, golem) && Upkeep.canWork(level, golem);
+		return this.hasWork(level, golem) && RunningCosts.canWork(level, golem);
 	}
 
 	@Override
 	protected boolean canStillUse(ServerLevel level, CopperGolem golem, long timestamp) {
-		return golem.getBrain().getMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS).isEmpty() && !golem.isPanicking() && this.hasWork(level, golem) && Upkeep.canWork(level, golem);
+		return golem.getBrain().getMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS).isEmpty() && !golem.isPanicking() && this.hasWork(level, golem) && RunningCosts.canWork(level, golem);
 	}
 
 	private boolean hasWork(ServerLevel level, CopperGolem golem) {
@@ -404,7 +404,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 				this.finishWork(golem, data);
 				return;
 			}
-			BehaviorUtils.setWalkAndLookTargetMemories(golem, step.stand(), WALK_SPEED * Upkeep.speed(golem), 0);
+			BehaviorUtils.setWalkAndLookTargetMemories(golem, step.stand(), WALK_SPEED * RunningCosts.speed(golem), 0);
 			return;
 		}
 		Golems.stopInPlace(golem);
@@ -467,7 +467,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		BlockState state = level.getBlockState(pos);
 		float hardness = state.getDestroySpeed(level, pos);
 		float speed = Math.max(1.0F, golem.getMainHandItem().getDestroySpeed(state));
-		float clumsiness = DIG_SLOWNESS / Upkeep.speed(golem) * (1.0F + golem.getRandom().nextFloat() * 0.6F);
+		float clumsiness = DIG_SLOWNESS / RunningCosts.speed(golem) * (1.0F + golem.getRandom().nextFloat() * 0.6F);
 		return Math.clamp((int) Math.ceil(hardness * 30.0F / speed * clumsiness), MIN_DIG_TICKS, MAX_DIG_TICKS);
 	}
 
@@ -481,7 +481,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		if (state.getDestroySpeed(level, pos) > 0.0F) {
 			Tools.wear(golem, tool);
 		}
-		Upkeep.spend(golem, ENERGY_PER_DIG);
+		RunningCosts.spend(golem, ENERGY_PER_DIG);
 		drops.forEach(Load.of(golem)::stash);
 		if (isDiamond(state) && !isExcited(golem)) {
 			golem.setAttached(ModAttachments.EXCITED, true);
@@ -624,7 +624,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	private void placeBlock(ServerLevel level, CopperGolem golem, BlockPos pos, BlockState state) {
 		BlockState placed = Block.updateFromNeighbourShapes(state, level, pos);
 		level.setBlockAndUpdate(pos, placed);
-		Upkeep.spend(golem, ENERGY_PER_BUILD);
+		RunningCosts.spend(golem, ENERGY_PER_BUILD);
 		level.gameEvent(GameEvent.BLOCK_PLACE, pos, GameEvent.Context.of(golem, placed));
 		SoundType sound = placed.getSoundType();
 		level.playSound(null, pos, sound.getPlaceSound(), SoundSource.BLOCKS, (sound.getVolume() + 1.0F) / 2.0F, sound.getPitch() * 0.8F);

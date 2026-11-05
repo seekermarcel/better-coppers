@@ -227,14 +227,14 @@ src/main/java/dev/bettercoppers/
   trim/      GolemTrims (trim templates and materials)
   mining/    MineBehavior (mining AI), MineLayout, MinePlan, MinerData, MinerInteractions
   job/       JobBehavior (shared home-chest routine), Farm-/Forest-/Fish-/Keeper-/CraftBehavior, WorkerData
-  upkeep/    Upkeep (energy, rust, scraping), ChargeBehavior, AxeDispenseBehavior
+  runningcosts/    RunningCosts (energy, rust, scraping), ChargeBehavior, AxeDispenseBehavior
   home/      Homes, HomeLinking (linking homes and routes), HomeDisplay (particle lines)
   block/, menu/  Survey Table and its menu
   entity/, item/  Copper Chest Minecart
-  api/       hooks for add-ons: jobs, brain behaviours, link targets, modifiers, pads, handbook
+  api/       hooks for add-ons: jobs, brain behaviours, link targets, upgrades, charging spots, handbook
   mixin/     adds the mod's behaviours in front of vanilla's golem AI (vanilla AI kept), goal accessors
 src/client/java/dev/bettercoppers/client/
-  render/    cart renderer with its chain, GolemTrimLayer, GolemAntennaLayer, GolemBobberRenderer
+  render/    cart renderer with its chain, GolemTrimLayer, GolemAntennaLayer, GolemFloatRenderer
 automatisation/  the Automatisation add-on (its own Gradle subproject)
 tools/       TrimGen.java (golem trim textures from the vanilla armour trims), SurveyGen.java (Survey Table textures),
              PadGen.java (Charging Pad), HandbookGen.java (handbook icon), GolemEyesGen.java (eye and antenna glow),

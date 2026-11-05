@@ -1,4 +1,4 @@
-package dev.bettercoppers.upkeep;
+package dev.bettercoppers.runningcosts;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -7,27 +7,27 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
  * Energy and wear of a working golem. Energy is spent on every bit of work and recharged on a Charging Pad;
  * wear adds up with the work done and makes the golem rust a stage further every so often.
  */
-public final class GolemUpkeep {
+public final class GolemRunningCosts {
 	public static final int MAX_ENERGY = 1000;
 
-	public static final Codec<GolemUpkeep> CODEC = RecordCodecBuilder.create(
+	public static final Codec<GolemRunningCosts> CODEC = RecordCodecBuilder.create(
 		instance -> instance.group(
-				Codec.intRange(0, MAX_ENERGY).optionalFieldOf("energy", MAX_ENERGY).forGetter(upkeep -> upkeep.energy),
-				Codec.INT.optionalFieldOf("wear", 0).forGetter(upkeep -> upkeep.wear),
-				Codec.BOOL.optionalFieldOf("recharging", false).forGetter(upkeep -> upkeep.recharging)
+				Codec.intRange(0, MAX_ENERGY).optionalFieldOf("energy", MAX_ENERGY).forGetter(runningCosts -> runningCosts.energy),
+				Codec.INT.optionalFieldOf("wear", 0).forGetter(runningCosts -> runningCosts.wear),
+				Codec.BOOL.optionalFieldOf("recharging", false).forGetter(runningCosts -> runningCosts.recharging)
 			)
-			.apply(instance, GolemUpkeep::new)
+			.apply(instance, GolemRunningCosts::new)
 	);
 
 	private int energy;
 	private int wear;
 	private boolean recharging;
 
-	public GolemUpkeep() {
+	public GolemRunningCosts() {
 		this(MAX_ENERGY, 0, false);
 	}
 
-	private GolemUpkeep(int energy, int wear, boolean recharging) {
+	private GolemRunningCosts(int energy, int wear, boolean recharging) {
 		this.energy = energy;
 		this.wear = wear;
 		this.recharging = recharging;

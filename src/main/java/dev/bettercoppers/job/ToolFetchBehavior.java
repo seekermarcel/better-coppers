@@ -5,7 +5,7 @@ import dev.bettercoppers.api.TravelWatch;
 import dev.bettercoppers.golem.ChestVisit;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.home.Homes;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.runningcosts.RunningCosts;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -65,7 +65,7 @@ public class ToolFetchBehavior extends Behavior<CopperGolem> {
 
 	/** The load goes home first; the job behaviours do that by themselves. */
 	private boolean wantsTool(ServerLevel level, CopperGolem golem) {
-		if (Tools.lostTool(golem) == null || golem.isLeashed() || Homes.get(golem) == null || !Upkeep.canWork(level, golem) || !Load.of(golem).hasNothingToBringHome()) {
+		if (Tools.lostTool(golem) == null || golem.isLeashed() || Homes.get(golem) == null || !RunningCosts.canWork(level, golem) || !Load.of(golem).hasNothingToBringHome()) {
 			return false;
 		}
 		Jobs.JobKind kind = Jobs.of(golem);
@@ -116,7 +116,7 @@ public class ToolFetchBehavior extends Behavior<CopperGolem> {
 				this.nextSearch = level.getGameTime() + RETRY_TICKS;
 				return;
 			}
-			BehaviorUtils.setWalkAndLookTargetMemories(golem, source, 0.8F * Upkeep.speed(golem), 1);
+			BehaviorUtils.setWalkAndLookTargetMemories(golem, source, 0.8F * RunningCosts.speed(golem), 1);
 			return;
 		}
 		this.ticks = ChestVisit.tick(golem, container, source, this.ticks, CopperGolemState.GETTING_ITEM);

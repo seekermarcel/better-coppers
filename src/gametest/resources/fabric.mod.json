@@ -7,7 +7,7 @@
 	"entrypoints": {
 		"fabric-gametest": [
 			"dev.bettercoppers.test.GameTests",
-			"dev.bettercoppers.upkeep.ChargeGameTests",
+			"dev.bettercoppers.runningcosts.ChargeGameTests",
 			"dev.bettercoppers.test.JobGameTests",
 			"dev.bettercoppers.test.JobWorkGameTests",
 			"dev.bettercoppers.test.HandoverGameTests",

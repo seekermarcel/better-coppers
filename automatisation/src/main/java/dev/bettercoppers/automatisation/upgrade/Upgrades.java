@@ -1,6 +1,6 @@
 package dev.bettercoppers.automatisation.upgrade;
 
-import dev.bettercoppers.api.GolemModifier;
+import dev.bettercoppers.api.GolemUpgrade;
 import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.automatisation.Automatisation;
 import dev.bettercoppers.automatisation.registry.AutoAttachments;
@@ -41,7 +41,7 @@ public final class Upgrades {
 	/** How much of a hit the plating takes. */
 	public static final float PLATING_SHARE = 0.75F;
 
-	public static final GolemModifier MODIFIER = new GolemModifier() {
+	public static final GolemUpgrade UPGRADE = new GolemUpgrade() {
 		@Override
 		public float speed(CopperGolem golem) {
 			return get(golem).gearwork() > 0 ? GEARWORK_SPEED : 1.0F;

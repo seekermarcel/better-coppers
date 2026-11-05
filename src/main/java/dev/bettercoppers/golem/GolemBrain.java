@@ -12,7 +12,7 @@ import dev.bettercoppers.job.KeeperBehavior;
 import dev.bettercoppers.job.ToolFetchBehavior;
 import dev.bettercoppers.mining.MineBehavior;
 import dev.bettercoppers.repair.RepairBehavior;
-import dev.bettercoppers.upkeep.ChargeBehavior;
+import dev.bettercoppers.runningcosts.ChargeBehavior;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 

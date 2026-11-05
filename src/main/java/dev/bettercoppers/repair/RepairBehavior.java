@@ -12,7 +12,7 @@ import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.registry.ModAttachments;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.runningcosts.RunningCosts;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -227,7 +227,7 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 				this.patient = null;
 				return;
 			}
-			BehaviorUtils.setWalkAndLookTargetMemories(golem, target, Upkeep.speed(golem), 1);
+			BehaviorUtils.setWalkAndLookTargetMemories(golem, target, RunningCosts.speed(golem), 1);
 			return;
 		}
 		Golems.stopInPlace(golem);
@@ -255,7 +255,7 @@ public class RepairBehavior extends Behavior<CopperGolem> {
 			this.patient = null;
 			return;
 		}
-		BehaviorUtils.setWalkAndLookTargetMemories(golem, block, Upkeep.speed(golem), 1);
+		BehaviorUtils.setWalkAndLookTargetMemories(golem, block, RunningCosts.speed(golem), 1);
 	}
 
 	private void closeChest(ServerLevel level, CopperGolem golem) {

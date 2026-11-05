@@ -19,14 +19,14 @@ import org.jspecify.annotations.Nullable;
  * the golem's rod, and it dips under when a fish bites. The fisher keeps it alive while it fishes; left alone for a
  * second, it disappears. Never saved.
  */
-public class GolemBobber extends Entity {
-	private static final EntityDataAccessor<Integer> DATA_OWNER = SynchedEntityData.defineId(GolemBobber.class, EntityDataSerializers.INT);
-	private static final EntityDataAccessor<Boolean> DATA_BITING = SynchedEntityData.defineId(GolemBobber.class, EntityDataSerializers.BOOLEAN);
+public class GolemFloat extends Entity {
+	private static final EntityDataAccessor<Integer> DATA_OWNER = SynchedEntityData.defineId(GolemFloat.class, EntityDataSerializers.INT);
+	private static final EntityDataAccessor<Boolean> DATA_BITING = SynchedEntityData.defineId(GolemFloat.class, EntityDataSerializers.BOOLEAN);
 	private static final int KEEP_ALIVE_TICKS = 20;
 
 	private long keptUntil;
 
-	public GolemBobber(EntityType<? extends GolemBobber> type, Level level) {
+	public GolemFloat(EntityType<? extends GolemFloat> type, Level level) {
 		super(type, level);
 		this.noPhysics = true;
 	}

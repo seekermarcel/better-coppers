@@ -2,7 +2,7 @@ package dev.bettercoppers.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import dev.bettercoppers.entity.GolemBobber;
+import dev.bettercoppers.entity.GolemFloat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -19,10 +19,10 @@ import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * The fishing golem's float, drawn like the vanilla fishing hook: a floating bobber that rocks on the water and dips
+ * The fishing golem's float, drawn like the vanilla fishing hook: a floating golemFloat that rocks on the water and dips
  * under when a fish bites, and a fishing line from the tip of the golem's rod.
  */
-public class GolemBobberRenderer extends EntityRenderer<GolemBobber, GolemBobberRenderer.State> {
+public class GolemFloatRenderer extends EntityRenderer<GolemFloat, GolemFloatRenderer.State> {
 	private static final Identifier TEXTURE = Identifier.withDefaultNamespace("textures/entity/fishing/fishing_hook.png");
 	private static final RenderType RENDER_TYPE = RenderTypes.entityCutoutCull(TEXTURE);
 	private static final int LINE_STEPS = 16;
@@ -31,12 +31,12 @@ public class GolemBobberRenderer extends EntityRenderer<GolemBobber, GolemBobber
 		public float bob;
 	}
 
-	public GolemBobberRenderer(EntityRendererProvider.Context context) {
+	public GolemFloatRenderer(EntityRendererProvider.Context context) {
 		super(context);
 	}
 
 	@Override
-	public boolean shouldRender(GolemBobber entity, Frustum culler, double camX, double camY, double camZ, float partialTicks) {
+	public boolean shouldRender(GolemFloat entity, Frustum culler, double camX, double camY, double camZ, float partialTicks) {
 		return super.shouldRender(entity, culler, camX, camY, camZ, partialTicks) && entity.owner() != null;
 	}
 
@@ -46,7 +46,7 @@ public class GolemBobberRenderer extends EntityRenderer<GolemBobber, GolemBobber
 	}
 
 	@Override
-	public void extractRenderState(GolemBobber entity, State state, float partialTicks) {
+	public void extractRenderState(GolemFloat entity, State state, float partialTicks) {
 		super.extractRenderState(entity, state, partialTicks);
 		float age = entity.tickCount + partialTicks;
 		state.bob = entity.isBiting() ? -0.18F : Mth.sin(age * 0.12F) * 0.03F;
@@ -121,7 +121,7 @@ public class GolemBobberRenderer extends EntityRenderer<GolemBobber, GolemBobber
 	}
 
 	@Override
-	protected boolean affectedByCulling(GolemBobber entity) {
+	protected boolean affectedByCulling(GolemFloat entity) {
 		return false;
 	}
 }

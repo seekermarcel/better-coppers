@@ -4,7 +4,7 @@ import dev.bettercoppers.combat.DefendCopperGolemsTargetGoal;
 import dev.bettercoppers.golem.HomeStroll;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.mixin.CopperGolemAccessor;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.runningcosts.RunningCosts;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -168,7 +168,7 @@ public class VanillaGameTests {
 		((CopperGolemAccessor) golem).bettercoppers$setNextWeatheringTick(-2L);
 		DispenserBlockEntity dispenser = axeDispenser(h);
 		h.succeedWhen(() -> {
-			h.assertTrue(!Upkeep.isWaxed(golem), "golem still waxed");
+			h.assertTrue(!RunningCosts.isWaxed(golem), "golem still waxed");
 			h.assertTrue(dispenser.getItem(0).is(Items.IRON_AXE), "axe left the dispenser");
 		});
 	}

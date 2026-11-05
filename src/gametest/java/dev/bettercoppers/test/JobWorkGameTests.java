@@ -1,8 +1,8 @@
 package dev.bettercoppers.test;
 
 import dev.bettercoppers.api.BetterCoppersApi;
-import dev.bettercoppers.api.GolemModifier;
-import dev.bettercoppers.entity.GolemBobber;
+import dev.bettercoppers.api.GolemUpgrade;
+import dev.bettercoppers.entity.GolemFloat;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.Load;
 import java.util.HashSet;
@@ -39,7 +39,7 @@ public class JobWorkGameTests {
 	private static final Set<UUID> HASTY = new HashSet<>();
 
 	static {
-		BetterCoppersApi.registerModifier(new GolemModifier() {
+		BetterCoppersApi.registerUpgrade(new GolemUpgrade() {
 			@Override
 			public float speed(CopperGolem golem) {
 				return HASTY.contains(golem.getUUID()) ? 10.0F : 1.0F;
@@ -108,9 +108,9 @@ public class JobWorkGameTests {
 		boolean[] castOnWater = {false};
 		boolean[] biting = {false};
 		h.onEachTick(() -> {
-			for (GolemBobber bobber : h.getLevel().getEntitiesOfClass(GolemBobber.class, h.getBounds(), bobber -> bobber.owner() == golem)) {
-				castOnWater[0] |= h.getLevel().getFluidState(bobber.blockPosition()).is(FluidTags.WATER);
-				biting[0] |= bobber.isBiting();
+			for (GolemFloat golemFloat : h.getLevel().getEntitiesOfClass(GolemFloat.class, h.getBounds(), golemFloat -> golemFloat.owner() == golem)) {
+				castOnWater[0] |= h.getLevel().getFluidState(golemFloat.blockPosition()).is(FluidTags.WATER);
+				biting[0] |= golemFloat.isBiting();
 			}
 		});
 		h.succeedWhen(() -> {

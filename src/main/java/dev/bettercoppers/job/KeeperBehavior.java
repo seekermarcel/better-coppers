@@ -3,7 +3,7 @@ package dev.bettercoppers.job;
 import dev.bettercoppers.golem.Eyes;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.home.Homes;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.runningcosts.RunningCosts;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -102,7 +102,7 @@ public class KeeperBehavior extends JobBehavior<KeeperBehavior.Feeding> {
 			animal.setInLove(null);
 			level.sendParticles(ParticleTypes.HEART, animal.getX(), animal.getY() + animal.getBbHeight(), animal.getZ(), 3, 0.3, 0.2, 0.3, 0.0);
 			Tools.wear(golem, golem.getMainHandItem());
-			Upkeep.spend(golem, ENERGY_PER_FEED);
+			RunningCosts.spend(golem, ENERGY_PER_FEED);
 		}
 		return true;
 	}

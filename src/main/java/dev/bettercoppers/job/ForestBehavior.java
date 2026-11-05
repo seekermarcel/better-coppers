@@ -3,7 +3,7 @@ package dev.bettercoppers.job;
 import dev.bettercoppers.golem.Eyes;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.runningcosts.RunningCosts;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -148,7 +148,7 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 			level.setBlockAndUpdate(stump, state);
 			level.gameEvent(GameEvent.BLOCK_PLACE, stump, GameEvent.Context.of(golem, state));
 			level.playSound(null, stump, state.getSoundType().getPlaceSound(), SoundSource.BLOCKS, 1.0F, 0.8F);
-			Upkeep.spend(golem, 2);
+			RunningCosts.spend(golem, 2);
 		}
 		WorkerData.getOrCreate(golem).marks().remove(stump);
 		return true;
@@ -194,7 +194,7 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 			Block.getDrops(state, level, log, null, golem, axe).forEach(Load.of(golem)::stash);
 			level.destroyBlock(log, false, golem);
 			Tools.wear(golem, axe);
-			Upkeep.spend(golem, ENERGY_PER_LOG);
+			RunningCosts.spend(golem, ENERGY_PER_LOG);
 		}
 		if (sapling != null && level.getBlockState(base).isAir()) {
 			WorkerData.getOrCreate(golem).marks().add(base);
@@ -220,7 +220,7 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 			this.giveUp();
 			return false;
 		}
-		BehaviorUtils.setWalkAndLookTargetMemories(golem, stand, Golems.WALK_SPEED * Upkeep.speed(golem), 0);
+		BehaviorUtils.setWalkAndLookTargetMemories(golem, stand, Golems.WALK_SPEED * RunningCosts.speed(golem), 0);
 		return false;
 	}
 

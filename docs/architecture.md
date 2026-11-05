@@ -33,7 +33,7 @@ A job is derived from what the golem holds and which data it has, with no stored
 
 The `Job` enum holds only the five jobs that share `JobBehavior`. Miner, sorter and courier have their own code, and add-on jobs are `GolemJob`s.
 
-Other names that differ from `GLOSSARY.md`: `Upkeep` is running costs, `GolemModifier` is the hook behind upgrades, `ChargePad` is an API hook for add-on charging blocks and is unrelated to the Charging Pad block, and `GolemBobberRenderer` draws the float.
+`ChargingSpot` is an API hook for add-on charging blocks such as the Charging Station. The Charging Pad block does not use it.
 
 ## A golem with only a home
 

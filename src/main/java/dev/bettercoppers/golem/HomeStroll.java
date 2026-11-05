@@ -3,7 +3,7 @@ package dev.bettercoppers.golem;
 import com.google.common.collect.ImmutableMap;
 import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.job.Jobs;
-import dev.bettercoppers.upkeep.ChargeBehavior;
+import dev.bettercoppers.runningcosts.ChargeBehavior;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.behavior.Behavior;

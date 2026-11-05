@@ -1,6 +1,6 @@
 package dev.bettercoppers.automatisation.charging;
 
-import dev.bettercoppers.api.ChargePad;
+import dev.bettercoppers.api.ChargingSpot;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -11,9 +11,9 @@ import net.minecraft.world.level.block.state.BlockState;
 public class ChargingStationBlock extends Block {
 	public static final int CHARGE_PER_TICK = 4;
 
-	public static final ChargePad PAD = new ChargePad() {
+	public static final ChargingSpot PAD = new ChargingSpot() {
 		@Override
-		public boolean isPad(BlockState state) {
+		public boolean isSpot(BlockState state) {
 			return state.getBlock() instanceof ChargingStationBlock;
 		}
 

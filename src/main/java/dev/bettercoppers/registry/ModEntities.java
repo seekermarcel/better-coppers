@@ -2,7 +2,7 @@ package dev.bettercoppers.registry;
 
 import dev.bettercoppers.BetterCoppers;
 import dev.bettercoppers.entity.CopperChestMinecart;
-import dev.bettercoppers.entity.GolemBobber;
+import dev.bettercoppers.entity.GolemFloat;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -18,8 +18,8 @@ public final class ModEntities {
 		EntityType.Builder.of(CopperChestMinecart::new, MobCategory.MISC).noLootTable().sized(0.98F, 0.7F).passengerAttachments(0.1875F).clientTrackingRange(8)
 	);
 
-	public static final EntityType<GolemBobber> GOLEM_BOBBER = register(
-		"golem_bobber", EntityType.Builder.<GolemBobber>of(GolemBobber::new, MobCategory.MISC).noLootTable().noSave().noSummon().sized(0.25F, 0.25F).clientTrackingRange(4)
+	public static final EntityType<GolemFloat> GOLEM_FLOAT = register(
+		"golem_float", EntityType.Builder.<GolemFloat>of(GolemFloat::new, MobCategory.MISC).noLootTable().noSave().noSummon().sized(0.25F, 0.25F).clientTrackingRange(4)
 	);
 
 	private ModEntities() {

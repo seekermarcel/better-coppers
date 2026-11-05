@@ -2,7 +2,7 @@ package dev.bettercoppers.job;
 
 import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.api.GolemJob;
-import dev.bettercoppers.api.GolemModifier;
+import dev.bettercoppers.api.GolemUpgrade;
 import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.golem.Eyes;
 import dev.bettercoppers.golem.Sorter;
@@ -99,8 +99,8 @@ public final class Jobs {
 			for (GolemJob job : BetterCoppersApi.jobs()) {
 				job.dropItems(level, golem);
 			}
-			for (GolemModifier modifier : BetterCoppersApi.modifiers()) {
-				modifier.dropItems(level, golem);
+			for (GolemUpgrade upgrade : BetterCoppersApi.upgrades()) {
+				upgrade.dropItems(level, golem);
 			}
 		}
 	}

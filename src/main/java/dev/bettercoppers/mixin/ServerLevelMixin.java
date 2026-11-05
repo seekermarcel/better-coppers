@@ -1,6 +1,6 @@
 package dev.bettercoppers.mixin;
 
-import dev.bettercoppers.upkeep.ChargeBehavior;
+import dev.bettercoppers.runningcosts.ChargeBehavior;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.gamerules.GameRules;
 import org.spongepowered.asm.mixin.Mixin;

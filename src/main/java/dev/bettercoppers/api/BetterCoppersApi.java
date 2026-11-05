@@ -6,7 +6,7 @@ import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.home.HomeDisplay;
 import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.job.JobHandover;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.runningcosts.RunningCosts;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -33,8 +33,8 @@ import org.jspecify.annotations.Nullable;
  * <li>{@link #registerBehavior}: a behaviour added to every copper golem's brain, next to the built-in jobs. It
  * should only start for its own job and leave the golem alone otherwise.</li>
  * <li>{@link #registerLinkTarget}: blocks golems can be linked to.</li>
- * <li>{@link #registerModifier}: upgrades that change speed, rusting or how much a golem carries.</li>
- * <li>{@link #registerChargePad}: blocks golems recharge on.</li>
+ * <li>{@link #registerUpgrade}: upgrades that change speed, rusting or how much a golem carries.</li>
+ * <li>{@link #registerChargingSpot}: blocks golems recharge on.</li>
  * <li>{@link #registerHandbookChapter}: chapters for the Golem Handbook; {@link #awardGuide} unlocks guide
  * advancements.</li>
  * <li>{@link #CREATIVE_TAB}: the mod's creative tab. Add items with
@@ -49,8 +49,8 @@ public final class BetterCoppersApi {
 	private static final List<GolemJob> JOBS = new ArrayList<>();
 	private static final List<Supplier<? extends Behavior<CopperGolem>>> BEHAVIORS = new ArrayList<>();
 	private static final List<GolemLinkTarget> LINK_TARGETS = new ArrayList<>();
-	private static final List<GolemModifier> MODIFIERS = new ArrayList<>();
-	private static final List<ChargePad> CHARGE_PADS = new ArrayList<>();
+	private static final List<GolemUpgrade> UPGRADES = new ArrayList<>();
+	private static final List<ChargingSpot> CHARGING_SPOTS = new ArrayList<>();
 	private static final List<Identifier> HANDBOOK_CHAPTERS = new ArrayList<>();
 
 	private BetterCoppersApi() {
@@ -95,23 +95,23 @@ public final class BetterCoppersApi {
 		LINK_TARGETS.add(target);
 	}
 
-	public static void registerModifier(GolemModifier modifier) {
-		MODIFIERS.add(modifier);
+	public static void registerUpgrade(GolemUpgrade upgrade) {
+		UPGRADES.add(upgrade);
 	}
 
-	public static void registerChargePad(ChargePad pad) {
-		CHARGE_PADS.add(pad);
+	public static void registerChargingSpot(ChargingSpot spot) {
+		CHARGING_SPOTS.add(spot);
 	}
 
-	public static List<GolemModifier> modifiers() {
-		return MODIFIERS;
+	public static List<GolemUpgrade> upgrades() {
+		return UPGRADES;
 	}
 
-	/** The pad this block is, or null for an ordinary block. */
-	public static @Nullable ChargePad chargePad(net.minecraft.world.level.block.state.BlockState state) {
-		for (ChargePad pad : CHARGE_PADS) {
-			if (pad.isPad(state)) {
-				return pad;
+	/** The charging spot this block is, or null for an ordinary block. */
+	public static @Nullable ChargingSpot chargingSpot(net.minecraft.world.level.block.state.BlockState state) {
+		for (ChargingSpot spot : CHARGING_SPOTS) {
+			if (spot.isSpot(state)) {
+				return spot;
 			}
 		}
 		return null;
@@ -125,8 +125,8 @@ public final class BetterCoppersApi {
 	/** How many items this golem carries in its hand, upgrades included. */
 	public static int carryLimit(CopperGolem golem, int base) {
 		int limit = base;
-		for (GolemModifier modifier : MODIFIERS) {
-			limit = modifier.carryLimit(golem, limit);
+		for (GolemUpgrade upgrade : UPGRADES) {
+			limit = upgrade.carryLimit(golem, limit);
 		}
 		return limit;
 	}
@@ -163,16 +163,16 @@ public final class BetterCoppersApi {
 
 	/** Whether the golem has energy and is not rusted shut or otherwise stopped: the check for starting work. */
 	public static boolean canWork(ServerLevel level, CopperGolem golem) {
-		return Upkeep.canWork(level, golem);
+		return RunningCosts.canWork(level, golem);
 	}
 
 	/** How fast the golem moves and works, 1 being normal. */
 	public static float workSpeed(CopperGolem golem) {
-		return Upkeep.speed(golem);
+		return RunningCosts.speed(golem);
 	}
 
 	public static void spendEnergy(CopperGolem golem, int energy) {
-		Upkeep.spend(golem, energy);
+		RunningCosts.spend(golem, energy);
 	}
 
 	/** Draws the particle line from the golem to a linked block, as for a home. */

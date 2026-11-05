@@ -1,7 +1,7 @@
 package dev.bettercoppers.job;
 
 import dev.bettercoppers.registry.ModAttachments;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.runningcosts.RunningCosts;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.ItemTags;
@@ -59,7 +59,7 @@ public final class Tools {
 
 	/** Any axe scrapes a rusty or waxed golem, as in vanilla, so it cannot be handed over. */
 	public static boolean scrapes(CopperGolem golem, ItemStack stack) {
-		return stack.is(ItemTags.AXES) && (golem.getWeatherState() != WeatheringCopper.WeatherState.UNAFFECTED || Upkeep.isWaxed(golem));
+		return stack.is(ItemTags.AXES) && (golem.getWeatherState() != WeatheringCopper.WeatherState.UNAFFECTED || RunningCosts.isWaxed(golem));
 	}
 
 	/** Refuses to take non-copper tools, with a message. */

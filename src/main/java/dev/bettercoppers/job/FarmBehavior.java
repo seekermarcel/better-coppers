@@ -4,7 +4,7 @@ import dev.bettercoppers.golem.Eyes;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.home.Homes;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.runningcosts.RunningCosts;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -235,7 +235,7 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 				Tools.wear(golem, tool);
 			}
 			drops.forEach(load::stash);
-			Upkeep.spend(golem, ENERGY_PER_ACTION);
+			RunningCosts.spend(golem, ENERGY_PER_ACTION);
 		}
 	}
 
@@ -248,7 +248,7 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 			return;
 		}
 		level.setBlockAndUpdate(pos, crop);
-		Upkeep.spend(golem, ENERGY_PER_ACTION);
+		RunningCosts.spend(golem, ENERGY_PER_ACTION);
 		level.gameEvent(GameEvent.BLOCK_PLACE, pos, GameEvent.Context.of(golem, crop));
 		level.playSound(null, pos, crop.getSoundType().getPlaceSound(), SoundSource.BLOCKS, 1.0F, 0.8F);
 	}

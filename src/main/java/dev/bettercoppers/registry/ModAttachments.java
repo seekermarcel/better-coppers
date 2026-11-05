@@ -6,7 +6,7 @@ import dev.bettercoppers.courier.CourierRoute;
 import dev.bettercoppers.job.Load;
 import dev.bettercoppers.job.WorkerData;
 import dev.bettercoppers.mining.MinerData;
-import dev.bettercoppers.upkeep.GolemUpkeep;
+import dev.bettercoppers.runningcosts.GolemRunningCosts;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
@@ -34,8 +34,8 @@ public final class ModAttachments {
 	);
 
 	/** Energy and wear of any working golem. */
-	public static final AttachmentType<GolemUpkeep> UPKEEP = AttachmentRegistry.create(
-		BetterCoppers.id("upkeep"), builder -> builder.persistent(GolemUpkeep.CODEC).initializer(GolemUpkeep::new)
+	public static final AttachmentType<GolemRunningCosts> RUNNING_COSTS = AttachmentRegistry.create(
+		BetterCoppers.id("running_costs"), builder -> builder.persistent(GolemRunningCosts.CODEC).initializer(GolemRunningCosts::new)
 	);
 
 	/** The copper chest a golem belongs to, linked by the player. */

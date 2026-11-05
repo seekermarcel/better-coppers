@@ -40,8 +40,8 @@ public class Automatisation implements ModInitializer {
 		BetterCoppersApi.registerJob(Operators.JOB);
 		BetterCoppersApi.registerBehavior(OperatorBehavior::new);
 		BetterCoppersApi.registerLinkTarget(Operators.LINK);
-		BetterCoppersApi.registerModifier(Upgrades.MODIFIER);
-		BetterCoppersApi.registerChargePad(ChargingStationBlock.PAD);
+		BetterCoppersApi.registerUpgrade(Upgrades.UPGRADE);
+		BetterCoppersApi.registerChargingSpot(ChargingStationBlock.PAD);
 		UseEntityCallback.EVENT.register(Upgrades::onUseEntity);
 		UseEntityCallback.EVENT.register(Operators::onUseEntity);
 		for (String chapter : HANDBOOK_CHAPTERS) {

@@ -2,8 +2,8 @@ package dev.bettercoppers.block;
 
 import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.job.Jobs;
-import dev.bettercoppers.upkeep.GolemUpkeep;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.runningcosts.GolemRunningCosts;
+import dev.bettercoppers.runningcosts.RunningCosts;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -80,15 +80,15 @@ public class ChargingPadBlock extends Block {
 			if (!Jobs.isPaying(golem)) {
 				continue;
 			}
-			GolemUpkeep upkeep = Upkeep.get(golem);
-			if (upkeep.energy() >= GolemUpkeep.MAX_ENERGY) {
+			GolemRunningCosts runningCosts = RunningCosts.get(golem);
+			if (runningCosts.energy() >= GolemRunningCosts.MAX_ENERGY) {
 				continue;
 			}
-			upkeep.setEnergy(upkeep.energy() + ENERGY_PER_PULSE);
+			runningCosts.setEnergy(runningCosts.energy() + ENERGY_PER_PULSE);
 			level.sendParticles(ParticleTypes.ELECTRIC_SPARK, golem.getX(), golem.getY() + 0.9, golem.getZ(), 3, 0.2, 0.2, 0.2, 0.05);
 			level.playSound(null, pos, SoundEvents.COPPER_BULB_TURN_ON, SoundSource.BLOCKS, 0.3F, 1.6F + level.getRandom().nextFloat() * 0.3F);
-			if (upkeep.energy() >= GolemUpkeep.MAX_ENERGY) {
-				Upkeep.playChargeSound(level, golem);
+			if (runningCosts.energy() >= GolemRunningCosts.MAX_ENERGY) {
+				RunningCosts.playChargeSound(level, golem);
 				Guide.awardNearby(level, golem.position(), "recharge");
 			}
 		}

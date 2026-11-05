@@ -1,4 +1,4 @@
-package dev.bettercoppers.upkeep;
+package dev.bettercoppers.runningcosts;
 
 import dev.bettercoppers.guide.Guide;
 import java.util.List;
@@ -40,7 +40,7 @@ public class AxeDispenseBehavior extends DefaultDispenseItemBehavior {
 		BlockPos front = source.pos().relative(source.state().getValue(DispenserBlock.FACING));
 		this.scraped = false;
 		for (CopperGolem golem : level.getEntitiesOfClass(CopperGolem.class, new AABB(front))) {
-			if (Upkeep.scrape(level, golem)) {
+			if (RunningCosts.scrape(level, golem)) {
 				stack.hurtAndBreak(1, level, null, item -> {});
 				this.scraped = true;
 				Guide.awardNearby(level, golem.position(), "scrape");

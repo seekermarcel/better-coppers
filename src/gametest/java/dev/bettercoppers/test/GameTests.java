@@ -1,7 +1,7 @@
 package dev.bettercoppers.test;
 
-import dev.bettercoppers.upkeep.GolemUpkeep;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.runningcosts.GolemRunningCosts;
+import dev.bettercoppers.runningcosts.RunningCosts;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.Container;
@@ -20,7 +20,7 @@ public class GameTests {
 
 	/** Gives the golem full energy so it is allowed to work. */
 	public static void energize(CopperGolem g) {
-		Upkeep.get(g).setEnergy(GolemUpkeep.MAX_ENERGY);
+		RunningCosts.get(g).setEnergy(GolemRunningCosts.MAX_ENERGY);
 	}
 
 	/** How many of this item lie on the ground in the test area. */

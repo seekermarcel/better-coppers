@@ -1,4 +1,4 @@
-package dev.bettercoppers.upkeep;
+package dev.bettercoppers.runningcosts;
 
 import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.block.ChargingPadBlock;
@@ -66,7 +66,7 @@ public class ChargeGameTests {
 		CopperGolem golem = h.spawn(EntityTypes.COPPER_GOLEM, pos);
 		BetterCoppersApi.giveTool(h.makeMockPlayer(GameType.SURVIVAL), golem, new ItemStack(Items.COPPER_HOE));
 		WorkerData.getOrCreate(golem);
-		Upkeep.get(golem).setEnergy(energy);
+		RunningCosts.get(golem).setEnergy(energy);
 		return golem;
 	}
 
@@ -117,7 +117,7 @@ public class ChargeGameTests {
 	}
 
 	private static int energy(CopperGolem golem) {
-		return Upkeep.get(golem).energy();
+		return RunningCosts.get(golem).energy();
 	}
 
 	/** A job ended on the pad: nothing there can charge the golem any more, so the behaviour must let go. */
@@ -128,14 +128,14 @@ public class ChargeGameTests {
 		Player player = h.makeMockPlayer(GameType.SURVIVAL);
 		BetterCoppersApi.giveTool(player, golem, new ItemStack(Items.COPPER_HOE));
 		WorkerData.getOrCreate(golem);
-		Upkeep.get(golem).setEnergy(0);
+		RunningCosts.get(golem).setEnergy(0);
 		ChargeBehavior charge = new ChargeBehavior();
 		long now = h.getLevel().getGameTime();
 		h.assertTrue(charge.tryStart(h.getLevel(), golem, now), "did not start charging");
 		charge.tickOrStop(h.getLevel(), golem, now);
 		h.assertTrue(charge.getStatus() == Behavior.Status.RUNNING, "stopped while working");
 		JobHandover.clear(player, golem);
-		Upkeep.get(golem).setEnergy(10);
+		RunningCosts.get(golem).setEnergy(10);
 		charge.tickOrStop(h.getLevel(), golem, now + 1);
 		h.assertTrue(charge.getStatus() == Behavior.Status.STOPPED, "still held on the pad");
 		h.succeed();
@@ -182,7 +182,7 @@ public class ChargeGameTests {
 		// The one pulse that goes around.
 		h.setBlock(new BlockPos(3, 1, 2), Blocks.REPEATER.defaultBlockState().setValue(RepeaterBlock.FACING, Direction.EAST).setValue(RepeaterBlock.POWERED, true));
 		h.onEachTick(() -> {
-			if (energy(golem) == GolemUpkeep.MAX_ENERGY) {
+			if (energy(golem) == GolemRunningCosts.MAX_ENERGY) {
 				h.assertTrue(h.getTick() >= 450 && h.getTick() <= 560, "full after " + h.getTick() + " ticks");
 				h.succeed();
 			}
@@ -194,12 +194,12 @@ public class ChargeGameTests {
 	public void by_day_a_golem_goes_charging_only_when_empty(GameTestHelper h) {
 		JobGameTests.scene(h);
 		h.setBlock(PAD, ModBlocks.CHARGING_PAD);
-		CopperGolem golem = farmer(h, new BlockPos(5, 1, 5), GolemUpkeep.MAX_ENERGY);
+		CopperGolem golem = farmer(h, new BlockPos(5, 1, 5), GolemRunningCosts.MAX_ENERGY);
 		long now = h.getLevel().getGameTime();
 		h.assertFalse(new ChargeBehavior().tryStart(h.getLevel(), golem, now), "full golem went charging");
-		Upkeep.get(golem).setEnergy(1);
+		RunningCosts.get(golem).setEnergy(1);
 		h.assertFalse(new ChargeBehavior().tryStart(h.getLevel(), golem, now), "golem with energy left went charging");
-		Upkeep.get(golem).setEnergy(0);
+		RunningCosts.get(golem).setEnergy(0);
 		h.assertTrue(new ChargeBehavior().tryStart(h.getLevel(), golem, now), "empty golem did not go charging");
 		h.succeed();
 	}
@@ -229,7 +229,7 @@ public class ChargeGameTests {
 			int energy = energy(golem);
 			ranEmpty[0] |= energy == 0;
 			arrived[0] |= ranEmpty[0] && golem.blockPosition().equals(h.absolutePos(ON_PAD));
-			wasFull[0] |= ranEmpty[0] && energy == GolemUpkeep.MAX_ENERGY;
+			wasFull[0] |= ranEmpty[0] && energy == GolemRunningCosts.MAX_ENERGY;
 			if (arrived[0] && !wasFull[0]) {
 				assertAt(h, golem, ON_PAD, "left the pad at energy " + energy);
 			}
@@ -258,7 +258,7 @@ public class ChargeGameTests {
 		h.setBlock(pad, ModBlocks.CHARGING_PAD);
 		CopperGolem golem = h.spawn(EntityTypes.COPPER_GOLEM, new BlockPos(2, 1, 6));
 		MinePlan plan = miner(h, golem);
-		Upkeep.get(golem).setEnergy(900);
+		RunningCosts.get(golem).setEnergy(900);
 		h.startSequence()
 			.thenWaitUntil(() -> assertAt(h, golem, pad.above(), "not in bed"))
 			.thenExecute(() -> level.clockManager().setTotalTicks(clock, DAY))
@@ -274,7 +274,7 @@ public class ChargeGameTests {
 		h.setBlock(pad, ModBlocks.CHARGING_PAD);
 		CopperGolem golem = h.spawn(EntityTypes.COPPER_GOLEM, pad.above());
 		MinePlan plan = miner(h, golem);
-		Upkeep.get(golem).setEnergy(0);
+		RunningCosts.get(golem).setEnergy(0);
 		BlockPos power = pad.east();
 		h.startSequence()
 			.thenExecuteAfter(5, () -> h.setBlock(power, Blocks.REDSTONE_BLOCK))
@@ -341,7 +341,7 @@ public class ChargeGameTests {
 			h.assertTrue(shared[0] < 60, "both stay on the pad");
 		});
 		h.succeedWhen(() -> {
-			h.assertValueEqual(Math.max(energy(one), energy(two)), GolemUpkeep.MAX_ENERGY, "energy of the first");
+			h.assertValueEqual(Math.max(energy(one), energy(two)), GolemRunningCosts.MAX_ENERGY, "energy of the first");
 			h.assertTrue(Math.min(energy(one), energy(two)) > 0, "the second got no turn");
 		});
 	}
@@ -372,7 +372,7 @@ public class ChargeGameTests {
 		long now = h.getLevel().getGameTime();
 		h.assertTrue(charge.tryStart(h.getLevel(), golem, now), "did not start charging");
 		charge.tickOrStop(h.getLevel(), golem, now);
-		Upkeep.get(golem).setEnergy(ChargingPadBlock.ENERGY_PER_PULSE);
+		RunningCosts.get(golem).setEnergy(ChargingPadBlock.ENERGY_PER_PULSE);
 		charge.tickOrStop(h.getLevel(), golem, now + 1);
 		h.assertTrue(charge.getStatus() == Behavior.Status.RUNNING, "stopped before it was full");
 		h.setBlock(PAD, Blocks.STONE);
@@ -423,7 +423,7 @@ public class ChargeGameTests {
 		List<CopperGolem> golems = List.of(jobless, sorter, courier);
 		long now = h.getLevel().getGameTime();
 		for (CopperGolem golem : golems) {
-			Upkeep.get(golem).setEnergy(0);
+			RunningCosts.get(golem).setEnergy(0);
 			h.assertFalse(new ChargeBehavior().tryStart(h.getLevel(), golem, now), Jobs.of(golem) + " went charging");
 		}
 		h.setBlock(PAD.west(), Blocks.REDSTONE_BLOCK);
@@ -452,20 +452,20 @@ public class ChargeGameTests {
 		ChargeBehavior.rechargeOvernight(h.getLevel());
 		h.assertValueEqual(energy(golem), 0, "energy without a pad");
 		for (Case test : cases) {
-			Upkeep.get(golem).setEnergy(0);
+			RunningCosts.get(golem).setEnergy(0);
 			h.setBlock(test.pad(), ModBlocks.CHARGING_PAD);
 			// The test area has a barrier ceiling, which would count as a roof.
 			h.setBlock(test.pad().above(), Blocks.AIR);
 			h.setBlock(test.pad().above(2), Blocks.AIR);
 			ChargeBehavior.rechargeOvernight(h.getLevel());
-			h.assertValueEqual(energy(golem), test.charges() ? GolemUpkeep.MAX_ENERGY : 0, test.name());
+			h.assertValueEqual(energy(golem), test.charges() ? GolemRunningCosts.MAX_ENERGY : 0, test.name());
 			h.setBlock(test.pad(), Blocks.AIR);
 		}
 
 		// A pad with a roof is no place to stand; a pad somebody stands on is not free; one pad charges one golem.
 		BlockPos pad = new BlockPos(4, 0, 1);
 		h.setBlock(pad, ModBlocks.CHARGING_PAD);
-		Upkeep.get(golem).setEnergy(0);
+		RunningCosts.get(golem).setEnergy(0);
 		h.setBlock(pad.above(2), Blocks.STONE);
 		ChargeBehavior.rechargeOvernight(h.getLevel());
 		h.assertValueEqual(energy(golem), 0, "energy with a roofed pad");
@@ -477,7 +477,7 @@ public class ChargeGameTests {
 		CopperGolem other = farmer(h, new BlockPos(1, 1, 4), 0);
 		Homes.set(other, h.absolutePos(home));
 		ChargeBehavior.rechargeOvernight(h.getLevel());
-		h.assertValueEqual(energy(golem) + energy(other), GolemUpkeep.MAX_ENERGY, "energy of two golems on one pad");
+		h.assertValueEqual(energy(golem) + energy(other), GolemRunningCosts.MAX_ENERGY, "energy of two golems on one pad");
 		h.succeed();
 	}
 
@@ -486,15 +486,15 @@ public class ChargeGameTests {
 	public void energy_survives_a_save(GameTestHelper h) {
 		ServerLevel level = h.getLevel();
 		CopperGolem golem = farmer(h, ON_PAD, 0);
-		Upkeep.get(golem).setEnergy(123);
-		Upkeep.get(golem).setWear(45);
+		RunningCosts.get(golem).setEnergy(123);
+		RunningCosts.get(golem).setWear(45);
 		TagValueOutput saved = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, level.registryAccess());
 		golem.saveWithoutId(saved);
 		CopperGolem loaded = EntityTypes.COPPER_GOLEM.create(level, EntitySpawnReason.LOAD);
 		loaded.load(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), saved.buildResult()));
 		h.assertValueEqual(energy(loaded), 123, "energy");
-		h.assertValueEqual(Upkeep.get(loaded).wear(), 45, "wear");
-		h.assertTrue(Upkeep.get(loaded).recharging(), "forgot it was recharging");
+		h.assertValueEqual(RunningCosts.get(loaded).wear(), 45, "wear");
+		h.assertTrue(RunningCosts.get(loaded).recharging(), "forgot it was recharging");
 		h.succeed();
 	}
 

@@ -1,7 +1,7 @@
 package dev.bettercoppers.home;
 
 import dev.bettercoppers.api.GolemLinkTarget;
-import dev.bettercoppers.api.GolemModifier;
+import dev.bettercoppers.api.GolemUpgrade;
 import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.courier.CourierRoute;
 import dev.bettercoppers.courier.Couriers;
@@ -10,8 +10,8 @@ import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.job.JobHandover;
 import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.job.Tools;
-import dev.bettercoppers.upkeep.GolemUpkeep;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.runningcosts.GolemRunningCosts;
+import dev.bettercoppers.runningcosts.RunningCosts;
 import com.mojang.datafixers.util.Pair;
 import java.util.HashMap;
 import java.util.List;
@@ -212,8 +212,8 @@ public final class HomeLinking {
 		if (!Jobs.isPaying(golem)) {
 			return Component.translatable("message.bettercoppers.status_free", job, placeText);
 		}
-		int percent = Upkeep.get(golem).energy() * 100 / GolemUpkeep.MAX_ENERGY;
-		String rust = Upkeep.isWaxed(golem) ? "waxed" : golem.getWeatherState().getSerializedName();
+		int percent = RunningCosts.get(golem).energy() * 100 / GolemRunningCosts.MAX_ENERGY;
+		String rust = RunningCosts.isWaxed(golem) ? "waxed" : golem.getWeatherState().getSerializedName();
 		MutableComponent status = Component.translatable(
 			"message.bettercoppers.status", job, placeText, percent, Component.translatable("rust.bettercoppers." + rust)
 		);
@@ -224,8 +224,8 @@ public final class HomeLinking {
 		if (Eyes.tier(golem) > 0) {
 			status.append(", ").append(Component.translatable("status.bettercoppers.eyes", Math.round(Eyes.multiplier(golem) * 100)));
 		}
-		for (GolemModifier modifier : BetterCoppersApi.modifiers()) {
-			Component extra = modifier.status(golem);
+		for (GolemUpgrade upgrade : BetterCoppersApi.upgrades()) {
+			Component extra = upgrade.status(golem);
 			if (extra != null) {
 				status.append(", ").append(extra);
 			}

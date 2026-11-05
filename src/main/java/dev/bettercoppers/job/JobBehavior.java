@@ -5,7 +5,7 @@ import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.golem.ChestVisit;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.api.TravelWatch;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.runningcosts.RunningCosts;
 import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
@@ -27,7 +27,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * What the farmer, forester, fisher, animal keeper and crafter have in common: a home copper chest, a pouch that is brought
  * home when full (or when there is nothing else to do), supplies restocked there, clumsy pauses, and the running costs
- * of {@link Upkeep}. Subclasses only decide what to do next and how to do it.
+ * of {@link RunningCosts}. Subclasses only decide what to do next and how to do it.
  *
  * @param <T> what a single task looks like for this job
  */
@@ -76,7 +76,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 
 	@Override
 	protected boolean checkExtraStartConditions(ServerLevel level, CopperGolem golem) {
-		return this.hasWork(golem) && Upkeep.canWork(level, golem);
+		return this.hasWork(golem) && RunningCosts.canWork(level, golem);
 	}
 
 	@Override
@@ -84,7 +84,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 		return golem.getBrain().getMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS).isEmpty()
 			&& !golem.isPanicking()
 			&& this.hasWork(golem)
-			&& Upkeep.canWork(level, golem);
+			&& RunningCosts.canWork(level, golem);
 	}
 
 	private boolean hasWork(CopperGolem golem) {
@@ -182,7 +182,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 			this.task = null;
 			return false;
 		}
-		BehaviorUtils.setWalkAndLookTargetMemories(golem, pos, Golems.WALK_SPEED * Upkeep.speed(golem), 1);
+		BehaviorUtils.setWalkAndLookTargetMemories(golem, pos, Golems.WALK_SPEED * RunningCosts.speed(golem), 1);
 		return false;
 	}
 
@@ -197,7 +197,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 			this.task = null;
 			return false;
 		}
-		BehaviorUtils.setWalkAndLookTargetMemories(golem, target, Golems.WALK_SPEED * Upkeep.speed(golem), 1);
+		BehaviorUtils.setWalkAndLookTargetMemories(golem, target, Golems.WALK_SPEED * RunningCosts.speed(golem), 1);
 		return false;
 	}
 
@@ -213,7 +213,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 
 	/** Work durations stretched by rust. */
 	protected static int slowed(CopperGolem golem, int ticks) {
-		return Math.round(ticks / Upkeep.speed(golem));
+		return Math.round(ticks / RunningCosts.speed(golem));
 	}
 
 	protected void pause(int ticks) {
@@ -285,7 +285,7 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 	 */
 	public static int tickReturn(CopperGolem golem, BlockPos home, Container chest, int ticks, float walkSpeed) {
 		if (!Golems.isInReach(golem, home)) {
-			BehaviorUtils.setWalkAndLookTargetMemories(golem, home, walkSpeed * Upkeep.speed(golem), 1);
+			BehaviorUtils.setWalkAndLookTargetMemories(golem, home, walkSpeed * RunningCosts.speed(golem), 1);
 			return ticks;
 		}
 		return ChestVisit.tick(golem, chest, home, ticks, CopperGolemState.DROPPING_ITEM);

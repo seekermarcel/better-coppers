@@ -1,10 +1,10 @@
 package dev.bettercoppers.job;
 
-import dev.bettercoppers.entity.GolemBobber;
+import dev.bettercoppers.entity.GolemFloat;
 import dev.bettercoppers.golem.Eyes;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.registry.ModEntities;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.runningcosts.RunningCosts;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -48,7 +48,7 @@ public class FishBehavior extends JobBehavior<FishBehavior.Spot> {
 
 	private @Nullable Spot spot;
 	private int waitTicks;
-	private @Nullable GolemBobber bobber;
+	private @Nullable GolemFloat golemFloat;
 
 	public FishBehavior() {
 		super(Job.FISHER);
@@ -83,7 +83,7 @@ public class FishBehavior extends JobBehavior<FishBehavior.Spot> {
 				this.spot = null;
 				return true;
 			}
-			BehaviorUtils.setWalkAndLookTargetMemories(golem, spot.stand(), Golems.WALK_SPEED * Upkeep.speed(golem), 0);
+			BehaviorUtils.setWalkAndLookTargetMemories(golem, spot.stand(), Golems.WALK_SPEED * RunningCosts.speed(golem), 0);
 			return false;
 		}
 		Golems.stopInPlace(golem);
@@ -96,32 +96,32 @@ public class FishBehavior extends JobBehavior<FishBehavior.Spot> {
 			this.cast(level, golem, spot);
 		}
 		this.workTicks++;
-		Vec3 bobber = Vec3.atCenterOf(spot.water()).add(0.0, 0.4, 0.0);
-		if (this.bobber == null || this.bobber.isRemoved()) {
+		Vec3 floatPos = Vec3.atCenterOf(spot.water()).add(0.0, 0.4, 0.0);
+		if (this.golemFloat == null || this.golemFloat.isRemoved()) {
 			this.cast(level, golem, spot);
 		}
-		if (this.bobber != null) {
-			this.bobber.keepAlive();
+		if (this.golemFloat != null) {
+			this.golemFloat.keepAlive();
 		}
 		if (this.workTicks == 8) {
 			// The arm comes back down after the throw.
 			golem.setState(CopperGolemState.IDLE);
 		}
 		if (this.workTicks % 40 == 0) {
-			level.sendParticles(ParticleTypes.FISHING, bobber.x, bobber.y, bobber.z, 2, 0.1, 0.0, 0.1, 0.0);
+			level.sendParticles(ParticleTypes.FISHING, floatPos.x, floatPos.y, floatPos.z, 2, 0.1, 0.0, 0.1, 0.0);
 		}
 		if (this.workTicks == this.waitTicks - BITE_TICKS) {
 			// A bite: the float goes under.
-			if (this.bobber != null) {
-				this.bobber.setBiting(true);
+			if (this.golemFloat != null) {
+				this.golemFloat.setBiting(true);
 			}
-			level.sendParticles(ParticleTypes.BUBBLE, bobber.x, bobber.y - 0.2, bobber.z, 6, 0.1, 0.1, 0.1, 0.0);
-			level.playSound(null, bobber.x, bobber.y, bobber.z, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.NEUTRAL, 0.25F, 1.4F);
+			level.sendParticles(ParticleTypes.BUBBLE, floatPos.x, floatPos.y - 0.2, floatPos.z, 6, 0.1, 0.1, 0.1, 0.0);
+			level.playSound(null, floatPos.x, floatPos.y, floatPos.z, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.NEUTRAL, 0.25F, 1.4F);
 		}
 		if (this.workTicks < this.waitTicks) {
 			return false;
 		}
-		this.landCatch(level, golem, bobber);
+		this.landCatch(level, golem, floatPos);
 		this.reelIn();
 		return true;
 	}
@@ -129,23 +129,23 @@ public class FishBehavior extends JobBehavior<FishBehavior.Spot> {
 	/** Throws the float out onto the water. */
 	private void cast(ServerLevel level, CopperGolem golem, Spot spot) {
 		this.reelIn();
-		GolemBobber bobber = ModEntities.GOLEM_BOBBER.create(level, EntitySpawnReason.TRIGGERED);
-		if (bobber == null) {
+		GolemFloat golemFloat = ModEntities.GOLEM_FLOAT.create(level, EntitySpawnReason.TRIGGERED);
+		if (golemFloat == null) {
 			return;
 		}
-		bobber.snapTo(spot.water().getX() + 0.5, spot.water().getY() + 0.7, spot.water().getZ() + 0.5, 0.0F, 0.0F);
-		bobber.setOwner(golem);
-		bobber.keepAlive();
-		level.addFreshEntity(bobber);
-		this.bobber = bobber;
+		golemFloat.snapTo(spot.water().getX() + 0.5, spot.water().getY() + 0.7, spot.water().getZ() + 0.5, 0.0F, 0.0F);
+		golemFloat.setOwner(golem);
+		golemFloat.keepAlive();
+		level.addFreshEntity(golemFloat);
+		this.golemFloat = golemFloat;
 		golem.setState(CopperGolemState.DROPPING_ITEM);
 		golem.playSound(SoundEvents.FISHING_BOBBER_THROW, 0.5F, 0.6F);
 	}
 
 	private void reelIn() {
-		if (this.bobber != null) {
-			this.bobber.discard();
-			this.bobber = null;
+		if (this.golemFloat != null) {
+			this.golemFloat.discard();
+			this.golemFloat = null;
 		}
 	}
 
@@ -155,21 +155,21 @@ public class FishBehavior extends JobBehavior<FishBehavior.Spot> {
 		super.stop(level, golem, timestamp);
 	}
 
-	private void landCatch(ServerLevel level, CopperGolem golem, Vec3 bobber) {
+	private void landCatch(ServerLevel level, CopperGolem golem, Vec3 floatPos) {
 		ItemStack rod = golem.getMainHandItem();
 		LootParams params = new LootParams.Builder(level)
-			.withParameter(LootContextParams.ORIGIN, bobber)
+			.withParameter(LootContextParams.ORIGIN, floatPos)
 			.withParameter(LootContextParams.TOOL, rod)
 			.withParameter(LootContextParams.THIS_ENTITY, golem)
 			.create(LootContextParamSets.FISHING);
 		LootTable table = level.getServer().reloadableRegistries().getLootTable(BuiltInLootTables.FISHING);
 		List<ItemStack> catches = table.getRandomItems(params);
 		catches.forEach(Load.of(golem)::stash);
-		level.sendParticles(ParticleTypes.SPLASH, bobber.x, bobber.y, bobber.z, 12, 0.2, 0.1, 0.2, 0.0);
-		level.playSound(null, bobber.x, bobber.y, bobber.z, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.NEUTRAL, 0.5F, 1.0F);
+		level.sendParticles(ParticleTypes.SPLASH, floatPos.x, floatPos.y, floatPos.z, 12, 0.2, 0.1, 0.2, 0.0);
+		level.playSound(null, floatPos.x, floatPos.y, floatPos.z, SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.NEUTRAL, 0.5F, 1.0F);
 		golem.setState(CopperGolemState.GETTING_ITEM);
 		Tools.wear(golem, rod);
-		Upkeep.spend(golem, ENERGY_PER_CATCH);
+		RunningCosts.spend(golem, ENERGY_PER_CATCH);
 		this.pause(20);
 	}
 

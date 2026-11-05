@@ -2,7 +2,7 @@ package dev.bettercoppers.job;
 
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.home.Homes;
-import dev.bettercoppers.upkeep.Upkeep;
+import dev.bettercoppers.runningcosts.RunningCosts;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -129,7 +129,7 @@ public class CraftBehavior extends JobBehavior<CraftBehavior.Order> {
 		}
 		load.stash(Inventories.insert(chest, result));
 		golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_DROP);
-		Upkeep.spend(golem, ENERGY_PER_CRAFT);
+		RunningCosts.spend(golem, ENERGY_PER_CRAFT);
 	}
 
 	/** Picks a chest stack for every ingredient, or null if the chest lacks something. */

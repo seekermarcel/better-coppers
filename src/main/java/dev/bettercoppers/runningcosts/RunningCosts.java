@@ -1,6 +1,6 @@
-package dev.bettercoppers.upkeep;
+package dev.bettercoppers.runningcosts;
 
-import dev.bettercoppers.api.GolemModifier;
+import dev.bettercoppers.api.GolemUpgrade;
 import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.mixin.CopperGolemAccessor;
 import dev.bettercoppers.golem.Errands;
@@ -22,15 +22,15 @@ import net.minecraft.world.level.block.WeatheringCopper;
  * them clean again.</li>
  * </ul>
  */
-public final class Upkeep {
+public final class RunningCosts {
 	/** Energy spent until the golem rusts one stage: about three days of steady work. */
 	public static final int WEAR_PER_STAGE = 3000;
 
-	private Upkeep() {
+	private RunningCosts() {
 	}
 
-	public static GolemUpkeep get(CopperGolem golem) {
-		return golem.getAttachedOrCreate(ModAttachments.UPKEEP, GolemUpkeep::new);
+	public static GolemRunningCosts get(CopperGolem golem) {
+		return golem.getAttachedOrCreate(ModAttachments.RUNNING_COSTS, GolemRunningCosts::new);
 	}
 
 	public static boolean isWaxed(CopperGolem golem) {
@@ -54,27 +54,27 @@ public final class Upkeep {
 			case WEATHERED -> 0.7F;
 			case OXIDIZED -> 0.5F;
 		};
-		for (GolemModifier modifier : BetterCoppersApi.modifiers()) {
-			speed *= modifier.speed(golem);
+		for (GolemUpgrade upgrade : BetterCoppersApi.upgrades()) {
+			speed *= upgrade.speed(golem);
 		}
 		return speed;
 	}
 
 	/** Uses up energy for a piece of work and lets the golem rust a bit. */
 	public static void spend(CopperGolem golem, int energy) {
-		GolemUpkeep upkeep = get(golem);
-		upkeep.setEnergy(upkeep.energy() - energy);
+		GolemRunningCosts runningCosts = get(golem);
+		runningCosts.setEnergy(runningCosts.energy() - energy);
 		boolean rustProof = false;
-		for (GolemModifier modifier : BetterCoppersApi.modifiers()) {
-			rustProof |= modifier.preventsRust(golem);
-			modifier.onSpend(golem, energy);
+		for (GolemUpgrade upgrade : BetterCoppersApi.upgrades()) {
+			rustProof |= upgrade.preventsRust(golem);
+			upgrade.onSpend(golem, energy);
 		}
 		if (rustProof) {
 			return;
 		}
-		upkeep.setWear(upkeep.wear() + energy);
-		if (upkeep.wear() >= WEAR_PER_STAGE) {
-			upkeep.setWear(0);
+		runningCosts.setWear(runningCosts.wear() + energy);
+		if (runningCosts.wear() >= WEAR_PER_STAGE) {
+			runningCosts.setWear(0);
 			WeatheringCopper.WeatherState state = golem.getWeatherState();
 			if (state != WeatheringCopper.WeatherState.OXIDIZED) {
 				golem.setWeatherState(state.next());
