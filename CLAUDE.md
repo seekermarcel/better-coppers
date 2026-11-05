@@ -32,7 +32,7 @@ Everything runs in the flake dev shell:
 ## The vanilla rule
 Anything that happens automatically to a golem no player touched is exactly vanilla. Mod behaviour starts only after a deliberate player action (job item, route, home link, chain, trim, eyes). "Without a job" is `!Jobs.has(golem)`, even if the golem has a home: a golem with only a home (no job item, no route) still sorts like vanilla. The one exception is the axe dispenser, which scrapes any golem in front of it, because the player built it on purpose.
 
-A plain click on a golem is safe (ADR 0009): with an empty hand it is exactly vanilla for a golem without a job and only shows the status of one with a job, and shears, honeycomb and axes stay vanilla for every golem, except that on a golem with a job a plain axe or inert item cannot throw the tool out through vanilla's fall-through to the empty off hand; scraping still works. Giving a golem anything, or taking its trim off with shears, takes sneak + right-click.
+A plain click on a golem is safe (ADR 0009): with an empty hand it is exactly vanilla for a golem without a job and only shows the status of one with a job (and cancels its pending link), and shears, honeycomb and axes stay vanilla for every golem, except that on a golem with a job a plain axe or inert item cannot throw the tool out through vanilla's fall-through to the empty off hand; scraping still works. Giving a golem anything, or taking its trim off with shears, takes sneak + right-click.
 
 ## Conventions
 Tabs, short Javadocs, English. Conventional commit messages. Never commit `docs/superpowers/` (gitignored). Only the latest Minecraft version is supported (ADR 0005).

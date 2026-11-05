@@ -262,7 +262,9 @@ public final class HomeLinking {
 		if (selection.routeStart() != null) {
 			return Homes.canEndRoute(state) ? endRoute(player, serverLevel, selection, pos) : InteractionResult.PASS;
 		}
-		if (Couriers.canStartRoute(state, player.isShiftKeyDown())) {
+		// A golem whose job takes no route has no use for a sneak on a copper chest: it is still the home link.
+		boolean homeOnly = state.is(BlockTags.COPPER_CHESTS) && serverLevel.getEntity(selection.golem()) instanceof CopperGolem picked && !Jobs.takesRoute(picked);
+		if (!homeOnly && Couriers.canStartRoute(state, player.isShiftKeyDown())) {
 			if (refuseRoute(player, serverLevel, selection)) {
 				return InteractionResult.FAIL;
 			}

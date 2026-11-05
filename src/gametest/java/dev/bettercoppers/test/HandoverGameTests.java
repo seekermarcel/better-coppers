@@ -752,6 +752,23 @@ public class HandoverGameTests {
 	// --- routes with copper chests ---
 
 	@GameTest
+	public void sneak_click_on_a_copper_chest_still_links_a_golem_whose_job_takes_no_route(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos chest = new BlockPos(1, 1, 1);
+		h.setBlock(chest, Blocks.COPPER_CHEST.weathering().unaffected());
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		give(h, player, golem, Items.COPPER_HOE);
+		h.runAfterDelay(10, () -> {
+			click(h, player, golem, true, ItemStack.EMPTY);
+			h.assertTrue(sneakClickBlock(h, player, chest).consumesAction(), "the click did nothing");
+			h.assertValueEqual(Homes.get(golem), h.absolutePos(chest), "home");
+			h.assertTrue(Jobs.has(golem), "the sneak-click ended the job");
+			h.succeed();
+		});
+	}
+
+	@GameTest
 	public void sneak_click_on_any_copper_chest_starts_a_route_and_any_copper_chest_ends_it(GameTestHelper h) {
 		JobGameTests.scene(h);
 		BlockPos first = new BlockPos(1, 1, 1);
