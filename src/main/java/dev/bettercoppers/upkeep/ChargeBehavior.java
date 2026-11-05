@@ -108,6 +108,12 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 				return;
 			}
 		}
+		// Somebody else got there first; look for another one right away.
+		if (isTaken(level, this.pad, golem)) {
+			this.pad = null;
+			this.searchCooldown = 0;
+			return;
+		}
 		BlockPos standOn = this.pad.above();
 		if (!golem.blockPosition().equals(standOn)) {
 			if (this.travel.tick(golem, Vec3.atBottomCenterOf(standOn)) > Golems.MAX_TRAVEL_TICKS) {
@@ -194,8 +200,15 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 			&& level.getBlockState(pad.above(2)).getCollisionShape(level, pad.above(2)).isEmpty();
 	}
 
-	/** One golem per pad. */
+	/**
+	 * One golem per pad. It is taken by a golem standing on it, not by one only brushing past. Of two arriving in the same
+	 * tick, one stays.
+	 */
 	private static boolean isTaken(ServerLevel level, BlockPos pad, CopperGolem golem) {
-		return !level.getEntitiesOfClass(CopperGolem.class, new AABB(pad.above()), other -> other != golem).isEmpty();
+		BlockPos standOn = pad.above();
+		boolean alreadyThere = golem.blockPosition().equals(standOn);
+		return !level.getEntitiesOfClass(
+			CopperGolem.class, new AABB(standOn), other -> other != golem && other.blockPosition().equals(standOn) && (!alreadyThere || other.getId() < golem.getId())
+		).isEmpty();
 	}
 }

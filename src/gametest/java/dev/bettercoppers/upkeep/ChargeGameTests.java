@@ -222,19 +222,20 @@ public class ChargeGameTests {
 		}
 		CopperGolem golem = farmer(h, new BlockPos(4, 1, 6), 1);
 		Homes.set(golem, h.absolutePos(home));
-		boolean[] state = new boolean[2];
+		boolean[] ranEmpty = new boolean[1];
+		boolean[] arrived = new boolean[1];
+		boolean[] wasFull = new boolean[1];
 		h.onEachTick(() -> {
 			int energy = energy(golem);
-			state[0] |= energy == 0;
-			if (energy == GolemUpkeep.MAX_ENERGY && state[0]) {
-				state[1] = true;
-			}
-			if (state[0] && !state[1] && energy > 0) {
+			ranEmpty[0] |= energy == 0;
+			arrived[0] |= ranEmpty[0] && golem.blockPosition().equals(h.absolutePos(ON_PAD));
+			wasFull[0] |= ranEmpty[0] && energy == GolemUpkeep.MAX_ENERGY;
+			if (arrived[0] && !wasFull[0]) {
 				assertAt(h, golem, ON_PAD, "left the pad at energy " + energy);
 			}
 		});
 		h.succeedWhen(() -> {
-			h.assertTrue(state[1], "never charged to full");
+			h.assertTrue(wasFull[0], "never charged to full");
 			int mature = 0;
 			for (BlockPos crop : crops) {
 				if (h.getBlockState(crop).getValue(CropBlock.AGE) == 7) {
@@ -301,7 +302,26 @@ public class ChargeGameTests {
 		h.runAfterDelay(300, h::succeed);
 	}
 
-	/** Two golems, one pad on a clock: the second gets its turn once the first is full and back at work. */
+	/** Handbook: "Build one pad per golem". Both first head for the nearer pad; they must end up on one each. */
+	@GameTest(maxTicks = 900, padding = PADDING)
+	public void two_golems_end_up_on_two_pads(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos near = new BlockPos(3, 0, 3);
+		BlockPos far = new BlockPos(7, 0, 3);
+		h.setBlock(near, ModBlocks.CHARGING_PAD);
+		h.setBlock(far, ModBlocks.CHARGING_PAD);
+		CopperGolem one = farmer(h, new BlockPos(0, 1, 2), 0);
+		CopperGolem two = farmer(h, new BlockPos(0, 1, 4), 0);
+		h.succeedWhen(() -> {
+			boolean oneNear = one.blockPosition().equals(h.absolutePos(near.above()));
+			boolean oneFar = one.blockPosition().equals(h.absolutePos(far.above()));
+			boolean twoNear = two.blockPosition().equals(h.absolutePos(near.above()));
+			boolean twoFar = two.blockPosition().equals(h.absolutePos(far.above()));
+			h.assertTrue(oneNear && twoFar || oneFar && twoNear, "not on a pad each yet: " + one.blockPosition() + " " + two.blockPosition());
+		});
+	}
+
+	/** Two golems, one pad on a clock: the first charges alone, and the second gets a turn once the first is full and strolls off. */
 	@GameTest(maxTicks = 2400, padding = PADDING)
 	public void two_empty_golems_take_turns_on_one_pad(GameTestHelper h) {
 		JobGameTests.scene(h);
@@ -313,9 +333,16 @@ public class ChargeGameTests {
 		CopperGolem two = farmer(h, new BlockPos(0, 1, 4), 0);
 		Homes.set(one, h.absolutePos(home));
 		Homes.set(two, h.absolutePos(home));
+		// They may arrive together for a moment, and then one has to give way.
+		int[] shared = new int[1];
+		h.onEachTick(() -> {
+			boolean both = one.blockPosition().equals(two.blockPosition()) && one.blockPosition().equals(h.absolutePos(ON_PAD));
+			shared[0] = both ? shared[0] + 1 : 0;
+			h.assertTrue(shared[0] < 60, "both stay on the pad");
+		});
 		h.succeedWhen(() -> {
-			h.assertValueEqual(energy(one), GolemUpkeep.MAX_ENERGY, "energy of one");
-			h.assertValueEqual(energy(two), GolemUpkeep.MAX_ENERGY, "energy of two");
+			h.assertValueEqual(Math.max(energy(one), energy(two)), GolemUpkeep.MAX_ENERGY, "energy of the first");
+			h.assertTrue(Math.min(energy(one), energy(two)) > 0, "the second got no turn");
 		});
 	}
 
