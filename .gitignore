@@ -44,3 +44,6 @@ replay_*.log
 docs/superpowers/
 logs/
 .superpowers
+
+# claude stuff
+.claude/worktrees
