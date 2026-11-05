@@ -5,6 +5,9 @@
 	"name": "Better Coppers game tests",
 	"environment": "*",
 	"entrypoints": {
+		"main": [
+			"dev.bettercoppers.test.ClearWeather"
+		],
 		"fabric-gametest": [
 			"dev.bettercoppers.test.GameTests",
 			"dev.bettercoppers.runningcosts.ChargeGameTests",
