@@ -204,8 +204,11 @@ Alles, was du einem Golem gibst, braucht Schleichen + Rechtsklick. Ein einfacher
 # Linking
 Sneak + right-click the golem with an empty hand, then right-click the copper chest. To move a golem, link it again.
 
+# Changing your mind
+Picking a golem changes nothing yet. It glows until you link it, cancel or half a minute is over. To cancel, right-click a golem with a job with an empty hand, or sneak + right-click a golem without a job again. Picking another golem cancels too.
+
 # Status
-The same sneak-click shows its job, home, energy and rust in the chat. A plain click with an empty hand shows a working golem's status too, and changes nothing. A golem without a job hands over what it holds, as usual.
+The same sneak-click shows its job, home, energy and rust in the chat. A plain click with an empty hand shows a working golem's status too, and changes nothing else. A golem without a job hands over what it holds, as usual.
 
 # Seeing homes
 While you sneak, copper particles run from every golem near you to its home. A golem with a job but no home puffs smoke.
@@ -223,8 +226,11 @@ Sneak + right-click it with a different job item. You get the old tool and every
 # Verbinden
 Schleichen + Rechtsklick mit leerer Hand auf den Golem, dann Rechtsklick auf die Kupfertruhe. Zum Umziehen verbindest du ihn einfach neu.
 
+# Doch nicht
+Einen Golem auszuwählen ändert noch nichts. Er leuchtet, bis du ihn verbindest, abbrichst oder eine halbe Minute um ist. Zum Abbrechen rechtsklicke einen Golem mit Beruf mit leerer Hand, oder wiederhole bei einem Golem ohne Beruf Schleichen + Rechtsklick. Wählst du einen anderen Golem aus, bricht das ebenfalls ab.
+
 # Zustand
-Derselbe Schleich-Klick zeigt Beruf, Zuhause, Energie und Rost im Chat. Ein einfacher Klick mit leerer Hand zeigt den Zustand eines arbeitenden Golems ebenfalls und ändert nichts. Ein Golem ohne Beruf gibt dir wie gewohnt, was er hält.
+Derselbe Schleich-Klick zeigt Beruf, Zuhause, Energie und Rost im Chat. Ein einfacher Klick mit leerer Hand zeigt den Zustand eines arbeitenden Golems ebenfalls und ändert sonst nichts. Ein Golem ohne Beruf gibt dir wie gewohnt, was er hält.
 
 # Zuhause sehen
 Solange du schleichst, laufen Kupferpartikel von jedem Golem in deiner Nähe zu seinem Zuhause. Ein Golem mit Beruf, aber ohne Zuhause, qualmt.
@@ -494,7 +500,8 @@ Sneak + empty hand on golem: status and linking
 ...then a copper chest: home
 ...then a chest, then another: courier route
 ...again within 5 seconds: end its job
-Empty hand on golem: status
+...again, no job: cancel
+Empty hand on golem: status, cancel
 Holding sneak: home lines
 
 # Energy
@@ -520,7 +527,8 @@ Schleichen + leere Hand auf Golem: Zustand und Verbinden
 ... dann Kupfertruhe: Zuhause
 ... dann Truhe, dann noch eine: Kurierroute
 ... innerhalb von 5 Sekunden nochmal: Beruf beenden
-Leere Hand auf Golem: Zustand
+... nochmal, ohne Beruf: abbrechen
+Leere Hand auf Golem: Zustand, abbrechen
 Schleichen halten: Linien zum Zuhause
 
 # Energie

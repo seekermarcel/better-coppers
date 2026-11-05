@@ -186,8 +186,8 @@ Sorters and couriers are free. Every other job costs something:
 | Sneak + right-click golem (empty hand) | Shows its status and starts linking |
 | …then right-click a copper chest | Sets its home |
 | …then right-click a chest/barrel, then another | Sets a courier route |
-| …the same click again within 5 seconds | Ends its job: you get its tool or bundle and everything it carries, a chained cart stays where it is |
-| Right-click golem (empty hand) | With a job: shows its status. Without: hands over what it holds, as in vanilla |
+| …the same click again within 5 seconds | Ends its job: you get its tool or bundle and everything it carries, a chained cart stays where it is. Without a job, at any time: cancels linking |
+| Right-click golem (empty hand) | With a job: shows its status and cancels linking. Without: hands over what it holds, as in vanilla |
 | Sneak + right-click golem with an iron, gold or diamond block | Eye upgrade: bigger work radius |
 | Sneak + right-click golem with template, then material | Gives it an armour trim |
 | Sneak + right-click golem with shears | Removes the trim |

@@ -32,6 +32,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
@@ -42,8 +43,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.WeatheringCopper;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -153,10 +159,29 @@ public class HandoverGameTests {
 	}
 
 	private static InteractionResult clickBlock(GameTestHelper h, Player player, BlockPos rel) {
+		return clickBlock(h, h.getLevel(), player, rel, false);
+	}
+
+	private static InteractionResult sneakClickBlock(GameTestHelper h, Player player, BlockPos rel) {
+		return clickBlock(h, h.getLevel(), player, rel, true);
+	}
+
+	private static InteractionResult clickBlock(GameTestHelper h, Level level, Player player, BlockPos rel, boolean sneak) {
 		BlockPos pos = h.absolutePos(rel);
-		player.setShiftKeyDown(false);
+		player.setShiftKeyDown(sneak);
 		player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-		return UseBlockCallback.EVENT.invoker().interact(player, h.getLevel(), InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false));
+		return UseBlockCallback.EVENT.invoker().interact(player, level, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false));
+	}
+
+	private static boolean glows(CopperGolem golem) {
+		return golem.hasEffect(MobEffects.GLOWING);
+	}
+
+	/** A double chest along x, with its left half at rel. */
+	private static void doubleChest(GameTestHelper h, BlockPos rel, Block chest) {
+		h.setBlock(rel, chest.defaultBlockState().setValue(ChestBlock.FACING, Direction.NORTH).setValue(ChestBlock.TYPE, ChestType.LEFT));
+		h.setBlock(rel.east(), chest.defaultBlockState().setValue(ChestBlock.FACING, Direction.NORTH).setValue(ChestBlock.TYPE, ChestType.RIGHT));
+		h.assertTrue(Homes.sameContainer(h.getLevel(), h.absolutePos(rel)).contains(h.absolutePos(rel.east())), "not a double chest");
 	}
 
 	// --- ending a job ---
@@ -721,6 +746,277 @@ public class HandoverGameTests {
 		click(h, player, golem, true, plan);
 		h.assertValueEqual(plan.getCount(), 1, "plan kept by the player");
 		h.assertFalse(Jobs.has(golem), "got a job from a refused plan");
+		h.succeed();
+	}
+
+	// --- picking a golem ---
+
+	@GameTest(maxTicks = 100)
+	public void cancelling_a_pick_changes_nothing(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos copper = new BlockPos(1, 1, 1);
+		BlockPos plain = new BlockPos(6, 1, 1);
+		h.setBlock(copper, Blocks.COPPER_CHEST.weathering().unaffected());
+		h.setBlock(plain, Blocks.CHEST);
+		BlockPos home = h.absolutePos(new BlockPos(1, 1, 6));
+		Player player = player(h);
+		CopperGolem farmer = GameTests.golem(h, GOLEM);
+		give(h, player, farmer, Items.COPPER_HOE);
+		Homes.set(farmer, home);
+		CopperGolem jobless = GameTests.golem(h, GOLEM);
+		Homes.set(jobless, home);
+		CourierRoute oldRoute = route(h);
+		CopperGolem courier = GameTests.golem(h, GOLEM);
+		Couriers.setRoute(courier, oldRoute);
+		Runnable chestsDoNothing = () -> {
+			h.assertValueEqual(clickBlock(h, player, copper), InteractionResult.PASS, "copper chest after cancelling");
+			h.assertValueEqual(clickBlock(h, player, plain), InteractionResult.PASS, "chest after cancelling");
+		};
+		h.startSequence()
+			.thenExecuteAfter(NEW_PRESS, () -> click(h, player, farmer, true, ItemStack.EMPTY))
+			.thenExecuteAfter(NEW_PRESS, () -> {
+				plainClick(h, player, farmer);
+				h.assertFalse(glows(farmer), "farmer still glows");
+				chestsDoNothing.run();
+				h.assertValueEqual(Homes.get(farmer), home, "farmer's home");
+				h.assertTrue(farmer.getMainHandItem().is(Items.COPPER_HOE), "farmer's hoe");
+				click(h, player, courier, true, ItemStack.EMPTY);
+			})
+			.thenExecuteAfter(NEW_PRESS, () -> {
+				plainClick(h, player, courier);
+				h.assertFalse(glows(courier), "courier still glows");
+				chestsDoNothing.run();
+				h.assertValueEqual(Couriers.route(courier), oldRoute, "courier's route");
+				click(h, player, jobless, true, ItemStack.EMPTY);
+			})
+			.thenExecuteAfter(NEW_PRESS, () -> {
+				click(h, player, jobless, true, ItemStack.EMPTY);
+				h.assertFalse(glows(jobless), "jobless golem still glows");
+				chestsDoNothing.run();
+				h.assertValueEqual(Homes.get(jobless), home, "jobless golem's home");
+				h.assertFalse(Couriers.isCourier(jobless), "jobless golem got a route");
+			})
+			.thenSucceed();
+	}
+
+	/** The second sneak-click also drops a route that was started: its first chest is forgotten. */
+	@GameTest(maxTicks = 100)
+	public void second_sneak_click_forgets_a_started_route(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos first = new BlockPos(1, 1, 1);
+		BlockPos second = new BlockPos(6, 1, 6);
+		h.setBlock(first, Blocks.CHEST);
+		h.setBlock(second, Blocks.CHEST);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		click(h, player, golem, true, ItemStack.EMPTY);
+		clickBlock(h, player, first);
+		h.startSequence()
+			.thenExecuteAfter(NEW_PRESS, () -> {
+				click(h, player, golem, true, ItemStack.EMPTY);
+				h.assertValueEqual(clickBlock(h, player, second), InteractionResult.PASS, "second chest");
+				h.assertFalse(Couriers.isCourier(golem), "the route went on");
+			})
+			.thenSucceed();
+	}
+
+	/** A plain click is vanilla for a jobless golem: it throws what it holds, and the pick stays. */
+	@GameTest(maxTicks = 100)
+	public void plain_click_on_a_picked_jobless_golem_stays_vanilla(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos copper = new BlockPos(1, 1, 1);
+		h.setBlock(copper, Blocks.COPPER_CHEST.weathering().unaffected());
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		golem.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.COBBLESTONE, 3));
+		click(h, player, golem, true, ItemStack.EMPTY);
+		h.startSequence()
+			.thenExecuteAfter(NEW_PRESS, () -> {
+				plainClick(h, player, golem);
+				h.assertTrue(golem.getMainHandItem().isEmpty(), "still holds its cargo");
+				h.assertTrue(glows(golem), "the plain click cancelled the pick");
+				clickBlock(h, player, copper);
+				h.assertValueEqual(Homes.get(golem), h.absolutePos(copper), "home");
+			})
+			.thenSucceed();
+	}
+
+	/** The button stays down: the press that picks a golem does not cancel it, and the press that cancels does not pick it. */
+	@GameTest(maxTicks = 100)
+	public void held_button_on_a_jobless_golem_picks_or_cancels_once(GameTestHelper h) {
+		JobGameTests.scene(h);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		Runnable sneakClick = () -> repeat(h, player, golem, true, ItemStack.EMPTY);
+		click(h, player, golem, true, ItemStack.EMPTY);
+		h.assertTrue(glows(golem), "not picked");
+		h.startSequence()
+			.thenExecuteAfter(4, () -> {
+				sneakClick.run();
+				h.assertTrue(glows(golem), "cancelled at t+4");
+			})
+			.thenExecuteAfter(4, () -> {
+				sneakClick.run();
+				h.assertTrue(glows(golem), "cancelled at t+8");
+			})
+			.thenExecuteAfter(7, () -> {
+				sneakClick.run();
+				h.assertFalse(glows(golem), "a new press did not cancel");
+			})
+			.thenExecuteAfter(4, () -> {
+				sneakClick.run();
+				h.assertFalse(glows(golem), "picked again at t+19");
+			})
+			.thenExecuteAfter(4, () -> {
+				sneakClick.run();
+				h.assertFalse(glows(golem), "picked again at t+23");
+			})
+			.thenExecuteAfter(7, () -> {
+				sneakClick.run();
+				h.assertTrue(glows(golem), "a new press did not pick");
+			})
+			.thenSucceed();
+	}
+
+	/** Sneak let go while the button stays down: the plain repeats belong to the press that picked the golem. */
+	@GameTest(maxTicks = 100)
+	public void held_button_on_a_job_golem_picks_or_cancels_once(GameTestHelper h) {
+		JobGameTests.scene(h);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		give(h, player, golem, Items.COPPER_HOE);
+		Runnable plainRepeat = () -> repeat(h, player, golem, false, ItemStack.EMPTY);
+		h.startSequence()
+			.thenExecuteAfter(NEW_PRESS, () -> click(h, player, golem, true, ItemStack.EMPTY))
+			.thenExecuteAfter(4, () -> {
+				plainRepeat.run();
+				h.assertTrue(glows(golem), "cancelled at t+4");
+			})
+			.thenExecuteAfter(4, () -> {
+				plainRepeat.run();
+				h.assertTrue(glows(golem), "cancelled at t+8");
+			})
+			.thenExecuteAfter(7, () -> {
+				plainRepeat.run();
+				h.assertFalse(glows(golem), "a new press did not cancel");
+			})
+			.thenExecuteAfter(4, () -> {
+				repeat(h, player, golem, true, ItemStack.EMPTY);
+				h.assertFalse(glows(golem), "the same press picked it again");
+				h.assertTrue(Jobs.has(golem), "the same press ended its job");
+			})
+			.thenSucceed();
+	}
+
+	@GameTest(maxTicks = 100)
+	public void cancelling_a_job_golem_leaves_no_window_to_end_its_job(GameTestHelper h) {
+		JobGameTests.scene(h);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		give(h, player, golem, Items.COPPER_HOE);
+		h.startSequence()
+			.thenExecuteAfter(NEW_PRESS, () -> click(h, player, golem, true, ItemStack.EMPTY))
+			.thenExecuteAfter(NEW_PRESS, () -> plainClick(h, player, golem))
+			.thenExecuteAfter(NEW_PRESS, () -> {
+				click(h, player, golem, true, ItemStack.EMPTY);
+				h.assertTrue(Jobs.has(golem), "the click after cancelling ended the job");
+				h.assertTrue(glows(golem), "the click after cancelling did not pick it");
+			})
+			.thenExecuteAfter(NEW_PRESS, () -> {
+				click(h, player, golem, true, ItemStack.EMPTY);
+				h.assertFalse(Jobs.has(golem), "second sneak-click did not end the job");
+				h.assertFalse(glows(golem), "still glows after its job ended");
+			})
+			.thenSucceed();
+	}
+
+	/** The pick ran out long ago, so the click is a first click again. */
+	@GameTest(maxTicks = 700)
+	public void sneak_click_after_the_pick_ran_out_picks_again(GameTestHelper h) {
+		JobGameTests.scene(h);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		click(h, player, golem, true, ItemStack.EMPTY);
+		h.startSequence()
+			.thenExecuteAfter(601, () -> {
+				h.assertFalse(glows(golem), "still glows after half a minute");
+				click(h, player, golem, true, ItemStack.EMPTY);
+				h.assertTrue(glows(golem), "not picked again");
+			})
+			.thenSucceed();
+	}
+
+	// --- the glow ends with the pick ---
+
+	@GameTest
+	public void picking_another_golem_stops_the_first_one_glowing(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos copper = new BlockPos(1, 1, 1);
+		h.setBlock(copper, Blocks.COPPER_CHEST.weathering().unaffected());
+		Player player = player(h);
+		CopperGolem first = GameTests.golem(h, GOLEM);
+		CopperGolem second = GameTests.golem(h, GOLEM);
+		click(h, player, first, true, ItemStack.EMPTY);
+		click(h, player, second, true, ItemStack.EMPTY);
+		h.assertFalse(glows(first), "the first golem still glows");
+		h.assertTrue(glows(second), "the second golem does not glow");
+		clickBlock(h, player, copper);
+		h.assertTrue(Homes.get(first) == null, "the first golem got the home");
+		h.assertValueEqual(Homes.get(second), h.absolutePos(copper), "the second golem's home");
+		h.succeed();
+	}
+
+	@GameTest
+	public void too_far_stops_the_glow(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos copper = new BlockPos(1, 1, 1);
+		h.setBlock(copper, Blocks.COPPER_CHEST.weathering().unaffected());
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		click(h, player, golem, true, ItemStack.EMPTY);
+		golem.setPos(golem.position().add(0.0, 40.0, 0.0));
+		h.assertValueEqual(clickBlock(h, player, copper), InteractionResult.FAIL, "copper chest too far away");
+		h.assertTrue(Homes.get(golem) == null, "home too far away");
+		h.assertFalse(glows(golem), "still glows");
+		h.succeed();
+	}
+
+	@GameTest
+	public void another_dimension_stops_the_glow(GameTestHelper h) {
+		JobGameTests.scene(h);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		click(h, player, golem, true, ItemStack.EMPTY);
+		clickBlock(h, h.getLevel().getServer().getLevel(Level.NETHER), player, new BlockPos(1, 1, 1), false);
+		h.assertFalse(glows(golem), "still glows");
+		h.succeed();
+	}
+
+	@GameTest
+	public void linking_a_home_or_a_route_or_being_refused_stops_the_glow(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos copper = new BlockPos(1, 1, 1);
+		BlockPos plain = new BlockPos(6, 1, 1);
+		BlockPos barrel = new BlockPos(6, 1, 6);
+		h.setBlock(copper, Blocks.COPPER_CHEST.weathering().unaffected());
+		h.setBlock(plain, Blocks.CHEST);
+		h.setBlock(barrel, Blocks.BARREL);
+		Player player = player(h);
+		CopperGolem home = GameTests.golem(h, GOLEM);
+		click(h, player, home, true, ItemStack.EMPTY);
+		clickBlock(h, player, copper);
+		h.assertFalse(glows(home), "glows after the home link");
+		CopperGolem route = GameTests.golem(h, GOLEM);
+		click(h, player, route, true, ItemStack.EMPTY);
+		clickBlock(h, player, plain);
+		h.assertTrue(glows(route), "stopped glowing at the first chest");
+		clickBlock(h, player, barrel);
+		h.assertFalse(glows(route), "glows after the route");
+		CopperGolem farmer = GameTests.golem(h, GOLEM);
+		give(h, player, farmer, Items.COPPER_HOE);
+		click(h, player, farmer, true, ItemStack.EMPTY);
+		h.assertValueEqual(clickBlock(h, player, plain), InteractionResult.FAIL, "farmer at a chest");
+		h.assertFalse(glows(farmer), "glows after the refusal");
 		h.succeed();
 	}
 
