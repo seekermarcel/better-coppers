@@ -9,6 +9,7 @@
 			"dev.bettercoppers.test.GameTests",
 			"dev.bettercoppers.upkeep.ChargeGameTests",
 			"dev.bettercoppers.test.JobGameTests",
+			"dev.bettercoppers.test.JobWorkGameTests",
 			"dev.bettercoppers.test.HandoverGameTests",
 			"dev.bettercoppers.test.MinerGameTests",
 			"dev.bettercoppers.test.RepairGameTests",
