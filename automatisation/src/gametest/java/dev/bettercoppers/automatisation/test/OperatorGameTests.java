@@ -3,6 +3,7 @@ package dev.bettercoppers.automatisation.test;
 import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.automatisation.golem.Operators;
 import dev.bettercoppers.automatisation.registry.AutoAttachments;
+import dev.bettercoppers.automatisation.registry.AutoBlocks;
 import dev.bettercoppers.automatisation.registry.AutoItems;
 import dev.bettercoppers.automatisation.upgrade.Upgrades;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
@@ -139,5 +140,28 @@ public class OperatorGameTests {
 		give(h, player, golem, AutoItems.IRON_PLATING);
 		h.assertTrue(Upgrades.get(golem).plating() > 0, "sneak click fitted no plating");
 		h.succeed();
+	}
+
+	/** Handbook: no clock needed, and twice as fast as a Charging Pad on the fastest clock, which takes 500 ticks. */
+	@GameTest(maxTicks = 400, padding = 48)
+	public void charging_station_fills_an_empty_golem_without_a_clock(GameTestHelper h) {
+		floor(h);
+		h.getLevel().clockManager().setTotalTicks(h.getLevel().dimensionType().defaultClock().orElseThrow(), 1000L);
+		BlockPos station = new BlockPos(2, 1, 2);
+		h.setBlock(station, AutoBlocks.CHARGING_STATION);
+		Player player = h.makeMockPlayer(GameType.SURVIVAL);
+		CopperGolem golem = h.spawn(EntityTypes.COPPER_GOLEM, new BlockPos(5, 1, 5));
+		give(h, player, golem, AutoItems.COPPER_WRENCH);
+		golem.setAttached(AutoAttachments.MACHINE, h.absolutePos(new BlockPos(1, 1, 1)));
+		h.assertTrue(BetterCoppersApi.jobOf(golem) != null, "the wrench gave no job");
+		BetterCoppersApi.spendEnergy(golem, 1000);
+		h.assertFalse(BetterCoppersApi.canWork(h.getLevel(), golem), "works without energy");
+		h.onEachTick(() -> {
+			if (BetterCoppersApi.canWork(h.getLevel(), golem)) {
+				h.assertTrue(golem.blockPosition().equals(h.absolutePos(station.above())), "charged somewhere else");
+				h.assertTrue(h.getTick() >= 250 && h.getTick() <= 340, "full after " + h.getTick() + " ticks");
+				h.succeed();
+			}
+		});
 	}
 }

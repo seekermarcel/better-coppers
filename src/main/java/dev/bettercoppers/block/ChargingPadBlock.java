@@ -35,7 +35,8 @@ public class ChargingPadBlock extends Block {
 	/** Set for a moment after each pulse; pulses meanwhile are ignored. */
 	public static final BooleanProperty COOLING = BooleanProperty.create("cooling");
 	public static final int ENERGY_PER_PULSE = 8;
-	private static final int COOLDOWN_TICKS = 4;
+	/** Shorter than the 4 ticks between pulses of the fastest clock: at 4, each cooldown outlasts the next pulse and half of them are lost. */
+	private static final int COOLDOWN_TICKS = 3;
 
 	public ChargingPadBlock(Properties properties) {
 		super(properties);

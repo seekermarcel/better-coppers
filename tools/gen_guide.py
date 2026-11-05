@@ -444,6 +444,8 @@ Work uses energy. At night, or when it runs empty, the golem walks to a free Cha
 
 A steady signal does nothing: the pad charges on redstone pulses, so it needs a redstone clock. Every pulse gives a little energy; the faster the clock, the faster the charge, up to full in about 25 seconds. Build one pad per golem.
 
+A golem that ran empty stays on the pad until it is full and does no work until then. If the pulses stop for 10 seconds, it goes back to work with the energy it has. A golem that only came for the night goes back to work in the morning.
+
 # Sleeping
 When you sleep through the night, every working golem with a free pad near its home wakes up fully charged, clock or not.
 
@@ -461,6 +463,8 @@ Job tools wear out and break."""),
 Arbeit kostet Energie. Nachts oder wenn sie leer ist, geht der Golem zu einem freien Ladefeld nahe seinem Zuhause (3 Kupferbarren, Blitzableiter, Redstone) und stellt sich darauf.
 
 Ein Dauersignal bringt nichts: Das Ladefeld lädt bei Redstone-Impulsen, es braucht also einen Taktgeber. Jeder Impuls gibt etwas Energie; je schneller der Takt, desto schneller die Ladung, bis zu voll in etwa 25 Sekunden. Bau für jeden Golem ein Ladefeld.
+
+Ein Golem, der leer gelaufen ist, bleibt auf dem Ladefeld, bis er voll ist, und arbeitet bis dahin nicht. Bleiben die Impulse 10 Sekunden aus, geht er mit der Energie, die er hat, zurück an die Arbeit. Ein Golem, der nur für die Nacht gekommen ist, geht morgens wieder an die Arbeit.
 
 # Schlafen
 Schläfst du durch die Nacht, wacht jeder arbeitende Golem mit einem freien Ladefeld nahe seinem Zuhause voll geladen auf, mit oder ohne Taktgeber.
