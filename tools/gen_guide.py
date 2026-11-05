@@ -440,7 +440,7 @@ Bau also für jeden Arbeitsplatz einen Eisengolem und halte etwas Eisen in deine
     "running_costs": (("Energy and Rust", """Sorters and couriers are free. Every other job costs something.
 
 # Energy
-Work uses energy. At night, or when it runs empty, the golem walks to a free Charging Pad near its home (3 copper ingots, lightning rod, redstone) and stands on it.
+Work uses energy. At night, in a thunderstorm, or when it runs empty, the golem walks to a free Charging Pad near its home (3 copper ingots, lightning rod, redstone) and stands on it.
 
 A steady signal does nothing: the pad charges on redstone pulses, so it needs a redstone clock. Every pulse gives a little energy; the faster the clock, the faster the charge, up to full in about 25 seconds. Build one pad per golem.
 
@@ -460,7 +460,7 @@ Job tools wear out and break."""),
                ("Energie und Rost", """Sortierer und Kuriere kosten nichts. Alle anderen Berufe haben ihren Preis.
 
 # Energie
-Arbeit kostet Energie. Nachts oder wenn sie leer ist, geht der Golem zu einem freien Ladefeld nahe seinem Zuhause (3 Kupferbarren, Blitzableiter, Redstone) und stellt sich darauf.
+Arbeit kostet Energie. Nachts, bei Gewitter oder wenn sie leer ist, geht der Golem zu einem freien Ladefeld nahe seinem Zuhause (3 Kupferbarren, Blitzableiter, Redstone) und stellt sich darauf.
 
 Ein Dauersignal bringt nichts: Das Ladefeld lädt bei Redstone-Impulsen, es braucht also einen Taktgeber. Jeder Impuls gibt etwas Energie; je schneller der Takt, desto schneller die Ladung, bis zu voll in etwa 25 Sekunden. Bau für jeden Golem ein Ladefeld.
 
