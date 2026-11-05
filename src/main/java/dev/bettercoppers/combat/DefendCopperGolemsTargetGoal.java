@@ -1,6 +1,7 @@
 package dev.bettercoppers.combat;
 
 import dev.bettercoppers.guide.Guide;
+import dev.bettercoppers.job.Jobs;
 import java.util.EnumSet;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
@@ -14,7 +15,7 @@ import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Enemy;
 import org.jspecify.annotations.Nullable;
 
-/** An iron golem goes for any monster that is after, or just hit, a copper golem near it. Creepers excepted. */
+/** An iron golem goes for any monster that is after, or just hit, a copper golem with a job near it. Creepers excepted. */
 public class DefendCopperGolemsTargetGoal extends TargetGoal {
 	private static final double RANGE = 16.0;
 	/** How long ago a hit still counts. */
@@ -36,13 +37,13 @@ public class DefendCopperGolemsTargetGoal extends TargetGoal {
 		this.attacker = null;
 		double best = Double.MAX_VALUE;
 		var area = this.mob.getBoundingBox().inflate(RANGE);
-		for (CopperGolem golem : this.mob.level().getEntitiesOfClass(CopperGolem.class, area, CopperGolem::isAlive)) {
+		for (CopperGolem golem : this.mob.level().getEntitiesOfClass(CopperGolem.class, area, golem -> golem.isAlive() && Jobs.has(golem))) {
 			LivingEntity hitBy = golem.getLastHurtByMob();
 			if (hitBy != null && golem.tickCount - golem.getLastHurtByMobTimestamp() < MEMORY_TICKS) {
 				best = this.consider(hitBy, best);
 			}
 		}
-		for (Mob hunter : this.mob.level().getEntitiesOfClass(Mob.class, area, other -> other.getTarget() instanceof CopperGolem)) {
+		for (Mob hunter : this.mob.level().getEntitiesOfClass(Mob.class, area, other -> other.getTarget() instanceof CopperGolem golem && Jobs.has(golem))) {
 			best = this.consider(hunter, best);
 		}
 		return this.attacker != null;

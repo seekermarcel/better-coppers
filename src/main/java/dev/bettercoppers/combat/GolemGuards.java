@@ -15,8 +15,8 @@ import net.minecraft.world.entity.npc.villager.AbstractVillager;
 
 /**
  * Copper golems with a job are prey now: every monster that hunts villagers or iron golems hunts them too. Iron golems
- * in turn stay close to the copper golems with a job that live somewhere and go for whatever attacks them. Jobless
- * golems are left alone, as in vanilla.
+ * in turn stay close to the copper golems with a job and go for whatever hunts or hits them. Jobless golems are left
+ * alone, as in vanilla.
  */
 public final class GolemGuards {
 	private GolemGuards() {
