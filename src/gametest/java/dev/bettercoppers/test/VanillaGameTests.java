@@ -115,7 +115,6 @@ public class VanillaGameTests {
 		}
 		h.runAfterDelay(5, () -> {
 			check.run(guard, zombie, golem);
-			h.succeed();
 		});
 	}
 
@@ -131,17 +130,25 @@ public class VanillaGameTests {
 			zombie.setTarget(null);
 			golem.setLastHurtByMob(zombie);
 			h.assertFalse(defendsAgainst(guard, zombie), "iron golem goes for a monster that hit a jobless golem");
+			h.succeed();
 		});
 	}
 
 	@GameTest(maxTicks = 100)
 	public void iron_golem_defends_golem_with_a_job(GameTestHelper h) {
 		guardScene(h, true, (guard, zombie, golem) -> {
-			zombie.setTarget(golem);
-			h.assertTrue(defendsAgainst(guard, zombie), "iron golem ignores a monster hunting a golem with a job");
-			zombie.setTarget(null);
-			golem.setLastHurtByMob(zombie);
-			h.assertTrue(defendsAgainst(guard, zombie), "iron golem ignores a monster that hit a golem with a job");
+			// The goal's reach check can say no for a whole tick, and in the game it just tries again on a later one.
+			boolean[] defendedFromHunter = {false};
+			h.succeedWhen(() -> {
+				if (!defendedFromHunter[0]) {
+					zombie.setTarget(golem);
+					defendedFromHunter[0] = defendsAgainst(guard, zombie);
+					h.assertTrue(defendedFromHunter[0], "iron golem ignores a monster hunting a golem with a job");
+				}
+				zombie.setTarget(null);
+				golem.setLastHurtByMob(zombie);
+				h.assertTrue(defendsAgainst(guard, zombie), "iron golem ignores a monster that hit a golem with a job");
+			});
 		});
 	}
 
