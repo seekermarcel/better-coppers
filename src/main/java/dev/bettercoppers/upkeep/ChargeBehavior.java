@@ -32,6 +32,10 @@ import org.jspecify.annotations.Nullable;
  * near its {@link Jobs#place place} and stands on it. The pad charges it with every redstone pulse, so it needs a clock; add-on pads
  * (like the Automatisation Charging Station) charge it every tick instead. Without a pad nearby the golem just waits.
  * <p>
+ * A golem that ran empty stays until it is full and does no work until then ({@link GolemUpkeep#recharging}), unless the
+ * pad stops giving energy, is gone or cannot be reached while it has some energy left. A golem that only came for the
+ * night goes back to work in the morning.
+ * <p>
  * When the players sleep through the night, every working golem with a free pad near its place wakes up fully charged,
  * as if it had spent the night on it ({@link #rechargeOvernight}).
  */
@@ -39,9 +43,13 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 	private static final int SEARCH_RADIUS = 16;
 	private static final int SEARCH_HEIGHT = 6;
 	private static final int RESEARCH_TICKS = 200;
+	/** How long a pad may give nothing before a golem with energy left stops waiting for it: the clock has stopped. */
+	private static final int DEAD_PAD_TICKS = 200;
 
 	private @Nullable BlockPos pad;
 	private int searchCooldown;
+	private int lastEnergy;
+	private int deadTicks;
 	private final TravelWatch travel = new TravelWatch();
 
 	public ChargeBehavior() {
@@ -55,9 +63,7 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 
 	@Override
 	protected boolean canStillUse(ServerLevel level, CopperGolem golem, long timestamp) {
-		// Once it has come to charge because it ran empty, it stays until it is full, not just until it has a spark.
-		return !golem.isPanicking()
-			&& (wantsCharge(level, golem) || this.pad != null && !golem.isLeashed() && Jobs.isPaying(golem) && !Errands.isBusy(golem) && Upkeep.get(golem).energy() < GolemUpkeep.MAX_ENERGY);
+		return !golem.isPanicking() && wantsCharge(level, golem);
 	}
 
 	@Override
@@ -69,29 +75,36 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 		if (golem.isLeashed() || !Jobs.isPaying(golem) || Errands.isBusy(golem)) {
 			return false;
 		}
-		int energy = Upkeep.get(golem).energy();
-		// At night it rests on its pad even when full, like going to bed.
-		return level.isDarkOutside() || energy <= 0;
+		// At night it rests on its pad even when full, like going to bed. Once it ran empty it stays until it is full,
+		// not just until it has a spark.
+		return level.isDarkOutside() || Upkeep.get(golem).recharging();
 	}
 
 	@Override
 	protected void stop(ServerLevel level, CopperGolem golem, long timestamp) {
 		this.pad = null;
+		this.deadTicks = 0;
 		this.travel.reset();
 		golem.setState(CopperGolemState.IDLE);
 	}
 
 	@Override
 	protected void tick(ServerLevel level, CopperGolem golem, long timestamp) {
-		if (this.pad == null || !isPad(level.getBlockState(this.pad))) {
+		GolemUpkeep upkeep = Upkeep.get(golem);
+		if (this.pad != null && !isPad(level.getBlockState(this.pad))) {
 			this.pad = null;
+			this.searchCooldown = 0;
+		}
+		if (this.pad == null) {
 			if (--this.searchCooldown > 0) {
 				return;
 			}
 			this.searchCooldown = RESEARCH_TICKS;
 			this.pad = findPad(level, searchCentre(golem), golem, Set.of());
 			this.travel.reset();
+			this.deadTicks = 0;
 			if (this.pad == null) {
+				upkeep.stopRecharging();
 				return;
 			}
 		}
@@ -100,6 +113,7 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 			if (this.travel.tick(golem, Vec3.atBottomCenterOf(standOn)) > Golems.MAX_TRAVEL_TICKS) {
 				// Cannot get there; try another one later.
 				this.pad = null;
+				upkeep.stopRecharging();
 				return;
 			}
 			BehaviorUtils.setWalkAndLookTargetMemories(golem, standOn, 1.0F, 0);
@@ -108,7 +122,6 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 		Golems.stopInPlace(golem);
 		// A charging pad charges on redstone pulses by itself; add-on pads charge every tick.
 		ChargePad special = BetterCoppersApi.chargePad(level.getBlockState(this.pad));
-		GolemUpkeep upkeep = Upkeep.get(golem);
 		if (special != null && upkeep.energy() < GolemUpkeep.MAX_ENERGY) {
 			upkeep.setEnergy(upkeep.energy() + special.chargePerTick());
 			if (level.getGameTime() % 10 == 0) {
@@ -118,6 +131,12 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 				Upkeep.playChargeSound(level, golem);
 				Guide.awardNearby(level, golem.position(), "recharge");
 			}
+		}
+		if (upkeep.energy() != this.lastEnergy) {
+			this.lastEnergy = upkeep.energy();
+			this.deadTicks = 0;
+		} else if (++this.deadTicks > DEAD_PAD_TICKS) {
+			upkeep.stopRecharging();
 		}
 	}
 

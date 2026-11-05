@@ -69,7 +69,7 @@ public class JobGameTests {
 	private static final Block COPPER_CHEST = Blocks.COPPER_CHEST.weathering().unaffected();
 
 	/** Stone floor under the test area and daytime, so job golems are allowed to work. */
-	static void scene(GameTestHelper h) {
+	public static void scene(GameTestHelper h) {
 		ServerLevel level = h.getLevel();
 		level.clockManager().setTotalTicks(level.dimensionType().defaultClock().orElseThrow(), 1000L);
 		for (int x = 0; x < 8; x++) {

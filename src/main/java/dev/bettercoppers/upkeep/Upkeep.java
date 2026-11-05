@@ -37,11 +37,11 @@ public final class Upkeep {
 		return ((CopperGolemAccessor) golem).bettercoppers$getNextWeatheringTick() == -2L;
 	}
 
-	/** Daytime, some energy left, not fully oxidized and not waxed, and not off on an errand. */
+	/** Daytime, not recharging after running empty, not fully oxidized and not waxed, and not off on an errand. */
 	public static boolean canWork(ServerLevel level, CopperGolem golem) {
 		return !level.isDarkOutside()
 			&& !Errands.isBusy(golem)
-			&& get(golem).energy() > 0
+			&& !get(golem).recharging()
 			&& golem.getWeatherState() != WeatheringCopper.WeatherState.OXIDIZED
 			&& !isWaxed(golem);
 	}

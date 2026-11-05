@@ -13,21 +13,24 @@ public final class GolemUpkeep {
 	public static final Codec<GolemUpkeep> CODEC = RecordCodecBuilder.create(
 		instance -> instance.group(
 				Codec.intRange(0, MAX_ENERGY).optionalFieldOf("energy", MAX_ENERGY).forGetter(upkeep -> upkeep.energy),
-				Codec.INT.optionalFieldOf("wear", 0).forGetter(upkeep -> upkeep.wear)
+				Codec.INT.optionalFieldOf("wear", 0).forGetter(upkeep -> upkeep.wear),
+				Codec.BOOL.optionalFieldOf("recharging", false).forGetter(upkeep -> upkeep.recharging)
 			)
 			.apply(instance, GolemUpkeep::new)
 	);
 
 	private int energy;
 	private int wear;
+	private boolean recharging;
 
 	public GolemUpkeep() {
-		this(MAX_ENERGY, 0);
+		this(MAX_ENERGY, 0, false);
 	}
 
-	private GolemUpkeep(int energy, int wear) {
+	private GolemUpkeep(int energy, int wear, boolean recharging) {
 		this.energy = energy;
 		this.wear = wear;
+		this.recharging = recharging;
 	}
 
 	public int energy() {
@@ -36,6 +39,21 @@ public final class GolemUpkeep {
 
 	public void setEnergy(int energy) {
 		this.energy = Math.clamp(energy, 0, MAX_ENERGY);
+		if (this.energy <= 0) {
+			this.recharging = true;
+		} else if (this.energy >= MAX_ENERGY) {
+			this.recharging = false;
+		}
+	}
+
+	/** It ran empty and has not been full since, so it does not work yet. */
+	public boolean recharging() {
+		return this.recharging;
+	}
+
+	/** Goes back to work with the energy it has. Without any, it keeps waiting. */
+	public void stopRecharging() {
+		this.recharging = this.energy <= 0;
 	}
 
 	public int wear() {
