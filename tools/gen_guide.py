@@ -416,7 +416,7 @@ Ein Golem, der eine Lore zieht, geht immer zu Fuß.""")),
     "danger": (("Monsters and Iron Golems", """Monsters hunt copper golems: zombies, skeletons, spiders, illagers and more. A copper golem has only 12 health.
 
 # Guards
-Iron golems stay near the copper golems around them and attack any monster that hunts or hits one (except creepers).
+Iron golems stay near the copper golems with a job around them and attack any monster that hunts or hits one (except creepers).
 
 # Repairs
 When an iron golem nearby is badly hurt, a copper golem takes iron ingots from its home chest (or the nearest chest with iron) and repairs it: 25 health per ingot. A golem with only a home also uses iron ingots it already holds in its hand, and gives back what is left over.
@@ -425,7 +425,7 @@ So build an iron golem for every work site, and keep some iron in your chests.""
                ("Monster und Eisengolems", """Monster jagen Kupfergolems: Zombies, Skelette, Spinnen, Illager und mehr. Ein Kupfergolem hat nur 12 Lebenspunkte.
 
 # Wächter
-Eisengolems bleiben in der Nähe der Kupfergolems und greifen jedes Monster an, das einen jagt oder schlägt (außer Creeper).
+Eisengolems bleiben in der Nähe der Kupfergolems mit Beruf und greifen jedes Monster an, das einen jagt oder schlägt (außer Creeper).
 
 # Reparaturen
 Ist ein Eisengolem in der Nähe schwer verletzt, holt ein Kupfergolem Eisenbarren aus seiner Heimattruhe (oder der nächsten Truhe mit Eisen) und repariert ihn: 25 Lebenspunkte pro Barren. Ein Golem, der nur ein Zuhause hat, nutzt auch Eisenbarren, die er schon in der Hand hält, und gibt zurück, was übrig bleibt.
