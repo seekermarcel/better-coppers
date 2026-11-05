@@ -103,8 +103,8 @@ The golem digs a **3×3 vanilla-style mineshaft**: plank floor over gaps, a supp
 ### Courier
 A courier carries everything from one chest to another, **however far apart they are**:
 1. Sneak + right-click the golem with an empty hand.
-2. Right-click a plain **chest or barrel**: it picks things up here.
-3. Walk to the destination (you have 10 minutes) and right-click any chest or barrel there.
+2. Right-click a plain **chest or barrel**, or sneak + right-click a **copper chest**: it picks things up here.
+3. Walk to the destination (you have 10 minutes) and right-click any chest, copper chest or barrel there.
 
 The courier takes 16 items at a time, or a whole cart load with a chained cart. While travelling it keeps the chunks around itself loaded, like a thrown ender pearl, so the route keeps working when you're far away. When it gets stuck, it shakes its head, wanders off a few blocks and tries again. If the destination is full, it waits there. Linking a home copper chest ends the route.
 
@@ -186,6 +186,7 @@ Sorters and couriers are free. Every other job costs something:
 | Sneak + right-click golem (empty hand) | Shows its status and starts linking |
 | …then right-click a copper chest | Sets its home |
 | …then right-click a chest/barrel, then another | Sets a courier route |
+| …then sneak + right-click a copper chest, then right-click another chest/barrel | Sets a courier route from the copper chest |
 | …the same click again within 5 seconds | Ends its job: you get its tool or bundle and everything it carries, a chained cart stays where it is. Without a job, at any time: cancels linking |
 | Right-click golem (empty hand) | With a job: shows its status and cancels linking. Without: hands over what it holds, as in vanilla |
 | Sneak + right-click golem with an iron, gold or diamond block | Eye upgrade: bigger work radius |

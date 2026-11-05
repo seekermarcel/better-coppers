@@ -11,6 +11,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.TicketType;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.level.ChunkPos;
@@ -84,8 +85,9 @@ public final class Couriers {
 		level.getChunkSource().addTicketWithRadius(TICKET, ChunkPos.containing(golem.blockPosition()), TICKET_RADIUS);
 	}
 
-	/** Plain chests and barrels can start a route. */
-	public static boolean canStartRoute(BlockState state) {
-		return state.is(Blocks.CHEST) || state.is(Blocks.TRAPPED_CHEST) || state.is(Blocks.BARREL);
+	/** Plain chests and barrels can start a route. A copper chest takes a sneak, as a plain click on one links a home. */
+	public static boolean canStartRoute(BlockState state, boolean sneaking) {
+		return state.is(Blocks.CHEST) || state.is(Blocks.TRAPPED_CHEST) || state.is(Blocks.BARREL)
+			|| sneaking && state.is(BlockTags.COPPER_CHESTS);
 	}
 }

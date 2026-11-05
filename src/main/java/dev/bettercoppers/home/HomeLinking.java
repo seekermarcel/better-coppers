@@ -52,8 +52,8 @@ import org.jspecify.annotations.Nullable;
  * golem glows only while picked. Clicks closer than {@link #SAME_PRESS_TICKS} are one press, as a held button repeats
  * them, and the rest of the press that gave or ended a job or cancelled a pick does nothing.
  * <p>
- * Right-clicking a plain chest or barrel instead starts a courier route; the next chest or barrel clicked, at any
- * distance in the same dimension, ends it. There are {@link #ROUTE_TICKS ten minutes} to walk there.
+ * Right-clicking a plain chest or barrel, or sneak + right-clicking a copper chest, instead starts a courier route; the
+ * next chest of any kind or barrel clicked, at any distance in the same dimension, ends it. There are {@link #ROUTE_TICKS ten minutes} to walk there.
  * <p>
  * A plain empty-hand click on a golem with a job only shows its status (ADR 0009).
  */
@@ -262,7 +262,7 @@ public final class HomeLinking {
 		if (selection.routeStart() != null) {
 			return Homes.canEndRoute(state) ? endRoute(player, serverLevel, selection, pos) : InteractionResult.PASS;
 		}
-		if (Couriers.canStartRoute(state)) {
+		if (Couriers.canStartRoute(state, player.isShiftKeyDown())) {
 			if (refuseRoute(player, serverLevel, selection)) {
 				return InteractionResult.FAIL;
 			}

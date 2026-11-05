@@ -386,8 +386,8 @@ Stellt her, was die Rahmen an oder neben seiner Truhe zeigen, aus den Zutaten in
     "courier": (("Courier", """A courier carries everything from one chest to another, however far apart they are.
 
 1. Sneak + right-click the golem with an empty hand.
-2. Right-click a plain chest or barrel: it picks things up here.
-3. Walk to the destination (you have 10 minutes) and right-click a chest or barrel there.
+2. Right-click a plain chest or barrel, or sneak + right-click a copper chest: it picks things up here. A plain click on a copper chest would make it its home.
+3. Walk to the destination (you have 10 minutes) and right-click a chest, copper chest or barrel there.
 
 It takes 16 items per trip, or a cart load with a chained cart. On the road it keeps the chunks around it loaded, so the route keeps working while you are far away. If the destination is full, it waits.
 
@@ -395,8 +395,8 @@ A golem with a job takes no route, except a courier: give it a new route and it 
                 ("Kurier", """Ein Kurier trägt alles von einer Truhe zu einer anderen, egal wie weit sie auseinander stehen.
 
 1. Schleichen + Rechtsklick mit leerer Hand auf den Golem.
-2. Rechtsklicke eine normale Truhe oder ein Fass: Hier holt er ab.
-3. Geh zum Ziel (du hast 10 Minuten) und rechtsklicke dort eine Truhe oder ein Fass.
+2. Rechtsklicke eine normale Truhe oder ein Fass, oder Schleichen + Rechtsklick auf eine Kupfertruhe: Hier holt er ab. Ein einfacher Klick auf eine Kupfertruhe würde sie zu seinem Zuhause machen.
+3. Geh zum Ziel (du hast 10 Minuten) und rechtsklicke dort eine Truhe, Kupfertruhe oder ein Fass.
 
 Er nimmt 16 Gegenstände pro Gang mit, mit angeketteter Lore eine ganze Ladung. Unterwegs hält er die Chunks um sich geladen, damit die Route auch funktioniert, wenn du weit weg bist. Ist das Ziel voll, wartet er.
 
@@ -499,6 +499,7 @@ Sneak + item on golem: hand it over
 Sneak + empty hand on golem: status and linking
 ...then a copper chest: home
 ...then a chest, then another: courier route
+...then sneak + copper chest, then a chest: the same
 ...again within 5 seconds: end its job
 ...again, no job: cancel
 Empty hand on golem: status, cancel
@@ -526,6 +527,7 @@ Schleichen + Gegenstand auf Golem: übergeben
 Schleichen + leere Hand auf Golem: Zustand und Verbinden
 ... dann Kupfertruhe: Zuhause
 ... dann Truhe, dann noch eine: Kurierroute
+... dann Schleichen + Kupfertruhe, dann Truhe: ebenso
 ... innerhalb von 5 Sekunden nochmal: Beruf beenden
 ... nochmal, ohne Beruf: abbrechen
 Leere Hand auf Golem: Zustand, abbrechen

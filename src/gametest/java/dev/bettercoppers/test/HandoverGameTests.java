@@ -749,6 +749,108 @@ public class HandoverGameTests {
 		h.succeed();
 	}
 
+	// --- routes with copper chests ---
+
+	@GameTest
+	public void sneak_click_on_any_copper_chest_starts_a_route_and_any_copper_chest_ends_it(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos first = new BlockPos(1, 1, 1);
+		BlockPos second = new BlockPos(6, 1, 6);
+		Player player = player(h);
+		for (Block chest : Blocks.COPPER_CHEST.asList()) {
+			h.setBlock(first, chest);
+			h.setBlock(second, chest);
+			CopperGolem golem = GameTests.golem(h, GOLEM);
+			click(h, player, golem, true, ItemStack.EMPTY);
+			h.assertTrue(sneakClickBlock(h, player, first).consumesAction(), "first click on " + chest);
+			h.assertTrue(Homes.get(golem) == null, "the sneak-click linked a home on " + chest);
+			h.assertTrue(clickBlock(h, player, second).consumesAction(), "second click on " + chest);
+			h.assertValueEqual(Couriers.route(golem), new CourierRoute(h.absolutePos(first), h.absolutePos(second)), "route on " + chest);
+			h.assertTrue(Homes.get(golem) == null, "courier with a home on " + chest);
+			golem.discard();
+		}
+		h.succeed();
+	}
+
+	@GameTest
+	public void plain_click_on_any_copper_chest_still_links_a_home(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos first = new BlockPos(1, 1, 1);
+		Player player = player(h);
+		for (Block chest : Blocks.COPPER_CHEST.asList()) {
+			h.setBlock(first, chest);
+			CopperGolem golem = GameTests.golem(h, GOLEM);
+			click(h, player, golem, true, ItemStack.EMPTY);
+			h.assertTrue(clickBlock(h, player, first).consumesAction(), "click on " + chest);
+			h.assertValueEqual(Homes.get(golem), h.absolutePos(first), "home on " + chest);
+			h.assertFalse(Couriers.isCourier(golem), "route on " + chest);
+			golem.discard();
+		}
+		h.succeed();
+	}
+
+	@GameTest
+	public void route_cannot_end_at_the_other_half_of_its_double_copper_chest(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos first = new BlockPos(1, 1, 1);
+		doubleChest(h, first, Blocks.COPPER_CHEST.waxed().weathered());
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		click(h, player, golem, true, ItemStack.EMPTY);
+		h.assertTrue(sneakClickBlock(h, player, first).consumesAction(), "first half");
+		h.assertValueEqual(clickBlock(h, player, first.east()), InteractionResult.FAIL, "other half");
+		h.assertFalse(Couriers.isCourier(golem), "route inside one chest");
+		h.succeed();
+	}
+
+	@GameTest(maxTicks = 1200)
+	public void courier_empties_a_double_oxidized_copper_chest_into_a_double_waxed_one(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos from = new BlockPos(1, 1, 1);
+		BlockPos to = new BlockPos(5, 1, 6);
+		doubleChest(h, from, Blocks.COPPER_CHEST.weathering().oxidized());
+		doubleChest(h, to, Blocks.COPPER_CHEST.waxed().unaffected());
+		((Container) h.getBlockEntity(from, BlockEntity.class)).setItem(0, new ItemStack(Items.IRON_INGOT, 8));
+		((Container) h.getBlockEntity(from.east(), BlockEntity.class)).setItem(0, new ItemStack(Items.IRON_INGOT, 8));
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		click(h, player, golem, true, ItemStack.EMPTY);
+		sneakClickBlock(h, player, from);
+		clickBlock(h, player, to);
+		h.assertValueEqual(Jobs.of(golem), JobKind.COURIER, "job");
+		h.succeedWhen(() -> {
+			Container target = Homes.containerAt(h.getLevel(), h.absolutePos(to));
+			h.assertValueEqual(target.getContainerSize(), 54, "size of the combined chest");
+			h.assertValueEqual(target.countItem(Items.IRON_INGOT), 16, "ingots delivered");
+		});
+	}
+
+	@GameTest(maxTicks = 1200)
+	public void courier_carries_from_a_copper_chest_to_a_barrel_and_from_a_chest_to_a_copper_chest(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos copper = new BlockPos(1, 1, 1);
+		BlockPos barrel = new BlockPos(1, 1, 6);
+		BlockPos plain = new BlockPos(6, 1, 1);
+		BlockPos copperEnd = new BlockPos(6, 1, 6);
+		GameTests.chest(h, copper, Blocks.COPPER_CHEST.weathering().exposed()).setItem(0, new ItemStack(Items.IRON_INGOT, 8));
+		Container barrelContainer = GameTests.chest(h, barrel, Blocks.BARREL);
+		GameTests.chest(h, plain, Blocks.CHEST).setItem(0, new ItemStack(Items.GOLD_INGOT, 8));
+		Container copperContainer = GameTests.chest(h, copperEnd, Blocks.COPPER_CHEST.waxed().oxidized());
+		Player player = player(h);
+		CopperGolem fromCopper = GameTests.golem(h, GOLEM);
+		click(h, player, fromCopper, true, ItemStack.EMPTY);
+		sneakClickBlock(h, player, copper);
+		clickBlock(h, player, barrel);
+		CopperGolem toCopper = GameTests.golem(h, GOLEM);
+		click(h, player, toCopper, true, ItemStack.EMPTY);
+		clickBlock(h, player, plain);
+		clickBlock(h, player, copperEnd);
+		h.succeedWhen(() -> {
+			h.assertValueEqual(barrelContainer.countItem(Items.IRON_INGOT), 8, "ingots in the barrel");
+			h.assertValueEqual(copperContainer.countItem(Items.GOLD_INGOT), 8, "gold in the copper chest");
+		});
+	}
+
 	// --- picking a golem ---
 
 	@GameTest(maxTicks = 100)
