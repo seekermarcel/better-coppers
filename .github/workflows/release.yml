@@ -24,3 +24,26 @@ jobs:
             automatisation/build/libs/bettercoppers-automatisation-${{ env.VERSION }}.jar
           fail_on_unmatched_files: true
           generate_release_notes: true
+      # Runs once the repository variables are set: see "Releases" in CONTRIBUTING.md.
+      - name: Publish to Modrinth
+        if: vars.MODRINTH_PROJECT_ID != '' && vars.MODRINTH_ADDON_PROJECT_ID != ''
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          BASE_ID: ${{ vars.MODRINTH_PROJECT_ID }}
+          ADDON_ID: ${{ vars.MODRINTH_ADDON_PROJECT_ID }}
+        run: |
+          MINECRAFT=$(sed -n 's/^minecraft_version=//p' gradle.properties)
+          FABRIC_API=P7dR8mSH
+          publish() { # project id, jar, name, dependency project ids...
+            local project=$1 jar=$2 name=$3
+            shift 3
+            jq -n --arg project "$project" --arg name "$name $VERSION" --arg version "$VERSION" --arg minecraft "$MINECRAFT" \
+              '{project_id: $project, name: $name, version_number: $version, game_versions: [$minecraft], loaders: ["fabric"],
+                version_type: "release", featured: true, status: "listed", file_parts: ["jar"], primary_file: "jar",
+                dependencies: ($ARGS.positional | map({project_id: ., dependency_type: "required"}))}' --args "$@" > version.json
+            curl --fail-with-body -sS https://api.modrinth.com/v2/version \
+              -H "Authorization: $MODRINTH_TOKEN" -H "User-Agent: seekermarcel/better-coppers" \
+              -F "data=@version.json;type=application/json" -F "jar=@$jar;type=application/java-archive"
+          }
+          publish "$BASE_ID" "build/libs/bettercoppers-$VERSION.jar" "Better Coppers" "$FABRIC_API"
+          publish "$ADDON_ID" "automatisation/build/libs/bettercoppers-automatisation-$VERSION.jar" "Better Coppers Automatisation" "$FABRIC_API" "$BASE_ID"

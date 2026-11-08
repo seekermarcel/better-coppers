@@ -28,3 +28,7 @@ Tabs, English. Short Javadoc on anything non-obvious.
 
 ## Releases
 Bump `version` in `gradle.properties`, tag `vX.Y.Z` and push the tag. CI builds, runs all tests and attaches the jar to a GitHub release.
+
+The same run publishes both jars to Modrinth once these are set in the GitHub repository settings. The projects must already exist on Modrinth, and without the two variables the step is skipped:
+- Secret `MODRINTH_TOKEN`: a Modrinth personal access token with the "Create versions" scope.
+- Variables `MODRINTH_PROJECT_ID` and `MODRINTH_ADDON_PROJECT_ID`: the IDs of the base mod's and the add-on's projects.
