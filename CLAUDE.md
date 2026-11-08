@@ -40,3 +40,17 @@ Tabs, short Javadocs, English. Conventional commit messages. Never commit `docs/
 Any change players can notice updates the Golem Handbook in the same commit, in English and German, through `tools/gen_guide.py`.
 
 The add-on imports from the base mod only through `dev.bettercoppers.api`. If it needs something else, add a hook to `api`. Do not import the internal class (ADR 0004).
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues on origin (`seekermarcel/better-coppers`), via `gh`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five default labels, unrenamed. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` and `docs/adr/` at the root. See `docs/agents/domain.md`.
