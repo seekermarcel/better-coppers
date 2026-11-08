@@ -16,7 +16,7 @@ What the factory makes goes back into the colony:
 |---|---|---|
 | **Iron Plating** | iron sheets | Golem armour: soaks up most of each monster hit |
 | **Copper Coating** | copper sheets + honeycomb | No rusting from work for about three days |
-| **Gold Gearwork** | gold gears + a copper gear + redstone | Golem walks and works 30 % faster for a while |
+| **Gold Gearwork** | gold gears + a copper gear + redstone | Golem walks and works 30 % faster for a while (operators only walk faster; no effect on sorters and couriers) |
 | **Copper Satchel** | leather + a copper sheet | Sorters and couriers carry 32 items per trip instead of 16 |
 | **Cart Extension** | copper sheets + a chest | Turns a copper chest minecart into a double chest (54 slots) |
 | **Charging Station** | gold sheets + redstone block + copper | Golems recharge without a redstone clock, twice as fast as a pad on the fastest clock |
@@ -40,12 +40,12 @@ Operators pay the usual Better Coppers running costs:
 - **Energy:** one point per second of cranking.
 - **Charging:** they recharge near their machine, on a Charging Pad (with a redstone clock) or a Charging Station.
 - **Rest:** they stop at night.
-- **Rust:** rusty golems crank more slowly.
+- **Rust:** a rusty golem misses some of its turns, but one good turn keeps the machine running for 10 ticks, so it hardly slows down.
 
 One golem works one machine. To get the wrench back, end the golem's job: sneak + right-click it with an empty hand twice, within 5 seconds.
 
 ### Wear and repairs
-Machines wear out with use. A worn-out machine **jams**: it stops and smokes. Its operator then fetches a spare part from any chest or barrel within 8 blocks of the machine and repairs it. Without a spare part nearby, it waits.
+Machines wear out with use. A worn-out machine **jams**: it stops and smokes. Its operator then fetches a spare part from any container within 8 blocks of the machine (3 up or down, wider with eyes) and repairs it. Without a spare part nearby, it waits.
 
 | Machine | Lasts | Repaired with |
 |---|---|---|
@@ -63,7 +63,7 @@ Machines wear out with use. A worn-out machine **jams**: it stops and smokes. It
 | Block | Needs an operator? | What it does |
 |---|---|---|
 | **Conveyor Belt** | via its Belt Drive | Carries items, mobs and players along. Items queue up behind anything that stands still. |
-| **Belt Drive** | yes | Runs every belt line it touches, up to 64 belts. |
+| **Belt Drive** | yes | Runs every belt line it touches, up to 64 belts (a branched line can end slightly over). |
 | **Funnel** | no | Pulls items into the container behind it, or pushes stacks out. Has a filter. |
 | **Chute** | no | Drops items straight down, a whole stack at a time. |
 | **Press** | yes | Hangs over a belt: ingots → sheets, sugar cane → paper. |
@@ -120,7 +120,7 @@ A copper arm on a turntable. It reaches 4 blocks sideways and 3 up or down, and 
 A spot can be a container (chest, barrel, chute, assembler…) or any other block. On other blocks it grabs items lying there, or puts them down on top, onto a belt for example. It takes inputs in turn and only fetches what some output has room for.
 
 ### Golem Assembler
-A workshop with 9 slots. Right-click it to open it, or fill it with hoppers, funnels or a grabber arm; it only takes golem parts.
+A workshop with 9 slots. Right-click it to open it, or fill it with hoppers, funnels or a grabber arm, which only put golem parts in.
 - **One golem needs:** 4 copper sheets, 2 copper gears, 1 carved pumpkin and 1 redstone dust.
 - With the parts in and room in front, its operator cranks for 20 seconds and a new copper golem steps out of the front.
 - New golems have no job yet. Sneak + right-click them with one, like any other golem.
@@ -131,11 +131,11 @@ A gilded charging pad. It needs **no redstone clock** and charges a golem in abo
 ---
 
 ## Golem upgrades
-Sneak + right-click a copper golem with the item. Sneak + right-click the golem with an empty hand to see what it's wearing.
+Sneak + right-click a copper golem with the item. Sneak + right-click the golem with an empty hand to see what it's wearing (sorters, couriers and golems without a job don't list it).
 
-- **Iron Plating:** takes three quarters of every hit until it has taken 40 damage, then it's gone. Golems wearing it shrug off zombies.
+- **Iron Plating:** takes three quarters of every hit until it has taken 40 damage, then it's gone.
 - **Copper Coating:** the golem doesn't rust from work for 3000 energy, about three days of steady work.
-- **Gold Gearwork:** the golem walks and works 30 % faster for 2000 energy.
+- **Gold Gearwork:** the golem walks and works 30 % faster for 2000 energy. An operator only walks faster, because machines run at a fixed speed. Sorters and couriers get nothing from it.
 - **Copper Satchel:** the golem carries twice as much per trip as a sorter or courier, for good. It drops when the golem dies.
 
 Plating, coating and gearwork can be topped up once they've dropped below their full amount.

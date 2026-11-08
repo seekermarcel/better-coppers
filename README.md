@@ -51,7 +51,7 @@ On top of the jobs:
 **New to the mod?** You get a **Golem Handbook** the first time you join a world (lost it? book + copper ingot). It explains everything, chapter by chapter, in English and German. The **Better Coppers advancement tab** (press L) is the quest line: each step tells you what to try next, from building your first golem to "Full Employment" with a golem in every job. The add-on brings its own handbook chapters and its own tab.
 
 1. **Give a golem its job item.** Sneak + right-click the golem with it (see the table above).
-2. **Give it a home.** Sneak + right-click the golem with an empty hand. It glows and tells you its job, home, energy and rust. Then right-click the **copper chest** it should belong to (within 32 blocks).
+2. **Give it a home.** Sneak + right-click the golem with an empty hand. It glows and tells you its job and home, and for every job except sorter and courier its energy and rust. Then right-click the **copper chest** it should belong to (within 32 blocks).
 3. **Check on it.** While you sneak, copper particles run from every golem near you to its home chest. A golem that has a job but no home puffs smoke.
 
 To move a golem to another chest, link it again.
@@ -79,25 +79,24 @@ To move a golem to another chest, link it again.
 
 The golem digs a **3×3 vanilla-style mineshaft**: plank floor over gaps, a support every 4 blocks (fence posts and a plank beam), torches on the beams, and rails laid at the end.
 
-- **No supplies, no digging.** It must carry the rails, fences, planks and torches for what it digs. It fetches them from its chest, or waits there until you restock.
-- **Ores:** it digs out every ore it can see from the tunnel, up to 16 per vein.
-- **Safety:** it plugs water and lava with cobblestone and clears gravel and sand that falls in.
-- **Slow and clumsy:** it digs at about half a player's speed and skips blocks it can't reach.
+- **No supplies, no digging.** It must carry the rails, fences and planks for what it digs. It fetches them from its chest, or waits there until you restock. Torches come from the chest too, but without them it digs on and leaves them out.
+- **Ores:** it digs out ores touching what it digs and follows each vein for up to 16 ores. A copper pickaxe cannot harvest diamond, gold, redstone or emerald ore, so those stay in the wall.
+- **Safety:** it plugs water and lava with filler it dug itself (cobblestone, stone, dirt and the like) and clears gravel and sand that falls in.
+- **Slow and clumsy:** it digs two to three times slower than a player and skips blocks it can't reach.
 - **Loot:** it carries 64 items (more with a cart), then walks home. Link a sorter to the same chest and it sorts the loot, leaving the mining supplies alone.
-- **Diamonds:** when it finds diamonds, it digs out the whole vein and hurries home with its antenna blinking.
 - **Getting things back:** end its job to get the pickaxe and the plan back. The plan keeps its progress. It takes the pickaxe first, then the plan.
 
 ### Farmer
 - Sneak + right-click it with a **copper hoe**. Its field is everything within 8 blocks of its home chest.
 - It harvests ripe wheat, carrots, potatoes, beetroot and nether wart and replants them right away. Empty farmland gets what the neighbouring rows grow.
 - It picks pumpkins and melons and leaves the stems, and cuts sugar cane and bamboo once they are 3 high.
-- It keeps 16 of every seed for replanting and never tills new land. You build the field.
+- It keeps 16 of every seed it can plant (not pumpkin seeds, melon seeds or pitcher pods, which it never plants) and never tills new land. You build the field.
 
 ### Forester, fisher, animal keeper, crafter
 
 | Tool | Job | What it does |
 |---|---|---|
-| Axe | Forester | Fells natural trees within 12 blocks (never logs you placed), collects saplings, apples and sticks, replants every stump |
+| Copper axe, on a clean golem | Forester | Fells natural trees within 12 blocks (never logs you placed), collects saplings, apples, sticks and logs, plants one sapling per trunk (the first that fits, of any kind; a 2x2 tree gets only one) |
 | Fishing rod | Fisher | Casts a float into open water within 10 blocks and reels in when it dips, a catch every 20–50 seconds (fish and junk, no treasure) |
 | Brush | Animal keeper | Feeds pairs of animals with food from its chest so they breed, up to 16 per kind |
 | Crafting table | Crafter | Crafts what item frames on or next to its chest show, from ingredients in that chest |
@@ -172,9 +171,9 @@ Trims are only for looks.
 ## Running costs
 Sorters and couriers are free. Every other job costs something:
 
-- **Energy:** work uses energy. At night, or when empty, the golem walks to a free **Charging Pad** near its home (3 copper ingots, a lightning rod and redstone: `CLC` / `CRC`) and stands on it. A steady redstone signal does nothing: the pad charges on **redstone pulses**, so give it a **redstone clock**. Each pulse gives 8 energy (of 1000). Pulses less than 4 ticks apart count once, so the fastest clock fills an empty golem in about 25 seconds and a once-a-second clock in about two minutes. Build one pad per golem.
+- **Energy:** work uses energy. At night, or when empty, the golem walks to a free **Charging Pad** near its home (3 copper ingots, a lightning rod and redstone: `CLC` / `CRC`) and stands on it. A steady redstone signal does nothing: the pad charges on **redstone pulses**, so give it a **redstone clock**. Each pulse gives 8 energy (of 1000). Pulses less than 3 ticks apart count once, so the fastest clock fills an empty golem in about 25 seconds and a once-a-second clock in about two minutes. Build one pad per golem.
 - **Sleeping:** when the players sleep through the night, every working golem with a free pad near its home wakes up fully charged, as if it had spent the night on the pad.
-- **Rust:** steady work makes golems rust one stage every few days. Exposed golems work at 85 % speed and weathered ones at 70 %. Fully oxidized or waxed golems don't work at all.
+- **Rust:** steady work makes golems rust one stage every few days. Exposed golems work at 85 % speed and weathered ones at 70 %. Fully oxidized or waxed golems don't work at all, except as sorters and couriers.
 - **Scraping:** use an axe by hand, or put an **axe in a dispenser**: each redstone pulse scrapes the golem in front of it by one stage.
 - **Tools** wear out and break. A golem whose tool breaks keeps its job and fetches a new one (see [Tools and eyes](#tools-and-eyes)). When you end its job, it goes back to vanilla sorting.
 

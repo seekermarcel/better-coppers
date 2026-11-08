@@ -208,13 +208,13 @@ Sneak + right-click the golem with an empty hand, then right-click the copper ch
 Picking a golem changes nothing yet. It glows until you link it, cancel or half a minute is over. To cancel, right-click a golem with a job with an empty hand, or sneak + right-click a golem without a job again. Picking another golem cancels too.
 
 # Status
-The same sneak-click shows its job, home, energy and rust in the chat. A plain click with an empty hand shows a working golem's status too, and changes nothing else. A golem without a job hands over what it holds, as usual.
+The same sneak-click shows its job and home in the chat, and for every job except sorter and courier also its energy and rust. A plain click with an empty hand shows a working golem's status too, and changes nothing else. A golem without a job hands over what it holds, as usual.
 
 # Seeing homes
 While you sneak, copper particles run from every golem near you to its home. A golem with a job but no home puffs smoke.
 
 # Staying close
-With nothing to do, a golem with a home strolls about within 6 blocks of its chest.
+With nothing to do, a golem with a home strolls about and walks back once it is more than 6 blocks from its chest.
 
 # Ending a job
 Sneak + right-click a golem twice with an empty hand, within 5 seconds. You get its tool or bundle, its plan and everything it carries; what does not fit lands at your feet. A chained cart unchains and stays where it is, still loaded. Home, eyes and trim stay with the golem.
@@ -230,13 +230,13 @@ Schleichen + Rechtsklick mit leerer Hand auf den Golem, dann Rechtsklick auf die
 Einen Golem auszuwählen ändert noch nichts. Er leuchtet, bis du ihn verbindest, abbrichst oder eine halbe Minute um ist. Zum Abbrechen rechtsklicke einen Golem mit Beruf mit leerer Hand, oder wiederhole bei einem Golem ohne Beruf Schleichen + Rechtsklick. Wählst du einen anderen Golem aus, bricht das ebenfalls ab.
 
 # Zustand
-Derselbe Schleich-Klick zeigt Beruf, Zuhause, Energie und Rost im Chat. Ein einfacher Klick mit leerer Hand zeigt den Zustand eines arbeitenden Golems ebenfalls und ändert sonst nichts. Ein Golem ohne Beruf gibt dir wie gewohnt, was er hält.
+Derselbe Schleich-Klick zeigt Beruf und Zuhause im Chat, bei allen Berufen außer Sortierer und Kurier auch Energie und Rost. Ein einfacher Klick mit leerer Hand zeigt den Zustand eines arbeitenden Golems ebenfalls und ändert sonst nichts. Ein Golem ohne Beruf gibt dir wie gewohnt, was er hält.
 
 # Zuhause sehen
 Solange du schleichst, laufen Kupferpartikel von jedem Golem in deiner Nähe zu seinem Zuhause. Ein Golem mit Beruf, aber ohne Zuhause, qualmt.
 
 # In der Nähe bleiben
-Hat er nichts zu tun, schlendert ein Golem mit Zuhause höchstens 6 Blöcke um seine Truhe herum.
+Hat er nichts zu tun, schlendert ein Golem mit Zuhause umher und geht zurück, sobald er mehr als 6 Blöcke von seiner Truhe entfernt ist.
 
 # Beruf beenden
 Zweimal Schleichen + Rechtsklick mit leerer Hand auf den Golem, innerhalb von 5 Sekunden. Du bekommst sein Werkzeug oder Bündel, seinen Plan und alles, was er trägt; was nicht passt, landet vor deinen Füßen. Eine angekettete Lore wird gelöst und bleibt beladen stehen. Zuhause, Augen und Besatz bleiben beim Golem.
@@ -330,13 +330,10 @@ Use the plan on the ground where the mine should start. The tunnel heads the way
 Sneak + right-click it with a copper pickaxe first, then with the plan: without a pickaxe in hand it refuses the plan. Then link it to a copper chest near the entrance.
 
 # Supplies
-No supplies, no digging. Keep planks, fences, rails and torches in its chest; it fetches them when it needs them.
+Without planks, fences and rails it does not dig. Keep those and torches in its chest; it fetches them when it needs them. Without torches it digs on and leaves them out.
 
 # On the job
-It digs out every ore it can see (up to 16 per vein), plugs water and lava with cobblestone, and walks home with up to 64 items. Link a sorter to the same chest to sort the loot.
-
-# Diamonds!
-When it finds diamonds, it digs out the whole vein and then hurries home with its antenna blinking, to show you.
+It digs out ores touching what it digs and follows each vein for up to 16 ores. A copper pickaxe cannot harvest diamond, gold, redstone or emerald ore, so those stay in the wall. It plugs water and lava with filler it dug itself, such as cobblestone, stone or dirt, and walks home with up to 64 items. Link a sorter to the same chest to sort the loot.
 
 Ending its job gives you the pickaxe and plan back. The plan keeps its progress."""),
               ("Bergmann", """Bergleute graben einen 3x3-Stollen wie in Vanilla, mit Bretterboden, Stützen, Fackeln und Schienen.
@@ -350,13 +347,10 @@ Benutze den Plan auf dem Boden, wo der Stollen beginnen soll. Er führt in deine
 Schleichen + Rechtsklick auf ihn, erst mit einer Kupferspitzhacke, dann mit dem Plan: Ohne Spitzhacke in der Hand lehnt er den Plan ab. Verbinde ihn dann mit einer Kupfertruhe nahe am Eingang.
 
 # Nachschub
-Ohne Material wird nicht gegraben. Lege Bretter, Zäune, Schienen und Fackeln in seine Truhe; er holt sie, wenn er sie braucht.
+Ohne Bretter, Zäune und Schienen wird nicht gegraben. Lege sie und Fackeln in seine Truhe; er holt sie, wenn er sie braucht. Ohne Fackeln gräbt er weiter und lässt sie weg.
 
 # Bei der Arbeit
-Er baut jedes Erz ab, das er sieht (bis zu 16 pro Ader), stopft Wasser und Lava mit Bruchstein zu und geht mit bis zu 64 Gegenständen nach Hause. Ein Sortierer an derselben Truhe sortiert die Beute.
-
-# Diamanten!
-Findet er Diamanten, baut er die ganze Ader ab und eilt dann mit blinkender Antenne nach Hause, um sie dir zu zeigen.
+Er baut Erze ab, die an das grenzen, was er gräbt, und folgt jeder Ader für bis zu 16 Erze. Eine Kupferspitzhacke kann Diamant-, Gold-, Redstone- und Smaragderz nicht abbauen, die bleiben in der Wand. Wasser und Lava stopft er mit selbst gegrabenem Füllmaterial wie Bruchstein, Stein oder Erde zu und geht mit bis zu 64 Gegenständen nach Hause. Ein Sortierer an derselben Truhe sortiert die Beute.
 
 Beendest du seinen Beruf, bekommst du Spitzhacke und Plan zurück. Der Plan merkt sich den Fortschritt.""")),
     "farmer": (("Farmer", """Sneak + right-click a golem with a copper hoe. Its field is everything within 8 blocks of its home chest.
@@ -365,18 +359,18 @@ Beendest du seinen Beruf, bekommst du Spitzhacke und Plan zurück. Der Plan merk
 - It picks pumpkins and melons and leaves the stems.
 - It cuts sugar cane and bamboo once they are 3 high.
 
-It keeps 16 of every seed for replanting. It never tills new land: you build the field, the golem looks after it. Sneak + right-click the farmer with seeds to give it some."""),
+It keeps 16 of every seed it can plant. Pumpkin seeds, melon seeds and pitcher pods are not among them, so it never plants those. It never tills new land: you build the field, the golem looks after it. Sneak + right-click the farmer with seeds to give it some."""),
                ("Bauer", """Schleichen + Rechtsklick mit einer Kupferhacke auf einen Golem. Sein Feld ist alles im Umkreis von 8 Blöcken um seine Heimattruhe.
 
 - Er erntet reifen Weizen, Karotten, Kartoffeln, Rote Bete und Netherwarzen und pflanzt sofort nach.
 - Er erntet Kürbisse und Melonen und lässt die Stiele stehen.
 - Er schneidet Zuckerrohr und Bambus, sobald sie 3 hoch sind.
 
-Er behält 16 von jedem Saatgut zum Nachpflanzen. Neues Land pflügt er nie: Du legst das Feld an, der Golem pflegt es. Schleichen + Rechtsklick mit Saatgut auf den Bauern gibt ihm welches.""")),
+Er behält 16 von jedem Saatgut, das er pflanzen kann. Kürbiskerne, Melonenkerne und Kannenpflanzenkapseln gehören nicht dazu, er pflanzt sie also nie. Neues Land pflügt er nie: Du legst das Feld an, der Golem pflegt es. Schleichen + Rechtsklick mit Saatgut auf den Bauern gibt ihm welches.""")),
     "workers": (("Forester, Fisher, Keeper, Crafter", """Sneak + right-click a golem with one of these items to give it the job.
 
 # Forester: a copper axe
-Fells natural trees within 12 blocks, never logs you placed. It collects saplings, apples and sticks and replants every stump. The axe only works on a clean golem; a rusty one it scrapes instead.
+Fells natural trees within 12 blocks, never logs you placed. It collects saplings, apples, sticks and logs and plants one sapling where the trunk stood: the first that fits, of any kind. A tree with a 2x2 trunk gets only one sapling. The axe only works on a clean golem; a rusty one it scrapes instead.
 
 # Fisher: a fishing rod
 Casts its line into open water within 10 blocks and waits for the float to dip: a catch every 20 to 50 seconds, fish and junk but no treasure.
@@ -389,7 +383,7 @@ Crafts what the item frames on or next to its chest show, from the ingredients i
                 ("Förster, Fischer, Tierpfleger, Handwerker", """Schleichen + Rechtsklick mit einem dieser Gegenstände auf einen Golem gibt ihm den Beruf.
 
 # Förster: eine Kupferaxt
-Fällt natürliche Bäume im Umkreis von 12 Blöcken, nie Stämme, die du gesetzt hast. Er sammelt Setzlinge, Äpfel und Stöcke und pflanzt jeden Baum nach. Die Axt geht nur bei einem sauberen Golem; einen rostigen kratzt sie stattdessen ab.
+Fällt natürliche Bäume im Umkreis von 12 Blöcken, nie Stämme, die du gesetzt hast. Er sammelt Setzlinge, Äpfel, Stöcke und Stämme und pflanzt einen Setzling dorthin, wo der Stamm stand: den ersten, der passt, egal welcher Art. Ein Baum mit 2x2-Stamm bekommt nur einen Setzling. Die Axt geht nur bei einem sauberen Golem; einen rostigen kratzt sie stattdessen ab.
 
 # Fischer: eine Angel
 Wirft die Angel in offenes Wasser im Umkreis von 10 Blöcken aus und wartet, bis der Schwimmer abtaucht: alle 20 bis 50 Sekunden ein Fang, Fisch und Plunder, aber keine Schätze.
@@ -439,7 +433,7 @@ Eine leere Lore auf geraden Schienen in die richtige Richtung. Der Golem schiebt
 Ein leeres Boot auf Wasser, das sich in die richtige Richtung erstreckt. Der Golem paddelt geradewegs zum Ziel und klettert am Ufer heraus.
 
 Ein Golem, der eine Lore zieht, geht immer zu Fuß.""")),
-    "danger": (("Monsters and Iron Golems", """Monsters hunt copper golems: zombies, skeletons, spiders, illagers and more. A copper golem has only 12 health.
+    "danger": (("Monsters and Iron Golems", """Monsters hunt copper golems that have a job: zombies, skeletons, spiders, illagers and more. A copper golem has only 12 health.
 
 # Guards
 Iron golems stay near the copper golems with a job around them and attack any monster that hunts or hits one (except creepers).
@@ -448,7 +442,7 @@ Iron golems stay near the copper golems with a job around them and attack any mo
 When an iron golem nearby is badly hurt, a copper golem takes iron ingots from its home chest (or the nearest chest with iron) and repairs it: 25 health per ingot. A golem with only a home also uses iron ingots it already holds in its hand, and gives back what is left over.
 
 So build an iron golem for every work site, and keep some iron in your chests."""),
-               ("Monster und Eisengolems", """Monster jagen Kupfergolems: Zombies, Skelette, Spinnen, Illager und mehr. Ein Kupfergolem hat nur 12 Lebenspunkte.
+               ("Monster und Eisengolems", """Monster jagen Kupfergolems mit Beruf: Zombies, Skelette, Spinnen, Illager und mehr. Ein Kupfergolem hat nur 12 Lebenspunkte.
 
 # Wächter
 Eisengolems bleiben in der Nähe der Kupfergolems mit Beruf und greifen jedes Monster an, das einen jagt oder schlägt (außer Creeper).
@@ -470,7 +464,7 @@ A golem that ran empty stays on the pad until it is full and does no work until 
 When you sleep through the night, every working golem with a free pad near its home wakes up fully charged, clock or not.
 
 # Rust
-Steady work makes a golem rust one stage every few days. Exposed golems work at 85% speed, weathered ones at 70%. Oxidized or waxed golems don't work at all.
+Steady work makes a golem rust one stage every few days. Exposed golems work at 85% speed, weathered ones at 70%. Oxidized or waxed golems don't work at all, except as sorters and couriers.
 
 # Scraping
 Use an axe on the golem, or put an axe in a dispenser: every redstone pulse scrapes the golem in front of it by one stage.
@@ -490,7 +484,7 @@ Ein Golem, der leer gelaufen ist, bleibt auf dem Ladefeld, bis er voll ist, und 
 Schläfst du durch die Nacht, wacht jeder arbeitende Golem mit einem freien Ladefeld nahe seinem Zuhause voll geladen auf, mit oder ohne Taktgeber.
 
 # Rost
-Ständige Arbeit lässt einen Golem alle paar Tage eine Stufe rosten. Angelaufene Golems arbeiten mit 85 %, verwitterte mit 70 %. Oxidierte oder gewachste Golems arbeiten gar nicht.
+Ständige Arbeit lässt einen Golem alle paar Tage eine Stufe rosten. Angelaufene Golems arbeiten mit 85 %, verwitterte mit 70 %. Oxidierte oder gewachste Golems arbeiten gar nicht, außer als Sortierer und Kuriere.
 
 # Abkratzen
 Benutze eine Axt am Golem, oder lege eine Axt in einen Werfer: Jeder Redstone-Impuls kratzt den Golem davor um eine Stufe ab.
@@ -526,7 +520,7 @@ Sneak + empty hand on golem: status and linking
 ...then sneak + copper chest, then a chest: the same
 ...again within 5 seconds: end its job
 ...again, no job: cancel
-Empty hand on golem: status, cancel
+Empty hand on a golem with a job: status, cancel
 Holding sneak: home lines
 
 # Energy
@@ -554,7 +548,7 @@ Schleichen + leere Hand auf Golem: Zustand und Verbinden
 ... dann Schleichen + Kupfertruhe, dann Truhe: ebenso
 ... innerhalb von 5 Sekunden nochmal: Beruf beenden
 ... nochmal, ohne Beruf: abbrechen
-Leere Hand auf Golem: Zustand, abbrechen
+Leere Hand auf Golem mit Beruf: Zustand, abbrechen
 Schleichen halten: Linien zum Zuhause
 
 # Energie
@@ -643,7 +637,7 @@ A spot can be a container, or any other block: there it picks up items lying on 
 3. Rechtsklicke den Arm erneut, wenn du fertig bist.
 
 Eine Stelle kann ein Behälter sein oder jeder andere Block: Dort hebt er Gegenstände auf, die obendrauf liegen, oder legt sie ab, zum Beispiel auf ein Band.""")),
-    "wear": (("Wear and Repairs", """Machines wear out. A worn-out machine jams: it stops and smokes. Its operator then fetches a spare part from a chest or barrel within 8 blocks and repairs it.
+    "wear": (("Wear and Repairs", """Machines wear out. A worn-out machine jams: it stops and smokes. Its operator then fetches a spare part from any container within 8 blocks (3 up or down, wider with eyes) and repairs it.
 
 - Belt Drive: 20 minutes of running, a copper sheet
 - Press, Saw: 64 stacks, an iron sheet
@@ -651,7 +645,7 @@ Eine Stelle kann ein Behälter sein oder jeder andere Block: Dort hebt er Gegens
 - Golem Assembler: 8 golems, an iron sheet
 
 Sneak + right-click a machine with the wrench to see its wear. Keep a few sheets next to every machine."""),
-             ("Verschleiß und Reparatur", """Maschinen nutzen sich ab. Eine abgenutzte Maschine verklemmt: Sie bleibt stehen und qualmt. Ihr Maschinist holt dann ein Ersatzteil aus einer Truhe oder einem Fass im Umkreis von 8 Blöcken und repariert sie.
+             ("Verschleiß und Reparatur", """Maschinen nutzen sich ab. Eine abgenutzte Maschine verklemmt: Sie bleibt stehen und qualmt. Ihr Maschinist holt dann ein Ersatzteil aus einem beliebigen Behälter im Umkreis von 8 Blöcken (3 nach oben oder unten, mit Augen weiter) und repariert sie.
 
 - Bandantrieb: 20 Minuten Laufzeit, ein Kupferblech
 - Presse, Säge: 64 Stapel, ein Eisenblech
@@ -668,7 +662,7 @@ Schleichen + Rechtsklick mit dem Schraubenschlüssel zeigt den Verschleiß. Halt
 3 copper sheets and a honeycomb. No rust from work for about three days.
 
 # Gold Gearwork
-2 gold gears, a copper gear and redstone. 30% faster for a while.
+2 gold gears, a copper gear and redstone. Walks and works 30% faster for a while. An operator only walks faster, because machines run at a fixed speed. Sorters and couriers get nothing from it.
 
 # Copper Satchel
 Leather and a copper sheet. Sorters and couriers carry 32 items instead of 16.
@@ -676,7 +670,7 @@ Leather and a copper sheet. Sorters and couriers carry 32 items instead of 16.
 # Cart Extension
 4 copper sheets and a chest. Use it on a copper chest minecart to make it a double chest.
 
-Sneak + right-click a golem with an empty hand to see what it wears."""),
+Sneak + right-click a golem with an empty hand to see what it wears. Sorters, couriers and golems without a job don't list it."""),
                  ("Golem-Verbesserungen", """Schleichen + Rechtsklick damit auf einen Golem:
 
 # Eisenpanzerung
@@ -686,7 +680,7 @@ Sneak + right-click a golem with an empty hand to see what it wears."""),
 3 Kupferbleche und eine Honigwabe. Etwa drei Tage lang kein Rost durch Arbeit.
 
 # Goldgetriebe
-2 Goldzahnräder, ein Kupferzahnrad und Redstone. Eine Weile 30 % schneller.
+2 Goldzahnräder, ein Kupferzahnrad und Redstone. Läuft und arbeitet eine Weile 30 % schneller. Ein Maschinist läuft nur schneller, denn Maschinen haben ein festes Tempo. Sortierern und Kurieren bringt es nichts.
 
 # Kupfertasche
 Leder und ein Kupferblech. Sortierer und Kuriere tragen 32 statt 16 Gegenstände.
@@ -694,7 +688,7 @@ Leder und ein Kupferblech. Sortierer und Kuriere tragen 32 statt 16 Gegenstände
 # Loren-Erweiterung
 4 Kupferbleche und eine Truhe. Benutze sie an einer Kupfertruhen-Lore, um daraus eine Doppeltruhe zu machen.
 
-Schleichen + Rechtsklick mit leerer Hand auf einen Golem zeigt, was er trägt.""")),
+Schleichen + Rechtsklick mit leerer Hand auf einen Golem zeigt, was er trägt. Sortierer, Kuriere und Golems ohne Beruf zeigen es nicht an.""")),
     "assembler": (("Assembler and Charging", """# Golem Assembler
 Builds new copper golems. Fill its 9 slots by hand or with hoppers, funnels or an arm. One golem needs 4 copper sheets, 2 copper gears, a carved pumpkin and redstone dust. With room in front, its operator cranks for 20 seconds and a new golem steps out.
 
