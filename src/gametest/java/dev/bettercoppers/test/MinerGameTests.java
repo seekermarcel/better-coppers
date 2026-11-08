@@ -2,10 +2,12 @@ package dev.bettercoppers.test;
 
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.Load;
+import java.util.List;
 import dev.bettercoppers.mining.MineLayout;
 import dev.bettercoppers.mining.MinePattern;
 import dev.bettercoppers.mining.MinePlan;
 import dev.bettercoppers.mining.MinerData;
+import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.registry.ModComponents;
 import dev.bettercoppers.registry.ModItems;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
@@ -160,6 +162,35 @@ public class MinerGameTests {
 			h.assertTrue(h.getBlockState(WALL).isAir(), "ore not dug yet");
 			h.assertTrue(s.chest().countItem(Items.COAL) >= 1, "no coal in the chest yet");
 			h.assertTrue(progress(s.golem()) > TWO_SLICES, "plan did not carry on: " + progress(s.golem()));
+		});
+	}
+
+	/** Padded, like the one below: without it, these two made the miner and repair tests next to them fail now and then. */
+	@GameTest(maxTicks = 3600, padding = 48)
+	public void miner_finds_diamonds_and_hurries_home(GameTestHelper h) {
+		Scene s = scene(h, true, START);
+		h.setBlock(WALL, Blocks.DIAMOND_ORE);
+		h.startSequence()
+			.thenWaitUntil(() -> h.assertTrue(Boolean.TRUE.equals(s.golem().getAttached(ModAttachments.EXCITED)), "not excited yet"))
+			.thenWaitUntil(() -> h.assertTrue(s.chest().countItem(Items.DIAMOND) >= 1, "no diamond in the chest yet"))
+			.thenExecute(() -> h.assertTrue(h.getBlockState(WALL).isAir(), "diamond ore still in the wall"))
+			.thenSucceed();
+	}
+
+	@GameTest(maxTicks = 3600, padding = 48)
+	public void miner_digs_gold_redstone_and_emerald_ore(GameTestHelper h) {
+		Scene s = scene(h, true, START);
+		h.setBlock(WALL.below(), Blocks.GOLD_ORE);
+		h.setBlock(WALL, Blocks.REDSTONE_ORE);
+		h.setBlock(WALL.above(), Blocks.EMERALD_ORE);
+		h.succeedWhen(() -> {
+			h.assertTrue(h.getBlockState(WALL.below()).isAir(), "gold ore not dug yet");
+			h.assertTrue(h.getBlockState(WALL).isAir(), "redstone ore not dug yet");
+			h.assertTrue(h.getBlockState(WALL.above()).isAir(), "emerald ore not dug yet");
+			for (var drop : List.of(Items.RAW_GOLD, Items.REDSTONE, Items.EMERALD)) {
+				int found = s.chest().countItem(drop) + Load.of(s.golem()).count(stack -> stack.is(drop));
+				h.assertTrue(found >= 1, "no " + drop + " carried or stored");
+			}
 		});
 	}
 

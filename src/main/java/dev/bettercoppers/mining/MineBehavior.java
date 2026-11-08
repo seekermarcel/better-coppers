@@ -357,13 +357,19 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		};
 	}
 
-	/** Blocks the golem leaves alone: unbreakable ones, containers and anything its pickaxe cannot harvest. */
+	/** Blocks the golem leaves alone: unbreakable ones, containers and anything its pickaxe cannot harvest, precious ores aside. */
 	private boolean canDig(ServerLevel level, CopperGolem golem, BlockPos pos) {
 		BlockState state = level.getBlockState(pos);
 		if (state.isAir() || state.getDestroySpeed(level, pos) < 0.0F || state.hasBlockEntity()) {
 			return false;
 		}
-		return !state.requiresCorrectToolForDrops() || golem.getMainHandItem().isCorrectToolForDrops(state);
+		return !state.requiresCorrectToolForDrops() || golem.getMainHandItem().isCorrectToolForDrops(state) || isPreciousOre(state);
+	}
+
+	/** Too hard for a copper pickaxe by vanilla's rules, but miners are allowed to bring these home. */
+	private static boolean isPreciousOre(BlockState state) {
+		return state.is(ConventionalBlockTags.DIAMOND_ORES) || state.is(ConventionalBlockTags.GOLD_ORES)
+			|| state.is(ConventionalBlockTags.REDSTONE_ORES) || state.is(ConventionalBlockTags.EMERALD_ORES);
 	}
 
 	private static boolean isDiamond(BlockState state) {

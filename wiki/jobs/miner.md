@@ -86,7 +86,7 @@ Drops use the tool, so Fortune and Silk Touch work. The pickaxe loses 1 durabili
 
 After each block it digs, the golem queues every ore touching that block, on all six sides, and digs those too. Ores are the `c:ores` block tag. Each vein has a budget of 16 ores, or 24, 32 or 48 with iron, gold or diamond [eyes](/golem/eyes). A new budget starts once the queue of ores is empty.
 
-A copper pickaxe cannot harvest blocks that need an iron or diamond pickaxe. Such ores stay in the wall. These are diamond, gold, redstone and emerald ore, and ancient debris.
+A miner can harvest diamond, gold, redstone and emerald ore with its copper pickaxe, although a player could not. Other blocks that need a better pickaxe stay in the wall, such as ancient debris and obsidian.
 
 ### Obstacles
 
@@ -113,9 +113,7 @@ When the last step is done, it brings the rest home and idles. The finished Mine
 
 ### Diamond ore
 
-Digging a diamond ore block is meant to excite a miner: it plays a chime and sends out particles, the knob on its antenna blinks, it finishes the whole vein and hurries home at 1.3 times speed to show what it found. A happy puff of particles and a sound end the trip.
-
-Because diamond ore needs an iron pickaxe and a miner only works with copper, this does not happen in the default game. It needs a data pack that lets copper tools harvest diamond ore, for example through the `minecraft:incorrect_for_copper_tool` block tag.
+Digging a diamond ore block excites a miner: it plays a chime and sends out particles, the knob on its antenna blinks, it finishes the whole vein and hurries home at 1.3 times speed to show what it found. A happy puff of particles and a sound end the trip.
 
 ## Running costs
 
@@ -144,7 +142,7 @@ When the pickaxe breaks, the golem keeps its job, brings its load home and looks
 |---|---|---|
 | Surveyor | Have a Mineshaft Plan | `bettercoppers:guide/survey` |
 | Down the Shaft | Give a golem a copper pickaxe and a Mineshaft Plan | `bettercoppers:guide/miner` |
-| Shiny! | A miner digs diamond ore within 48 blocks of the player. Unobtainable without a data pack, as above | `bettercoppers:guide/diamonds` |
+| Shiny! | A miner digs diamond ore within 48 blocks of the player | `bettercoppers:guide/diamonds` |
 | Full Employment | Give golems all eight jobs | `bettercoppers:guide/full_employment` |
 
 ## Data values

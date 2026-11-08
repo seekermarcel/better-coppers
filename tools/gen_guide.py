@@ -333,9 +333,12 @@ Sneak + right-click it with a copper pickaxe first, then with the plan: without 
 Without planks, fences and rails it does not dig. Keep those and torches in its chest; it fetches them when it needs them. Without torches it digs on and leaves them out.
 
 # On the job
-It digs out ores touching what it digs and follows each vein for up to 16 ores. A copper pickaxe cannot harvest diamond, gold, redstone or emerald ore, so those stay in the wall. It plugs water and lava with filler it dug itself, such as cobblestone, stone or dirt, and walks home with up to 64 items. Link a sorter to the same chest to sort the loot.
+It digs out ores touching what it digs and follows each vein for up to 16 ores, diamond, gold, redstone and emerald included. It plugs water and lava with filler it dug itself, such as cobblestone, stone or dirt, and walks home with up to 64 items. Link a sorter to the same chest to sort the loot.
 
-Ending its job gives you the pickaxe and plan back. The plan keeps its progress."""),
+Ending its job gives you the pickaxe and plan back. The plan keeps its progress.
+
+# Diamonds!
+When it finds diamonds, it digs out the whole vein and then hurries home with its antenna blinking, to show you."""),
               ("Bergmann", """Bergleute graben einen 3x3-Stollen wie in Vanilla, mit Bretterboden, Stützen, Fackeln und Schienen.
 
 # Der Plan
@@ -350,9 +353,12 @@ Schleichen + Rechtsklick auf ihn, erst mit einer Kupferspitzhacke, dann mit dem 
 Ohne Bretter, Zäune und Schienen wird nicht gegraben. Lege sie und Fackeln in seine Truhe; er holt sie, wenn er sie braucht. Ohne Fackeln gräbt er weiter und lässt sie weg.
 
 # Bei der Arbeit
-Er baut Erze ab, die an das grenzen, was er gräbt, und folgt jeder Ader für bis zu 16 Erze. Eine Kupferspitzhacke kann Diamant-, Gold-, Redstone- und Smaragderz nicht abbauen, die bleiben in der Wand. Wasser und Lava stopft er mit selbst gegrabenem Füllmaterial wie Bruchstein, Stein oder Erde zu und geht mit bis zu 64 Gegenständen nach Hause. Ein Sortierer an derselben Truhe sortiert die Beute.
+Er baut Erze ab, die an das grenzen, was er gräbt, und folgt jeder Ader für bis zu 16 Erze, auch bei Diamant-, Gold-, Redstone- und Smaragderz. Wasser und Lava stopft er mit selbst gegrabenem Füllmaterial wie Bruchstein, Stein oder Erde zu und geht mit bis zu 64 Gegenständen nach Hause. Ein Sortierer an derselben Truhe sortiert die Beute.
 
-Beendest du seinen Beruf, bekommst du Spitzhacke und Plan zurück. Der Plan merkt sich den Fortschritt.""")),
+Beendest du seinen Beruf, bekommst du Spitzhacke und Plan zurück. Der Plan merkt sich den Fortschritt.
+
+# Diamanten!
+Findet er Diamanten, baut er die ganze Ader ab und eilt dann mit blinkender Antenne nach Hause, um sie dir zu zeigen.""")),
     "farmer": (("Farmer", """Sneak + right-click a golem with a copper hoe. Its field is everything within 8 blocks of its home chest.
 
 - It harvests ripe wheat, carrots, potatoes, beetroot and nether wart and replants them right away.
