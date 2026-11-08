@@ -49,7 +49,7 @@ public class ConveyorBeltBlockEntity extends BlockEntity {
 		}
 		Direction facing = state.getValue(ConveyorBeltBlock.FACING);
 		AABB surface = new AABB(pos.getX(), pos.getY() + 0.1, pos.getZ(), pos.getX() + 1, pos.getY() + 1.0, pos.getZ() + 1);
-		for (Entity entity : level.getEntities((Entity) null, surface, ConveyorBeltBlockEntity::isCarried)) {
+		for (Entity entity : level.getEntities((Entity) null, surface, entity -> isCarried(level, entity))) {
 			if (entity instanceof ItemEntity item && isBlocked(level, item, facing)) {
 				// Queue up behind whatever stands still ahead, like a stack under a press.
 				item.setDeltaMovement(0.0, item.getDeltaMovement().y, 0.0);
@@ -73,8 +73,8 @@ public class ConveyorBeltBlockEntity extends BlockEntity {
 		return false;
 	}
 
-	private static boolean isCarried(Entity entity) {
-		if (entity.isSpectator() || entity.isPassenger() || entity.noPhysics || entity.entityTags().contains(ProcessingBlockEntity.HELD_TAG)) {
+	private static boolean isCarried(Level level, Entity entity) {
+		if (entity.isSpectator() || entity.isPassenger() || entity.noPhysics || ProcessingBlockEntity.isHeld(level, entity)) {
 			// Items a press or saw is working on stay put.
 			return false;
 		}

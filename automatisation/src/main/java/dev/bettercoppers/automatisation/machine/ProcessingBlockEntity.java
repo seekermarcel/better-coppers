@@ -21,11 +21,9 @@ import org.jspecify.annotations.Nullable;
 /**
  * A machine that works on items lying in the block below it, usually on a belt: it stops the stack, works on it for
  * {@link #cycleTicks()} (only while cranked), turns it into the result at {@link #hitTick()} and lets it go again.
- * Held items carry the {@link #HELD_TAG} so belts leave them alone.
+ * Belts leave a held item alone (see {@link #isHeld}).
  */
 public abstract class ProcessingBlockEntity extends MachineBlockEntity {
-	public static final String HELD_TAG = "bettercoppers_automatisation.held";
-
 	private @Nullable UUID held;
 	/** Ticks into the current cycle; the client counts along while the block shows as running. */
 	public int progress;
@@ -34,6 +32,11 @@ public abstract class ProcessingBlockEntity extends MachineBlockEntity {
 
 	protected ProcessingBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
+	}
+
+	/** Whether the machine right above this entity is working on it. */
+	public static boolean isHeld(Level level, Entity entity) {
+		return level.getBlockEntity(entity.blockPosition().above()) instanceof ProcessingBlockEntity machine && entity.getUUID().equals(machine.held);
 	}
 
 	public abstract int cycleTicks();
@@ -85,7 +88,7 @@ public abstract class ProcessingBlockEntity extends MachineBlockEntity {
 			}
 		}
 		if (this.progress >= this.cycleTicks()) {
-			this.finish(level, item);
+			this.finish();
 			this.addWear(level, 1);
 		}
 	}
@@ -96,14 +99,13 @@ public abstract class ProcessingBlockEntity extends MachineBlockEntity {
 		if (this.active) {
 			if (item == null) {
 				// Someone took it away.
-				this.finish(level, null);
+				this.finish();
 			}
 			return item;
 		}
 		item = this.findWork(level);
 		if (item != null) {
 			this.held = item.getUUID();
-			item.addTag(HELD_TAG);
 			this.active = true;
 			this.progress = 0;
 			this.sync();
@@ -111,10 +113,7 @@ public abstract class ProcessingBlockEntity extends MachineBlockEntity {
 		return item;
 	}
 
-	private void finish(ServerLevel level, @Nullable ItemEntity item) {
-		if (item != null) {
-			item.removeTag(HELD_TAG);
-		}
+	private void finish() {
 		this.held = null;
 		this.active = false;
 		this.progress = 0;
@@ -129,13 +128,13 @@ public abstract class ProcessingBlockEntity extends MachineBlockEntity {
 		return entity instanceof ItemEntity item && item.isAlive() && workArea(this.worldPosition).contains(item.position()) ? item : null;
 	}
 
-	/** An item in the block below that this machine can work on, and that no other machine holds. */
+	/** An item in the block below that this machine can work on. */
 	private @Nullable ItemEntity findWork(Level level) {
 		if (!(level instanceof ServerLevel serverLevel)) {
 			return null;
 		}
 		for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, workArea(this.worldPosition), ItemEntity::isAlive)) {
-			if (!item.entityTags().contains(HELD_TAG) && this.process(serverLevel, item.getItem()) != null) {
+			if (this.process(serverLevel, item.getItem()) != null) {
 				return item;
 			}
 		}

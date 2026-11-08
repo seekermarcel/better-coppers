@@ -10,6 +10,7 @@
 		],
 		"fabric-gametest": [
 			"dev.bettercoppers.automatisation.test.OperatorGameTests",
+			"dev.bettercoppers.automatisation.test.MachineGameTests",
 			"dev.bettercoppers.automatisation.test.CreativeTabGameTests"
 		]
 	},
