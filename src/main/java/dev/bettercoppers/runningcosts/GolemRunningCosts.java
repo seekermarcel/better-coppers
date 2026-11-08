@@ -4,8 +4,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 /**
- * Energy and wear of a working golem. Energy is spent on every bit of work and recharged on a Charging Pad;
- * wear adds up with the work done and makes the golem rust a stage further every so often.
+ * Energy and rust progress of a working golem. Energy is spent on every bit of work and recharged on a Charging Pad;
+ * rust progress adds up with the work done and makes the golem rust a stage further every so often.
  */
 public final class GolemRunningCosts {
 	public static final int MAX_ENERGY = 1000;
@@ -13,23 +13,23 @@ public final class GolemRunningCosts {
 	public static final Codec<GolemRunningCosts> CODEC = RecordCodecBuilder.create(
 		instance -> instance.group(
 				Codec.intRange(0, MAX_ENERGY).optionalFieldOf("energy", MAX_ENERGY).forGetter(runningCosts -> runningCosts.energy),
-				Codec.INT.optionalFieldOf("wear", 0).forGetter(runningCosts -> runningCosts.wear),
+				Codec.INT.optionalFieldOf("rust_progress", 0).forGetter(runningCosts -> runningCosts.rustProgress),
 				Codec.BOOL.optionalFieldOf("recharging", false).forGetter(runningCosts -> runningCosts.recharging)
 			)
 			.apply(instance, GolemRunningCosts::new)
 	);
 
 	private int energy;
-	private int wear;
+	private int rustProgress;
 	private boolean recharging;
 
 	public GolemRunningCosts() {
 		this(MAX_ENERGY, 0, false);
 	}
 
-	private GolemRunningCosts(int energy, int wear, boolean recharging) {
+	private GolemRunningCosts(int energy, int rustProgress, boolean recharging) {
 		this.energy = energy;
-		this.wear = wear;
+		this.rustProgress = rustProgress;
 		this.recharging = recharging;
 	}
 
@@ -56,11 +56,11 @@ public final class GolemRunningCosts {
 		this.recharging = this.energy <= 0;
 	}
 
-	public int wear() {
-		return this.wear;
+	public int rustProgress() {
+		return this.rustProgress;
 	}
 
-	public void setWear(int wear) {
-		this.wear = Math.max(0, wear);
+	public void setRustProgress(int rustProgress) {
+		this.rustProgress = Math.max(0, rustProgress);
 	}
 }

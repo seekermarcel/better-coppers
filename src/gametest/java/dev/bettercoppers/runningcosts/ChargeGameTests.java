@@ -481,19 +481,19 @@ public class ChargeGameTests {
 		h.succeed();
 	}
 
-	/** Energy, wear and being halfway through a recharge survive saving and loading. */
+	/** Energy, rust progress and being halfway through a recharge survive saving and loading. */
 	@GameTest(maxTicks = 100, padding = PADDING)
 	public void energy_survives_a_save(GameTestHelper h) {
 		ServerLevel level = h.getLevel();
 		CopperGolem golem = farmer(h, ON_PAD, 0);
 		RunningCosts.get(golem).setEnergy(123);
-		RunningCosts.get(golem).setWear(45);
+		RunningCosts.get(golem).setRustProgress(45);
 		TagValueOutput saved = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, level.registryAccess());
 		golem.saveWithoutId(saved);
 		CopperGolem loaded = EntityTypes.COPPER_GOLEM.create(level, EntitySpawnReason.LOAD);
 		loaded.load(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), saved.buildResult()));
 		h.assertValueEqual(energy(loaded), 123, "energy");
-		h.assertValueEqual(RunningCosts.get(loaded).wear(), 45, "wear");
+		h.assertValueEqual(RunningCosts.get(loaded).rustProgress(), 45, "rust progress");
 		h.assertTrue(RunningCosts.get(loaded).recharging(), "forgot it was recharging");
 		h.succeed();
 	}

@@ -33,7 +33,7 @@ public final class ModAttachments {
 		BetterCoppers.id("load"), builder -> builder.persistent(Load.Stored.CODEC)
 	);
 
-	/** Energy and wear of any working golem. */
+	/** Energy and rust progress of any working golem. */
 	public static final AttachmentType<GolemRunningCosts> RUNNING_COSTS = AttachmentRegistry.create(
 		BetterCoppers.id("running_costs"), builder -> builder.persistent(GolemRunningCosts.CODEC).initializer(GolemRunningCosts::new)
 	);

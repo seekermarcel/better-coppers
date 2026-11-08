@@ -17,14 +17,14 @@ import net.minecraft.world.level.block.WeatheringCopper;
  * <ul>
  * <li><b>Energy:</b> every bit of work uses some. At night, or when empty, the golem recharges standing on a
  * Charging Pad driven by a redstone clock (see {@link ChargeBehavior}). Without energy it does not work.</li>
- * <li><b>Rust:</b> work wears the golem down; every {@link #WEAR_PER_STAGE} energy spent it rusts one stage. Rusty
+ * <li><b>Rust:</b> work wears the golem down; every {@link #ENERGY_PER_RUST_STAGE} energy spent it rusts one stage. Rusty
  * golems are slower, fully oxidized or waxed golems do not work at all. An axe (by hand or from a dispenser) scrapes
  * them clean again.</li>
  * </ul>
  */
 public final class RunningCosts {
 	/** Energy spent until the golem rusts one stage: about three days of steady work. */
-	public static final int WEAR_PER_STAGE = 3000;
+	public static final int ENERGY_PER_RUST_STAGE = 3000;
 
 	private RunningCosts() {
 	}
@@ -72,9 +72,9 @@ public final class RunningCosts {
 		if (rustProof) {
 			return;
 		}
-		runningCosts.setWear(runningCosts.wear() + energy);
-		if (runningCosts.wear() >= WEAR_PER_STAGE) {
-			runningCosts.setWear(0);
+		runningCosts.setRustProgress(runningCosts.rustProgress() + energy);
+		if (runningCosts.rustProgress() >= ENERGY_PER_RUST_STAGE) {
+			runningCosts.setRustProgress(0);
 			WeatheringCopper.WeatherState state = golem.getWeatherState();
 			if (state != WeatheringCopper.WeatherState.OXIDIZED) {
 				golem.setWeatherState(state.next());
@@ -100,7 +100,7 @@ public final class RunningCosts {
 		}
 		accessor.bettercoppers$setNextWeatheringTick(-1L);
 		golem.setWeatherState(state.previous());
-		get(golem).setWear(0);
+		get(golem).setRustProgress(0);
 		level.playSound(null, golem, SoundEvents.AXE_SCRAPE, golem.getSoundSource(), 1.0F, 1.0F);
 		level.levelEvent(golem, 3005, golem.blockPosition(), 0);
 		return true;
