@@ -4,7 +4,7 @@
 	"version": "${version}",
 	"name": "Better Coppers Automatisation",
 	"description": "Conveyor belts, funnels, chutes, presses, saws and grabber arms, all worked by copper golems.",
-	"authors": ["Miodnr", "Marcel Meier"],
+	"authors": ["Marcel Meier"],
 	"contact": {
 		"homepage": "https://github.com/seekermarcel/better-coppers",
 		"sources": "https://github.com/seekermarcel/better-coppers",

@@ -4,7 +4,7 @@
 	"version": "${version}",
 	"name": "Better Coppers",
 	"description": "Copper Golems that do real work: sorting, mining, farming, fishing, couriering and more.",
-	"authors": ["Marcel Meier", "Miodnr"],
+	"authors": ["Marcel Meier"],
 	"contact": {
 		"homepage": "https://github.com/seekermarcel/better-coppers",
 		"sources": "https://github.com/seekermarcel/better-coppers",

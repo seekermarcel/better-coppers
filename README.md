@@ -241,10 +241,6 @@ tools/       TrimGen.java (golem trim textures from the vanilla armour trims), S
              gen_guide.py (advancements and handbook texts of both mods)
 ```
 
-## Credits
-
-Better Coppers was started by [Miodnr](https://github.com/Miodnr), who also wrote the add-on API and the Automatisation add-on in [Mios Coppergolems](https://github.com/Miodnr/mios-coppergolems). Miodnr gave permission for their code to be used here under the LGPL-3.0, even though the metadata of that repository says All-Rights-Reserved.
-
 ## License
 
 [LGPL-3.0](COPYING.LESSER), which builds on the [GPL-3.0](COPYING).
