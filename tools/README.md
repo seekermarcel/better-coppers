@@ -17,6 +17,9 @@ java tools/SurveyGen.java <vanillaTexturesDir> <outDir> <previewFile>
 
 The other programs' arguments are in their source.
 
+## Wiki
+`python tools/gen_wiki_icons.py <minecraft-client.jar>`, run from the repository root with Pillow, writes `wiki/public/icons/`. Add an item the wiki should show to `EXTRA` in the script.
+
 ## Resources
 Both overwrite the files they generate, so make changes in the scripts.
 

@@ -33,7 +33,7 @@
           ];
         in {
           default = pkgs.mkShell ({
-            packages = [ pkgs.jdk25 ];
+            packages = [ pkgs.jdk25 pkgs.nodejs ];
           } // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
             LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath clientLibs;
           });

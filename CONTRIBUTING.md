@@ -22,6 +22,7 @@ These steps are for a job that shares the home-chest routine of `JobBehavior`. M
 4. Lang keys in both `en_us.json` and `de_de.json` (keep them key-identical).
 5. Add the job to `tools/gen_guide.py` (advancements and handbook text) and rerun it. Then check the `Guide.job` switch: a job with no matching advancement is skipped silently.
 6. One gametest in `JobGameTests`.
+7. One article in `wiki/jobs/`, listed in the sidebar in `wiki/.vitepress/config.mts`.
 
 ## Code style
 Tabs, English. Short Javadoc on anything non-obvious.

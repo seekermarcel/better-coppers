@@ -8,6 +8,8 @@
 
 Everything is meant to feel vanilla: golems are slow, sometimes shake their head and try again, and every job costs something.
 
+**[The wiki](https://seekermarcel.github.io/better-coppers/)** has every job, item and number.
+
 ---
 
 ## At a glance

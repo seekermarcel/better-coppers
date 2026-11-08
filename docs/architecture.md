@@ -52,6 +52,7 @@ There are no save migrations because no version has been released. That ends wit
 - `tools/gen_guide.py` writes advancements, the handbook and all guide texts for both mods. Change guide content there and rerun it: it overwrites everything it generates and merges its keys into the lang files.
 - `tools/gen_automatisation_resources.py` writes the add-on's blockstates, models, item definitions, loot tables, recipes and tags.
 - `tools/*.java` generate textures, as listed in `tools/README.md`.
+- `tools/gen_wiki_icons.py` writes `wiki/public/icons/`. Crafting grids in the wiki are built from the recipe JSON, so a recipe change reaches the wiki without an edit, unless it uses a new tag (`recipes.data.mts`) or item with no icon yet.
 
 ## Tests
 

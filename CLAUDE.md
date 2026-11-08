@@ -7,6 +7,7 @@ Everything runs in the flake dev shell:
 - `nix develop -c ./gradlew build` runs unit tests (`src/test/java`) and gametests (`src/gametest/java`), and makes the jar in `build/libs/`.
 - `nix develop -c ./gradlew test` or `runGameTest` runs one of them.
 - `nix develop -c ./gradlew runClient` starts the game.
+- `cd wiki && npm ci && npm run build` builds the wiki (`npm run dev` to preview). It fails on dead links and unknown recipes. Pushing `wiki/**` to main publishes it to GitHub Pages.
 
 ## Package map (`src/main/java/dev/bettercoppers/`)
 - `api`: BetterCoppersApi, TravelWatch, hooks for add-ons (jobs, behaviours, link targets, upgrades, charging spots, handbook)
@@ -28,6 +29,7 @@ Everything runs in the flake dev shell:
 - `docs/architecture.md`: read before changing golem AI, player interactions, saved state or generated files. It also lists code names that mislead.
 - `docs/adr/`: why things are as they are. Read before reversing a design choice, and add one for a decision that is hard to reverse, surprising and a real trade-off.
 - `CONTRIBUTING.md`: the steps for adding a job and for releases.
+- `wiki/`: the player-facing wiki, checked against the code. `wiki/MEDIA.md` lists the screenshots and clips it still needs.
 
 ## The vanilla rule
 Anything that happens automatically to a golem no player touched is exactly vanilla. Mod behaviour starts only after a deliberate player action (job item, route, home link, chain, trim, eyes). "Without a job" is `!Jobs.has(golem)`, even if the golem has a home: a golem with only a home (no job item, no route) still sorts like vanilla. The one exception is the axe dispenser, which scrapes any golem in front of it, because the player built it on purpose.
@@ -37,7 +39,7 @@ A plain click on a golem is safe (ADR 0009): with an empty hand it is exactly va
 ## Conventions
 Tabs, short Javadocs, English. Conventional commit messages. Never commit `docs/superpowers/` (gitignored). Only the latest Minecraft version is supported (ADR 0005).
 
-Any change players can notice updates the Golem Handbook in the same commit, in English and German, through `tools/gen_guide.py`.
+Any change players can notice updates the Golem Handbook in the same commit, in English and German, through `tools/gen_guide.py`, and the wiki (`wiki/`, English only).
 
 The add-on imports from the base mod only through `dev.bettercoppers.api`. If it needs something else, add a hook to `api`. Do not import the internal class (ADR 0004).
 
