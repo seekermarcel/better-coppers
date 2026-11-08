@@ -53,6 +53,11 @@ import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import java.util.List;
 
 /** Starting and ending jobs, and which clicks do what. Clicks go through the callbacks and then vanilla, as in the game. */
 public class HandoverGameTests {
@@ -1261,6 +1266,83 @@ public class HandoverGameTests {
 		plainClick(h, player, golem);
 		h.assertTrue(cart.isChainedTo(golem), "cart not handed over");
 		h.assertTrue(golem.getMainHandItem().is(Items.COPPER_HOE), "lost its hoe");
+		h.succeed();
+	}
+
+	/** Picks belong to the player who made them: on a server, two players can link at the same time. */
+	@GameTest
+	public void two_players_link_their_own_golems_at_the_same_time(GameTestHelper h) {
+		BlockPos firstChest = new BlockPos(2, 1, 2);
+		BlockPos secondChest = new BlockPos(6, 1, 2);
+		h.setBlock(firstChest, Blocks.COPPER_CHEST.weathering().unaffected());
+		h.setBlock(secondChest, Blocks.COPPER_CHEST.weathering().unaffected());
+		Player first = player(h);
+		Player second = player(h);
+		h.assertFalse(first.getUUID().equals(second.getUUID()), "the mock players are one player");
+		CopperGolem firstGolem = h.spawn(EntityTypes.COPPER_GOLEM, new BlockPos(2, 1, 5));
+		CopperGolem secondGolem = h.spawn(EntityTypes.COPPER_GOLEM, new BlockPos(6, 1, 5));
+		click(h, first, firstGolem, true, ItemStack.EMPTY);
+		click(h, second, secondGolem, true, ItemStack.EMPTY);
+		clickBlock(h, h.getLevel(), second, secondChest, false);
+		clickBlock(h, h.getLevel(), first, firstChest, false);
+		h.assertValueEqual(dev.bettercoppers.home.Homes.get(firstGolem), h.absolutePos(firstChest), "first golem's home");
+		h.assertValueEqual(dev.bettercoppers.home.Homes.get(secondGolem), h.absolutePos(secondChest), "second golem's home");
+		h.succeed();
+	}
+
+	/** Ending a job takes two clicks by the same player, so a second player's click cannot finish someone else's. */
+	@GameTest
+	public void another_players_click_does_not_finish_ending_a_job(GameTestHelper h) {
+		Player first = player(h);
+		Player second = player(h);
+		CopperGolem golem = h.spawn(EntityTypes.COPPER_GOLEM, GOLEM);
+		give(h, first, golem, Items.COPPER_HOE);
+		h.startSequence()
+			.thenExecuteAfter(NEW_PRESS, () -> click(h, first, golem, true, ItemStack.EMPTY))
+			.thenExecuteAfter(NEW_PRESS, () -> {
+				click(h, second, golem, true, ItemStack.EMPTY);
+				h.assertTrue(golem.getMainHandItem().is(Items.COPPER_HOE), "two players' clicks ended the job");
+			})
+			.thenExecuteAfter(NEW_PRESS, () -> {
+				click(h, first, golem, true, ItemStack.EMPTY);
+				h.assertFalse(golem.getMainHandItem().is(Items.COPPER_HOE), "the first player's second click did not end the job");
+			})
+			.thenSucceed();
+	}
+
+	/** The saved format: a first release makes this a promise. */
+	@GameTest
+	public void what_a_golem_was_given_survives_a_save(GameTestHelper h) {
+		var level = h.getLevel();
+		CopperGolem golem = h.spawn(EntityTypes.COPPER_GOLEM, GOLEM);
+		BlockPos home = h.absolutePos(new BlockPos(1, 1, 1));
+		MinePlan plan = MinePlan.blank(MinePattern.MINESHAFT, 16);
+		golem.setAttached(ModAttachments.HOME, home);
+		golem.setAttached(ModAttachments.ROUTE, new CourierRoute(home, home.east(4)));
+		MinerData.getOrCreate(golem).setPlan(plan);
+		golem.setAttached(ModAttachments.WORKER, new WorkerData());
+		golem.setAttached(ModAttachments.LOAD, new Load.Stored(List.of(new ItemStack(Items.WHEAT, 3)), List.of(new ItemStack(Items.RAIL, 5))));
+		golem.setAttached(ModAttachments.TRIM_TEMPLATE, new ItemStack(Items.COAST_ARMOR_TRIM_SMITHING_TEMPLATE));
+		golem.setAttached(ModAttachments.CARRIED_IRON, 2);
+		golem.setAttached(ModAttachments.LOST_TOOL, Items.COPPER_HOE);
+		golem.setAttached(ModAttachments.EYES, 3);
+		golem.setAttached(ModAttachments.EXCITED, true);
+		TagValueOutput saved = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, level.registryAccess());
+		golem.saveWithoutId(saved);
+		CopperGolem loaded = EntityTypes.COPPER_GOLEM.create(level, EntitySpawnReason.LOAD);
+		loaded.load(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), saved.buildResult()));
+		h.assertValueEqual(loaded.getAttached(ModAttachments.HOME), home, "home");
+		h.assertValueEqual(loaded.getAttached(ModAttachments.ROUTE), new CourierRoute(home, home.east(4)), "route");
+		h.assertValueEqual(MinerData.get(loaded).plan(), plan, "plan");
+		h.assertTrue(loaded.hasAttached(ModAttachments.WORKER), "worker data lost");
+		Load.Stored stored = loaded.getAttached(ModAttachments.LOAD);
+		h.assertTrue(stored.pouch().size() == 1 && stored.pouch().getFirst().is(Items.WHEAT) && stored.pouch().getFirst().getCount() == 3, "pouch lost");
+		h.assertTrue(stored.supplies().size() == 1 && stored.supplies().getFirst().is(Items.RAIL) && stored.supplies().getFirst().getCount() == 5, "supplies lost");
+		h.assertTrue(loaded.getAttached(ModAttachments.TRIM_TEMPLATE).is(Items.COAST_ARMOR_TRIM_SMITHING_TEMPLATE), "trim template lost");
+		h.assertValueEqual(loaded.getAttached(ModAttachments.CARRIED_IRON), 2, "carried iron");
+		h.assertTrue(loaded.getAttached(ModAttachments.LOST_TOOL) == Items.COPPER_HOE, "lost tool forgotten");
+		h.assertValueEqual(loaded.getAttached(ModAttachments.EYES), 3, "eyes");
+		h.assertTrue(loaded.getAttached(ModAttachments.EXCITED), "excitement forgotten");
 		h.succeed();
 	}
 }
