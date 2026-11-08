@@ -39,7 +39,7 @@ final class SortingDestinations {
 
 		boolean accepts(Spot spot, ItemStack item) {
 			if (this == FRAMED) {
-				return spot.kind() != Kind.SOURCE && showsItem(spot.frames(), item) && Inventories.hasRoom(spot.container(), item);
+				return spot.kind() != Kind.SOURCE && spot.frames().allows(item) && Inventories.hasRoom(spot.container(), item);
 			}
 			if (!spot.frames().isEmpty()) {
 				return false;
@@ -54,10 +54,10 @@ final class SortingDestinations {
 	}
 
 	/**
-	 * {@code frames}: the items shown in item frames hung on this container (either half of a double chest).
+	 * {@code frames}: the item frames hung on this container (either half of a double chest).
 	 * {@code parts}: the positions of all halves of the container, including {@code pos}.
 	 */
-	record Spot(BlockPos pos, Kind kind, Container container, List<ItemStack> frames, Set<BlockPos> parts) {
+	record Spot(BlockPos pos, Kind kind, Container container, FrameFilter frames, Set<BlockPos> parts) {
 	}
 
 	/** The best tier that has a destination, and its spots, nearest first. */
@@ -109,17 +109,8 @@ final class SortingDestinations {
 	/** Whether a cart stack unloads here: same item as delivered, or (matching chest) anything the chest holds, or (framed) what the frames show. */
 	static boolean belongs(ItemStack stack, ItemStack delivered, Spot destination, Tier tier) {
 		if (tier == Tier.FRAMED) {
-			return showsItem(destination.frames(), stack);
+			return destination.frames().allows(stack);
 		}
 		return ItemStack.isSameItem(stack, delivered) || tier == Tier.MATCHING_CHEST && Inventories.containsItem(destination.container(), stack);
-	}
-
-	private static boolean showsItem(List<ItemStack> frames, ItemStack item) {
-		for (ItemStack shown : frames) {
-			if (ItemStack.isSameItem(shown, item)) {
-				return true;
-			}
-		}
-		return false;
 	}
 }

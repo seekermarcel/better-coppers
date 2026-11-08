@@ -39,7 +39,7 @@ class SortingDestinationsTest {
 	private static Spot spot(int x, Kind kind, SimpleContainer container, List<ItemStack> frames, BlockPos... parts) {
 		BlockPos pos = new BlockPos(x, 0, 0);
 		Set<BlockPos> all = parts.length == 0 ? Set.of(pos) : Set.of(parts);
-		return new Spot(pos, kind, container, frames, all);
+		return new Spot(pos, kind, container, new FrameFilter(frames, (type, item) -> false), all);
 	}
 
 	private static SimpleContainer holding(ItemStack stack) {
@@ -95,8 +95,8 @@ class SortingDestinationsTest {
 		BlockPos a = new BlockPos(0, 0, 0);
 		BlockPos b = new BlockPos(0, 0, 1);
 		SimpleContainer shared = new SimpleContainer(54);
-		Spot half1 = new Spot(a, Kind.CHEST, shared, List.of(), Set.of(a, b));
-		Spot half2 = new Spot(b, Kind.CHEST, shared, List.of(), Set.of(a, b));
+		Spot half1 = new Spot(a, Kind.CHEST, shared, new FrameFilter(List.of(), (type, item) -> false), Set.of(a, b));
+		Spot half2 = new Spot(b, Kind.CHEST, shared, new FrameFilter(List.of(), (type, item) -> false), Set.of(a, b));
 		Spot other = spot(5, Kind.BARREL, new SimpleContainer(27), List.of());
 		ItemStack item = new ItemStack(Items.COAL);
 		for (int i = 0; i < 20; i++) {

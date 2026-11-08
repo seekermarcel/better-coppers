@@ -47,7 +47,7 @@ An armour trim worn by a golem, purely for looks.
 ## Sorting
 
 **Reserved chest**:
-A chest or barrel with item frames on it, which only takes the items its frames show.
+A chest or barrel with item frames on it, which only takes the items its frames show. A frame showing a bundle stands for what is in the bundle; one showing a furnace, smoker or blast furnace stands for what that block can cook.
 
 **Working stock**:
 What a sorter leaves in a shared home chest so the other golem's job can carry on, including spare job tools.

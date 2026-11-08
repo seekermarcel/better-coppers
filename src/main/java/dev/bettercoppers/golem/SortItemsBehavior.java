@@ -402,8 +402,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 		List<Spot> spots = new ArrayList<>();
 		Map<BlockPos, List<ItemStack>> frames = new HashMap<>();
 		for (ItemFrame frame : level.getEntitiesOfClass(ItemFrame.class, area.inflate(1.0), frame -> !frame.getItem().isEmpty())) {
-			// A frame hangs on the block behind it.
-			frames.computeIfAbsent(frame.getPos().relative(frame.getDirection().getOpposite()), pos -> new ArrayList<>()).add(frame.getItem());
+			frames.computeIfAbsent(FrameFilter.hangsOn(frame), pos -> new ArrayList<>()).add(frame.getItem());
 		}
 		Inventories.forEachBlockEntity(level, area, blockEntity -> {
 			BlockPos pos = blockEntity.getBlockPos();
@@ -417,7 +416,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 				for (BlockPos part : Homes.sameContainer(level, pos)) {
 					shown.addAll(frames.getOrDefault(part, List.of()));
 				}
-				spots.add(new Spot(pos, kind, container, shown, Set.copyOf(Homes.sameContainer(level, pos))));
+				spots.add(new Spot(pos, kind, container, FrameFilter.of(level, shown), Set.copyOf(Homes.sameContainer(level, pos))));
 			}
 		});
 		return spots;

@@ -254,6 +254,14 @@ It knows every container within 32 blocks (8 up and down).
 # Item frames
 Hang item frames on a chest or barrel to reserve it: it then takes only the items its frames show, and they go there before anywhere else.
 
+One frame can stand for many items:
+- A blast furnace: everything a blast furnace can smelt, such as ores and raw metals.
+- A smoker: everything a smoker can cook, such as raw food.
+- A furnace: everything a furnace can smelt. That includes cobblestone, sand and logs.
+- A bundle: everything in the bundle. One of each item is enough.
+
+To reserve a chest for furnaces or bundles themselves, put one in a bundle and frame that. An empty bundle lets nothing in.
+
 # Working stock
 A sorter shares its chest with another golem and leaves what that golem needs to do its job:
 - spare tools of its job,
@@ -274,6 +282,14 @@ Er kennt jeden Behälter im Umkreis von 32 Blöcken (8 nach oben und unten).
 
 # Rahmen
 Häng Rahmen an eine Truhe oder ein Fass, um sie zu reservieren: Dann kommen nur die gezeigten Gegenstände hinein, und zwar vor allen anderen Truhen.
+
+Ein Rahmen kann für viele Gegenstände stehen:
+- Ein Hochofen: alles, was ein Hochofen schmelzen kann, etwa Erze und Rohmetalle.
+- Ein Räucherofen: alles, was ein Räucherofen garen kann, etwa rohes Essen.
+- Ein Ofen: alles, was ein Ofen schmelzen kann. Dazu gehören auch Bruchstein, Sand und Stämme.
+- Ein Bündel: alles, was im Bündel liegt. Von jedem Gegenstand reicht einer.
+
+Soll eine Truhe Öfen oder Bündel selbst aufnehmen, leg eins davon in ein Bündel und häng dieses in den Rahmen. Ein leeres Bündel lässt nichts hinein.
 
 # Arbeitsvorrat
 Teilt sich ein Sortierer die Truhe mit einem anderen Golem, lässt er liegen, was dieser für seine Arbeit braucht:
@@ -391,6 +407,8 @@ Stellt her, was die Rahmen an oder neben seiner Truhe zeigen, aus den Zutaten in
 
 It takes 16 items per trip, or a cart load with a chained cart. On the road it keeps the chunks around it loaded, so the route keeps working while you are far away. If the destination is full, it waits.
 
+Hang item frames on the pickup chest and it takes only what they show, with the same rules as for a sorter. Frames on the destination change nothing.
+
 A golem with a job takes no route, except a courier: give it a new route and it keeps what it carries and delivers it on the new route. Other jobs have to be ended first. Linking it to a home copper chest ends the route."""),
                 ("Kurier", """Ein Kurier trägt alles von einer Truhe zu einer anderen, egal wie weit sie auseinander stehen.
 
@@ -399,6 +417,8 @@ A golem with a job takes no route, except a courier: give it a new route and it 
 3. Geh zum Ziel (du hast 10 Minuten) und rechtsklicke dort eine Truhe, Kupfertruhe oder ein Fass.
 
 Er nimmt 16 Gegenstände pro Gang mit, mit angeketteter Lore eine ganze Ladung. Unterwegs hält er die Chunks um sich geladen, damit die Route auch funktioniert, wenn du weit weg bist. Ist das Ziel voll, wartet er.
+
+Häng Rahmen an die Abholtruhe, dann nimmt er nur, was sie zeigen, nach denselben Regeln wie beim Sortierer. Rahmen am Ziel ändern nichts.
 
 Ein Golem mit Beruf nimmt keine Route an, außer ein Kurier: Gib ihm eine neue Route, dann behält er, was er trägt, und liefert es auf der neuen Route aus. Andere Berufe musst du erst beenden. Verbindest du ihn mit einer Kupfertruhe als Zuhause, endet die Route.""")),
     "travel": (("Minecarts and Boats", """A golem heading somewhere more than 24 blocks away looks around for a ride.

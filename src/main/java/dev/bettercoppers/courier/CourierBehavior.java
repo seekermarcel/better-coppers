@@ -5,11 +5,13 @@ import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.golem.CartChaining;
 import dev.bettercoppers.golem.ChestVisit;
+import dev.bettercoppers.golem.FrameFilter;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.api.TravelWatch;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.golem.Errands;
+import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -117,14 +119,15 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 			return;
 		}
 		this.travel.reset();
-		this.interactionTicks = ChestVisit.tick(golem, container, target, this.interactionTicks, carrying ? CopperGolemState.DROPPING_ITEM : container.isEmpty() ? CopperGolemState.GETTING_NO_ITEM : CopperGolemState.GETTING_ITEM);
+		Predicate<ItemStack> wanted = carrying ? stack -> true : wantedAt(level, target);
+		this.interactionTicks = ChestVisit.tick(golem, container, target, this.interactionTicks, carrying ? CopperGolemState.DROPPING_ITEM : Inventories.contains(container, wanted) ? CopperGolemState.GETTING_ITEM : CopperGolemState.GETTING_NO_ITEM);
 		if (this.interactionTicks < Golems.INTERACTION_TICKS) {
 			return;
 		}
 		if (carrying) {
 			unload(golem, container);
 		} else {
-			load(golem, container);
+			load(golem, container, wanted);
 		}
 		container.setChanged();
 		this.endInteraction(level, golem);
@@ -137,15 +140,21 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 		}
 	}
 
-	private static void load(CopperGolem golem, Container from) {
-		ItemStack hand = Inventories.takeFirst(from, BetterCoppersApi.carryLimit(golem, Golems.HAND_LIMIT), stack -> true);
+	/** Item frames on the pickup chest limit what is taken from it. Without any, everything is. */
+	private static Predicate<ItemStack> wantedAt(ServerLevel level, BlockPos pickup) {
+		FrameFilter frames = FrameFilter.at(level, pickup);
+		return stack -> frames.isEmpty() || frames.allows(stack);
+	}
+
+	private static void load(CopperGolem golem, Container from, Predicate<ItemStack> wanted) {
+		ItemStack hand = Inventories.takeFirst(from, BetterCoppersApi.carryLimit(golem, Golems.HAND_LIMIT), wanted);
 		golem.setItemSlot(EquipmentSlot.MAINHAND, hand);
 		golem.setGuaranteedDrop(EquipmentSlot.MAINHAND);
 		CopperChestMinecart cart = CartChaining.findCart(golem);
 		if (cart != null) {
 			for (int slot = 0; slot < from.getContainerSize() && Inventories.hasEmptySlot(cart); slot++) {
 				ItemStack stack = from.getItem(slot);
-				if (!stack.isEmpty()) {
+				if (!stack.isEmpty() && wanted.test(stack)) {
 					from.setItem(slot, Inventories.insert(cart, stack));
 				}
 			}

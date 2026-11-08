@@ -38,10 +38,12 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -56,6 +58,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -657,9 +660,7 @@ public class JobGameTests {
 		matching.setItem(0, new ItemStack(Items.COBBLESTONE));
 		BlockPos framedPos = new BlockPos(6, 1, 6);
 		Container framed = GameTests.chest(h, framedPos, Blocks.CHEST);
-		ItemFrame frame = new ItemFrame(h.getLevel(), h.absolutePos(framedPos.west()), Direction.WEST);
-		frame.setItem(new ItemStack(Items.COBBLESTONE));
-		h.getLevel().addFreshEntity(frame);
+		hangFrame(h, framedPos, new ItemStack(Items.COBBLESTONE));
 		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
 		GameTests.energize(golem);
 		give(h, golem, new ItemStack(Items.BUNDLE));
@@ -668,6 +669,49 @@ public class JobGameTests {
 			h.assertTrue(count(framed, Items.COBBLESTONE) == 4, "not delivered to the framed chest yet");
 			h.assertTrue(count(matching, Items.COBBLESTONE) == 1, "delivered to the unframed chest");
 		});
+	}
+
+	@GameTest(maxTicks = 2400, padding = SORTER_PADDING)
+	public void sorter_fills_chest_framed_with_a_blast_furnace(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(2, 1, 4);
+		GameTests.chest(h, home, COPPER_CHEST).setItem(0, new ItemStack(Items.RAW_IRON, 4));
+		BlockPos framedPos = new BlockPos(6, 1, 6);
+		Container framed = GameTests.chest(h, framedPos, Blocks.CHEST);
+		hangFrame(h, framedPos, new ItemStack(Items.BLAST_FURNACE));
+		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
+		GameTests.energize(golem);
+		give(h, golem, new ItemStack(Items.BUNDLE));
+		Homes.set(golem, h.absolutePos(home));
+		h.succeedWhen(() -> h.assertTrue(count(framed, Items.RAW_IRON) == 4, "raw iron not in the framed chest yet"));
+	}
+
+	@GameTest(maxTicks = 2400, padding = SORTER_PADDING)
+	public void courier_takes_only_what_the_pickup_frames_show(GameTestHelper h) {
+		scene(h);
+		BlockPos pickupPos = new BlockPos(2, 1, 4);
+		Container pickup = GameTests.chest(h, pickupPos, Blocks.CHEST);
+		pickup.setItem(0, new ItemStack(Items.COBBLESTONE, 4));
+		pickup.setItem(1, new ItemStack(Items.COAL, 4));
+		ItemStack filter = new ItemStack(Items.BUNDLE);
+		filter.set(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY.copyWithContents(Stream.of(new ItemStack(Items.COAL))));
+		hangFrame(h, pickupPos, filter);
+		BlockPos destinationPos = new BlockPos(6, 1, 4);
+		Container destination = GameTests.chest(h, destinationPos, Blocks.CHEST);
+		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
+		Couriers.setRoute(golem, new CourierRoute(h.absolutePos(pickupPos), h.absolutePos(destinationPos)));
+		h.succeedWhen(() -> {
+			h.assertTrue(count(destination, Items.COAL) == 4, "coal not delivered yet");
+			h.assertTrue(count(destination, Items.COBBLESTONE) == 0, "took an item the frame does not show");
+			h.assertTrue(count(pickup, Items.COBBLESTONE) == 4, "cobblestone left the pickup chest");
+		});
+	}
+
+	/** Hangs an item frame showing {@code shown} on the west side of the container at {@code pos}. */
+	private static void hangFrame(GameTestHelper h, BlockPos pos, ItemStack shown) {
+		ItemFrame frame = new ItemFrame(h.getLevel(), h.absolutePos(pos.west()), Direction.WEST);
+		frame.setItem(shown);
+		h.getLevel().addFreshEntity(frame);
 	}
 
 	/** A sorter and a worker share a home chest that holds the worker's stock and some cobblestone; only the cobblestone may leave. */
