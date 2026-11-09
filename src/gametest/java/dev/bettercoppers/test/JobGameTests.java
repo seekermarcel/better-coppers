@@ -63,9 +63,12 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.CaveVines;
+import net.minecraft.world.level.block.CocoaBlock;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.PitcherCropBlock;
+import net.minecraft.world.level.block.SweetBerryBushBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
@@ -498,6 +501,46 @@ public class JobGameTests {
 			h.assertTrue(count(chest, Items.TORCHFLOWER) >= 1, "no torchflower delivered yet");
 			h.assertBlockPresent(Blocks.TORCHFLOWER_CROP, crop);
 			h.assertBlockPresent(Blocks.TORCHFLOWER, wild);
+		});
+	}
+
+	@GameTest(maxTicks = 2400)
+	public void farmer_harvests_cocoa_and_replants_facing_the_log(GameTestHelper h) {
+		Container chest = farmerWithHome(h);
+		BlockPos cocoa = new BlockPos(4, 1, 4);
+		h.setBlock(cocoa.north(), Blocks.JUNGLE_LOG);
+		h.setBlock(cocoa, Blocks.COCOA.defaultBlockState().setValue(CocoaBlock.FACING, Direction.NORTH).setValue(CocoaBlock.AGE, CocoaBlock.MAX_AGE));
+		h.succeedWhen(() -> {
+			h.assertTrue(count(chest, Items.COCOA_BEANS) >= 1, "no cocoa beans delivered yet");
+			h.assertBlockPresent(Blocks.COCOA, cocoa);
+			h.assertTrue(h.getBlockState(cocoa).getValue(CocoaBlock.AGE) < CocoaBlock.MAX_AGE, "not replanted yet");
+			h.assertTrue(h.getBlockState(cocoa).getValue(CocoaBlock.FACING) == Direction.NORTH, "replanted the wrong way");
+		});
+	}
+
+	@GameTest(maxTicks = 2400)
+	public void farmer_picks_sweet_berries_and_leaves_the_bush(GameTestHelper h) {
+		Container chest = farmerWithHome(h);
+		BlockPos bush = new BlockPos(4, 1, 3);
+		h.setBlock(bush.below(), Blocks.GRASS_BLOCK);
+		h.setBlock(bush, Blocks.SWEET_BERRY_BUSH.defaultBlockState().setValue(SweetBerryBushBlock.AGE, SweetBerryBushBlock.MAX_AGE));
+		h.succeedWhen(() -> {
+			h.assertTrue(count(chest, Items.SWEET_BERRIES) >= 1, "no berries delivered yet");
+			h.assertBlockPresent(Blocks.SWEET_BERRY_BUSH, bush);
+			h.assertTrue(h.getBlockState(bush).getValue(SweetBerryBushBlock.AGE) < SweetBerryBushBlock.MAX_AGE, "still ripe");
+		});
+	}
+
+	@GameTest(maxTicks = 2400)
+	public void farmer_picks_glow_berries_and_leaves_the_vine(GameTestHelper h) {
+		Container chest = farmerWithHome(h);
+		BlockPos vine = new BlockPos(4, 2, 3);
+		h.setBlock(vine.above(), Blocks.STONE);
+		h.setBlock(vine, Blocks.CAVE_VINES.defaultBlockState().setValue(CaveVines.BERRIES, true));
+		h.succeedWhen(() -> {
+			h.assertTrue(count(chest, Items.GLOW_BERRIES) >= 1, "no berries delivered yet");
+			h.assertTrue(h.getBlockState(vine).getBlock() instanceof CaveVines, "the vine is gone");
+			h.assertFalse(CaveVines.hasGlowBerries(h.getBlockState(vine)), "still has berries");
 		});
 	}
 

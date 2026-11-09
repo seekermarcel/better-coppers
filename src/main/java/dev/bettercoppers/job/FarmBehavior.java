@@ -25,11 +25,14 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.AttachedStemBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CaveVines;
+import net.minecraft.world.level.block.CocoaBlock;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.PitcherCropBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.StemBlock;
+import net.minecraft.world.level.block.SweetBerryBushBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -55,6 +58,10 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 		HARVEST_FRUIT,
 		/** Sugar cane or bamboo: cut everything above the bottom block. */
 		HARVEST_STALK,
+		/** Ripe cocoa: harvest and replant on the same log, facing the same way. */
+		HARVEST_COCOA,
+		/** Sweet berries or glow berries: take the berries and leave the plant. */
+		PICK_BERRIES,
 		PLANT
 	}
 
@@ -119,6 +126,12 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 		}
 		if (state.is(Blocks.TORCHFLOWER) && level.getBlockState(pos.below()).is(Blocks.FARMLAND)) {
 			return new Task(Kind.HARVEST_CROP, pos, null);
+		}
+		if (block instanceof CocoaBlock && state.getValue(CocoaBlock.AGE) >= CocoaBlock.MAX_AGE) {
+			return new Task(Kind.HARVEST_COCOA, pos, null);
+		}
+		if (block instanceof SweetBerryBushBlock && state.getValue(SweetBerryBushBlock.AGE) >= SweetBerryBushBlock.MAX_AGE || block instanceof CaveVines && CaveVines.hasGlowBerries(state)) {
+			return new Task(Kind.PICK_BERRIES, pos, null);
 		}
 		if ((state.is(Blocks.PUMPKIN) || state.is(Blocks.MELON)) && isGrownFromStem(level, pos)) {
 			return new Task(Kind.HARVEST_FRUIT, pos, null);
@@ -220,6 +233,8 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 			case HARVEST_CROP -> this.harvestCrop(level, golem, pos);
 			case HARVEST_FRUIT -> harvestBlocks(level, golem, List.of(pos));
 			case HARVEST_STALK -> harvestStalk(level, golem, pos);
+			case HARVEST_COCOA -> harvestCocoa(level, golem, pos);
+			case PICK_BERRIES -> pickBerries(level, golem, pos);
 			case PLANT -> this.plant(level, golem, pos, task.seed());
 		}
 		return true;
@@ -230,6 +245,20 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 		Item seed = state.is(Blocks.TORCHFLOWER) ? Items.TORCHFLOWER_SEEDS : state.getBlock().asItem();
 		harvestBlocks(level, golem, List.of(pos));
 		this.plant(level, golem, pos, seed);
+	}
+
+	private static void harvestCocoa(ServerLevel level, CopperGolem golem, BlockPos pos) {
+		BlockState ripe = level.getBlockState(pos);
+		harvestBlocks(level, golem, List.of(pos));
+		place(level, golem, pos, ripe.setValue(CocoaBlock.AGE, 0), Items.COCOA_BEANS);
+	}
+
+	/** Keeps the drops of the plant without breaking it. */
+	private static void pickBerries(ServerLevel level, CopperGolem golem, BlockPos pos) {
+		BlockState state = level.getBlockState(pos);
+		Block.getDrops(state, level, pos, null, golem, golem.getMainHandItem()).forEach(Load.of(golem)::stash);
+		level.setBlockAndUpdate(pos, state.getBlock() instanceof SweetBerryBushBlock ? state.setValue(SweetBerryBushBlock.AGE, 1) : state.setValue(CaveVines.BERRIES, false));
+		RunningCosts.spend(golem, ENERGY_PER_ACTION);
 	}
 
 	private static void harvestStalk(ServerLevel level, CopperGolem golem, BlockPos bottom) {
@@ -257,10 +286,12 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 	}
 
 	private void plant(ServerLevel level, CopperGolem golem, BlockPos pos, @Nullable Item seed) {
-		if (!(seed instanceof BlockItem blockItem)) {
-			return;
+		if (seed instanceof BlockItem blockItem) {
+			place(level, golem, pos, blockItem.getBlock().defaultBlockState(), seed);
 		}
-		BlockState crop = blockItem.getBlock().defaultBlockState();
+	}
+
+	private static void place(ServerLevel level, CopperGolem golem, BlockPos pos, BlockState crop, Item seed) {
 		if (!level.getBlockState(pos).isAir() || !crop.canSurvive(level, pos) || Load.of(golem).takeOne(stack -> stack.is(seed)).isEmpty()) {
 			return;
 		}
