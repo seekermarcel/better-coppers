@@ -81,7 +81,7 @@ A sorter leaves what another golem sharing its chest needs to keep working. This
 | Farmer | All copper hoes, 16 of every seed |
 | Forester | All copper axes, 8 of every sapling |
 | Fisher | All fishing rods |
-| Animal keeper | All brushes, 16 of every animal food |
+| Animal keeper | All brushes, all shears, 16 of every animal food, 4 buckets, 4 bowls |
 | Beekeeper | All shears, 16 glass bottles |
 | Crafter | All crafting tables |
 

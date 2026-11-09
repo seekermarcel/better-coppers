@@ -1166,6 +1166,26 @@ public class JobGameTests {
 	}
 
 	@GameTest(maxTicks = 2400, padding = SORTER_PADDING)
+	public void keeper_keeps_buckets_in_a_shared_chest(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.BUCKET, KeeperBehavior.VESSEL_RESERVE));
+		chest.setItem(1, new ItemStack(Items.COBBLESTONE, 4));
+		stockStays(h, home, home, new ItemStack(Items.BRUSH), Items.BUCKET);
+	}
+
+	@GameTest(maxTicks = 2400, padding = SORTER_PADDING)
+	public void keeper_keeps_shears_in_a_shared_chest(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.SHEARS));
+		chest.setItem(1, new ItemStack(Items.COBBLESTONE, 4));
+		stockStays(h, home, home, new ItemStack(Items.BRUSH), Items.SHEARS);
+	}
+
+	@GameTest(maxTicks = 2400, padding = SORTER_PADDING)
 	public void beekeeper_keeps_bottles_in_a_shared_chest(GameTestHelper h) {
 		scene(h);
 		BlockPos home = new BlockPos(1, 1, 1);

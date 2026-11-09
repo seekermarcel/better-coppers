@@ -95,7 +95,15 @@ public final class WorkingStock {
 			return switch (job) {
 				case FARMER -> FarmBehavior.isSeed(stack) ? Golems.SEED_RESERVE : 0;
 				case FORESTER -> stack.is(ItemTags.SAPLINGS) ? ForestBehavior.SAPLING_RESERVE : 0;
-				case KEEPER -> ANIMAL_FOOD.stream().anyMatch(stack::is) ? KeeperBehavior.FOOD_RESERVE : 0;
+				case KEEPER -> {
+					if (stack.is(Items.SHEARS)) {
+						yield ALL;
+					}
+					if (stack.is(Items.BUCKET) || stack.is(Items.BOWL)) {
+						yield KeeperBehavior.VESSEL_RESERVE;
+					}
+					yield ANIMAL_FOOD.stream().anyMatch(stack::is) ? KeeperBehavior.FOOD_RESERVE : 0;
+				}
 				case BEEKEEPER -> stack.is(Items.GLASS_BOTTLE) ? BeekeeperBehavior.BOTTLE_RESERVE : 0;
 				default -> 0;
 			};

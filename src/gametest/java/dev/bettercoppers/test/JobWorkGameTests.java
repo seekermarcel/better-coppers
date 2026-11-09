@@ -5,6 +5,7 @@ import dev.bettercoppers.api.GolemUpgrade;
 import dev.bettercoppers.entity.GolemFloat;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.Jobs;
+import dev.bettercoppers.job.KeeperBehavior;
 import dev.bettercoppers.job.Load;
 import dev.bettercoppers.job.WorkerData;
 import dev.bettercoppers.registry.ModAttachments;
@@ -25,9 +26,12 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
+import net.minecraft.world.entity.animal.sheep.Sheep;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -230,6 +234,44 @@ public class JobWorkGameTests {
 			h.assertTrue(baby, "no calf yet");
 			h.assertValueEqual(chest.countItem(Items.WHEAT), 0, "wheat left in the chest");
 			h.assertValueEqual(Load.of(golem).suppliesCount(stack -> stack.is(Items.WHEAT)), 2, "wheat left in the supplies");
+		});
+	}
+
+	@GameTest(maxTicks = 2400, padding = PADDING)
+	public void keeper_shears_a_sheep_and_brings_the_wool_home(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.SHEARS));
+		Sheep sheep = h.spawn(EntityTypes.SHEEP, new BlockPos(4, 1, 4));
+		sheep.setNoAi(true);
+		sheep.setColor(DyeColor.RED);
+		CopperGolem golem = worker(h, new BlockPos(2, 1, 2), Items.BRUSH, home);
+		h.succeedWhen(() -> {
+			h.assertTrue(sheep.isSheared(), "not sheared yet");
+			h.assertTrue(chest.countItem(Items.WOOL.pick(DyeColor.RED)) >= 1, "no wool in the chest yet");
+			h.assertTrue(h.getLevel().getEntitiesOfClass(ItemEntity.class, h.getBounds()).isEmpty(), "wool on the ground");
+			h.assertValueEqual(Load.of(golem).find(stack -> stack.is(Items.SHEARS)).getDamageValue(), 1, "shears damage");
+		});
+	}
+
+	/** One round: four buckets and bowls are there, but each animal gives only once. */
+	@GameTest(maxTicks = 2400, padding = PADDING)
+	public void keeper_milks_each_animal_once_and_gets_stew_from_mooshrooms(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.BUCKET, KeeperBehavior.VESSEL_RESERVE));
+		chest.setItem(1, new ItemStack(Items.BOWL, KeeperBehavior.VESSEL_RESERVE));
+		h.spawn(EntityTypes.COW, new BlockPos(4, 1, 2)).setNoAi(true);
+		h.spawn(EntityTypes.GOAT, new BlockPos(4, 1, 4)).setNoAi(true);
+		h.spawn(EntityTypes.MOOSHROOM, new BlockPos(4, 1, 6)).setNoAi(true);
+		CopperGolem golem = worker(h, new BlockPos(2, 1, 2), Items.BRUSH, home);
+		h.runAfterDelay(1500, () -> {
+			h.assertValueEqual(chest.countItem(Items.MILK_BUCKET), 2, "milk buckets");
+			h.assertValueEqual(chest.countItem(Items.MUSHROOM_STEW), 1, "stew");
+			h.assertValueEqual(Load.of(golem).suppliesCount(stack -> stack.is(Items.BUCKET)), 2, "empty buckets left");
+			h.succeed();
 		});
 	}
 

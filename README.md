@@ -21,7 +21,7 @@ Everything is meant to feel vanilla: golems are slow, sometimes shake their head
 | a **copper hoe** | Farmer | Harvests and replants the fields around its chest |
 | a **copper axe** | Forester | Fells natural trees and replants them |
 | a **fishing rod** | Fisher | Casts its line from the shore and brings the catch home |
-| a **brush** | Animal keeper | Feeds animals so they breed |
+| a **brush** | Animal keeper | Feeds animals so they breed, shears sheep and milks cows |
 | **shears** | Beekeeper | Takes honey from smoked hives and brings it home |
 | a **crafting table** | Crafter | Crafts whatever the item frames on its chest show |
 | a **route** (two chests) | Courier | Carries everything from one chest to another, however far apart |
@@ -111,7 +111,7 @@ A **Multilevel Mine** stacks Mineshafts of the plan's length straight down, 6 bl
 |---|---|---|
 | Copper axe, on a clean golem | Forester | Fells natural trees within 12 blocks (never logs you placed), collects saplings, apples, sticks and logs, replants every stump (four for a 2x2 tree) with the same species only, leaving it empty until it has that sapling |
 | Fishing rod | Fisher | Casts a float into open water within 10 blocks and reels in when it dips, a catch every 20–50 seconds (fish and junk, no treasure) |
-| Brush | Animal keeper | Feeds pairs of animals with food from its chest so they breed, up to 16 per kind |
+| Brush | Animal keeper | Feeds pairs of animals with food from its chest so they breed, up to 16 per kind. With shears, buckets or bowls in its chest it also shears sheep, milks cows, goats and mooshrooms, and gets stew from mooshrooms, and brings it all home |
 | Shears, on a golem with no flower or trim | Beekeeper | Takes honey from full, smoked hives within 10 blocks: a honey bottle while it has glass bottles from its chest, otherwise 3 honeycomb. Needs a lit campfire below each hive |
 | Crafting table | Crafter | Crafts what item frames on or next to its chest show, from ingredients in that chest |
 

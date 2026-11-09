@@ -33,7 +33,7 @@ Each use costs 1 point of [durability](https://minecraft.wiki/w/Item_durability)
 | Farmer | Harvesting a block that is not instantly broken: pumpkins, melons and bamboo. Instantly broken crops such as wheat and sugar cane cost no wear. |
 | Forester | Felling a log |
 | Fisher | Each catch |
-| Animal keeper | Feeding an animal |
+| Animal keeper | Feeding an animal. Shearing wears the shears in its supplies instead, and milking wears nothing. |
 | Beekeeper | Shearing honeycomb from a hive (filling a bottle costs nothing) |
 | Crafter | Never |
 | Operator | Never |

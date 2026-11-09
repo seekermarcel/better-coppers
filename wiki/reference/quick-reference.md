@@ -119,7 +119,7 @@ See [Running costs](/golem/running-costs). Sorters and couriers have none.
 | Energy per log felled | 3 |
 | Energy per block dug by a miner / block placed | 2 / 1 |
 | Energy per catch (fisher) | 15 |
-| Energy per feed (animal keeper) | 10 |
+| Energy per feed, shear or milking (animal keeper) | 10 |
 | Energy per harvest (beekeeper) | 10 |
 | Energy per craft (crafter) | 15 |
 | Energy per second of cranking (operator) | 1 |

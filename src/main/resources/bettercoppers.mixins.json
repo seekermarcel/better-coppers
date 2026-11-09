@@ -6,6 +6,7 @@
 		"CopperGolemAccessor",
 		"CopperGolemAiMixin",
 		"CopperGolemMixin",
+		"LivingEntityInvoker",
 		"MobAccessor",
 		"NearestAttackableTargetGoalAccessor",
 		"ServerLevelMixin",

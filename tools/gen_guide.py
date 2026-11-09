@@ -275,7 +275,7 @@ A sorter does not fetch anything. To refill a chest, send a courier to it.
 A sorter shares its chest with another golem and leaves what that golem needs to do its job:
 - spare tools of its job,
 - a miner's torches, rails, planks and fences,
-- 16 of every seed for a farmer, 8 of every sapling for a forester, 16 of every animal food for a keeper, 16 glass bottles for a beekeeper.
+- 16 of every seed for a farmer, 8 of every sapling for a forester, 16 of every animal food, all shears, 4 buckets and 4 bowls for a keeper, 16 glass bottles for a beekeeper.
 This also holds when the golems are linked to the two halves of a double chest.
 
 It carries 16 items per trip. Now and then it opens a wrong chest first and shakes its head: that is just its character.
@@ -313,7 +313,7 @@ Ein Sortierer holt nichts. Um eine Truhe aufzufüllen, schick einen Kurier zu ih
 Teilt sich ein Sortierer die Truhe mit einem anderen Golem, lässt er liegen, was dieser für seine Arbeit braucht:
 - Ersatzwerkzeug für dessen Beruf,
 - Fackeln, Schienen, Bretter und Zäune eines Bergmanns,
-- 16 von jedem Saatgut für einen Bauern, 8 von jedem Setzling für einen Förster, 16 von jedem Tierfutter für einen Tierpfleger, 16 Glasflaschen für einen Imker.
+- 16 von jedem Saatgut für einen Bauern, 8 von jedem Setzling für einen Förster, 16 von jedem Tierfutter, alle Scheren, 4 Eimer und 4 Schüsseln für einen Tierpfleger, 16 Glasflaschen für einen Imker.
 Das gilt auch, wenn die Golems an den beiden Hälften einer Doppeltruhe hängen.
 
 Er trägt 16 Gegenstände pro Gang. Ab und zu öffnet er erst eine falsche Truhe und schüttelt den Kopf: Das ist einfach sein Charakter.
@@ -442,7 +442,7 @@ Fells natural trees within 12 blocks, never logs you placed. It collects sapling
 Casts its line into open water within 10 blocks and waits for the float to dip: a catch every 20 to 50 seconds, fish and junk but no treasure.
 
 # Animal keeper: a brush
-Feeds pairs of animals with food from its chest so they breed, up to 16 of each kind.
+Feeds pairs of animals with food from its chest so they breed, up to 16 of each kind. With shears in its chest it also shears sheep and brings the wool home. With empty buckets it milks cows, goats and mooshrooms, each animal once every 5 minutes, and with bowls it gets stew from mooshrooms.
 
 # Beekeeper: shears
 Takes the honey from full bee nests and beehives within 10 blocks, but only from those smoked by a lit campfire below them, so the bees stay calm. With glass bottles from its chest it fills one bottle per hive, without them it shears three honeycomb. It does not climb, so keep the hives within its reach.
@@ -458,7 +458,7 @@ Fällt natürliche Bäume im Umkreis von 12 Blöcken, nie Stämme, die du gesetz
 Wirft die Angel in offenes Wasser im Umkreis von 10 Blöcken aus und wartet, bis der Schwimmer abtaucht: alle 20 bis 50 Sekunden ein Fang, Fisch und Plunder, aber keine Schätze.
 
 # Tierpfleger: ein Pinsel
-Füttert Tierpaare mit Futter aus seiner Truhe, damit sie sich vermehren, bis zu 16 von jeder Art.
+Füttert Tierpaare mit Futter aus seiner Truhe, damit sie sich vermehren, bis zu 16 von jeder Art. Liegt eine Schere in seiner Truhe, schert er auch Schafe und bringt die Wolle heim. Mit leeren Eimern melkt er Kühe, Ziegen und Pilzkühe, jedes Tier einmal alle 5 Minuten, und mit Schüsseln holt er Pilzsuppe von Pilzkühen.
 
 # Imker: eine Schere
 Holt den Honig aus vollen Bienennestern und Bienenstöcken im Umkreis von 10 Blöcken, aber nur aus denen, die ein brennendes Lagerfeuer darunter einräuchert, damit die Bienen ruhig bleiben. Mit Glasflaschen aus seiner Truhe füllt er eine Flasche pro Stock, ohne sie schneidet er drei Honigwaben. Klettern kann er nicht, also setz die Stöcke in seine Reichweite.
