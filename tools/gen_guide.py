@@ -353,6 +353,8 @@ Without planks, fences and rails it does not dig. Keep those and torches in its 
 # On the job
 It digs out ores touching what it digs and follows each vein for up to 16 ores, diamond, gold, redstone and emerald included. It plugs water and lava with filler it dug itself, such as cobblestone, stone or dirt, and walks home with up to 64 items. Link a sorter to the same chest to sort the loot.
 
+Out of filler at water or lava, it gives up the rest of the tunnel and goes on to lay its rails in the part it dug. The plan and its status show where it gave up. Mark the plan again at the same spot to have that part dug: finished steps skip themselves.
+
 Ending its job gives you the pickaxe and plan back. The plan keeps its progress.
 
 # Diamonds!
@@ -372,6 +374,8 @@ Ohne Bretter, Zäune und Schienen wird nicht gegraben. Lege sie und Fackeln in s
 
 # Bei der Arbeit
 Er baut Erze ab, die an das grenzen, was er gräbt, und folgt jeder Ader für bis zu 16 Erze, auch bei Diamant-, Gold-, Redstone- und Smaragderz. Wasser und Lava stopft er mit selbst gegrabenem Füllmaterial wie Bruchstein, Stein oder Erde zu und geht mit bis zu 64 Gegenständen nach Hause. Ein Sortierer an derselben Truhe sortiert die Beute.
+
+Ohne Füllmaterial an Wasser oder Lava gibt er den Rest des Tunnels auf und legt im gegrabenen Teil seine Schienen. Plan und Status zeigen, wo er aufgegeben hat. Markiere den Plan erneut an derselben Stelle, damit dieser Teil gegraben wird: Fertige Schritte überspringt er.
 
 Beendest du seinen Beruf, bekommst du Spitzhacke und Plan zurück. Der Plan merkt sich den Fortschritt.
 

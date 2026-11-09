@@ -93,7 +93,8 @@ A miner can harvest diamond, gold, redstone and emerald ore with its copper pick
 | Situation | What the golem does |
 |---|---|
 | Water or lava in the block, or touching it | Plugs it with filler, 15 ticks each, then digs on. Skips fluids the golem itself stands in |
-| No filler at a fluid | Abandons the Mineshaft Plan: it goes to the end of its steps, and the golem goes home |
+| No filler at a fluid | Gives up the current Mine Section, which in a mineshaft is the rest of the tunnel. It does not go home for filler: it carries on at once and lays rails in the part already dug. The Mineshaft Plan's tooltip and the golem's status show the block where it gave up (only the latest). Marking the Mineshaft Plan again is the retry: finished steps skip themselves |
+| No filler at a fluid beside a chased ore or fallen block | Skips only that block. The Mineshaft Plan is untouched |
 | Gravel or sand fell into its last 32 digs | Clears it before anything else |
 | Walking without getting closer | Every 5 seconds, digs out the nearest block that fell into the finished tunnel |
 | 15 seconds without getting closer | Gives up on that step and moves on |

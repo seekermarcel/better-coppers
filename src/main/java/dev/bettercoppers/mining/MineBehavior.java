@@ -63,7 +63,8 @@ import org.jspecify.annotations.Nullable;
  * entrance, unloads, and restocks torches, wood and rails.
  * <p>
  * Golems are not good at this: they dig slowly, sometimes stop to scratch their heads, and give up on blocks they
- * cannot reach. Water and lava are sealed off with filler blocks before they can flood the tunnel.
+ * cannot reach. Water and lava are sealed off with filler blocks before they can flood the tunnel; with no filler the golem gives up
+ * that Mine Section and carries on.
  */
 public class MineBehavior extends Behavior<CopperGolem> {
 	/** Slower than a player with the same pickaxe. */
@@ -106,8 +107,8 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	private final ArrayDeque<MineLayout.Step> oreDigs = new ArrayDeque<>();
 	private int oreBudget = ORE_BUDGET;
 	private final ArrayDeque<MineLayout.Step> recentDigs = new ArrayDeque<>();
-	/** Highest slice whose supports the golem already checked it carries. */
-	private int checkedSlice = -1;
+	/** The needs last found in the pouch; digs sharing them are not checked again as supplies get used up. */
+	private MineLayout.@Nullable Needs checkedNeeds;
 	/** Extra digs (ores, blockers) the golem could not get to; not tried again. */
 	private final Set<BlockPos> unreachable = new HashSet<>();
 
@@ -167,13 +168,13 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	}
 
 	private List<MineLayout.Step> steps(ServerLevel level, MinePlan plan) {
-		MinePlan key = plan.withProgress(0);
+		MinePlan key = plan.unstarted();
 		if (!key.equals(this.layoutPlan)) {
 			this.layoutPlan = key;
 			this.steps = MineLayout.build(plan, level.getMinY());
 			this.oreDigs.clear();
 			this.recentDigs.clear();
-			this.checkedSlice = -1;
+			this.checkedNeeds = null;
 			this.unreachable.clear();
 		}
 		return this.steps;
@@ -262,10 +263,10 @@ public class MineBehavior extends Behavior<CopperGolem> {
 				this.startReturn(golem, false);
 				return false;
 			}
-			if (step.action() == MineLayout.Action.DIG && !this.checkSliceSupplies(level, golem, plan, step)) {
+			if (step.action() == MineLayout.Action.DIG && !this.checkSupplies(level, golem, step.needs())) {
 				return false;
 			}
-			MineLayout.Step floor = this.floorFirst(level, golem, plan, step);
+			MineLayout.Step floor = this.floorFirst(level, golem, step);
 			return floor != null ? this.setWork(floor, true) : this.setWork(step, false);
 		}
 		// Plan finished.
@@ -277,7 +278,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	private boolean nextExtraDig(ServerLevel level, CopperGolem golem) {
 		// Gravel or sand that fell into the tunnel comes out first.
 		for (MineLayout.Step dug : this.recentDigs) {
-			if (level.isLoaded(dug.pos()) && level.getBlockState(dug.pos()).getBlock() instanceof FallingBlock) {
+			if (level.isLoaded(dug.pos()) && !this.unreachable.contains(dug.pos()) && level.getBlockState(dug.pos()).getBlock() instanceof FallingBlock) {
 				this.setWork(dug, true);
 				return true;
 			}
@@ -298,18 +299,17 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	}
 
 	/** No supports, no digging: fetch them, or wait at home until someone fills the chest. False if it went home. */
-	private boolean checkSliceSupplies(ServerLevel level, CopperGolem golem, MinePlan plan, MineLayout.Step step) {
-		int slice = MineLayout.sliceOf(plan, step.pos());
-		if (slice <= this.checkedSlice) {
+	private boolean checkSupplies(ServerLevel level, CopperGolem golem, MineLayout.Needs needs) {
+		if (needs == this.checkedNeeds) {
 			return true;
 		}
-		if (!this.hasSliceMaterials(golem, slice, null)) {
+		if (!hasMaterials(golem, needs, null)) {
 			Container homeChest = Homes.container(level, Homes.valid(level, golem));
-			boolean available = homeChest != null && this.hasSliceMaterials(golem, slice, homeChest);
+			boolean available = homeChest != null && hasMaterials(golem, needs, homeChest);
 			this.startReturn(golem, !available);
 			return false;
 		}
-		this.checkedSlice = slice;
+		this.checkedNeeds = needs;
 		return true;
 	}
 
@@ -317,13 +317,12 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	 * No floor where the golem should stand (the entrance at a ledge, the edge of a cave)? Then it lays one first, from
 	 * one block further back, or it would never get there. Null if the floor is fine.
 	 */
-	private MineLayout.@Nullable Step floorFirst(ServerLevel level, CopperGolem golem, MinePlan plan, MineLayout.Step step) {
+	private MineLayout.@Nullable Step floorFirst(ServerLevel level, CopperGolem golem, MineLayout.Step step) {
 		BlockPos standFloor = step.stand().below();
 		BlockState below = level.getBlockState(standFloor);
 		if (!below.isFaceSturdy(level, standFloor, Direction.UP) && below.canBeReplaced() && !this.unreachable.contains(standFloor)
 			&& !Load.of(golem).find(this.materialFor(MineLayout.Action.FLOOR)).isEmpty()) {
-			BlockPos further = step.stand().relative(plan.heading().orElseThrow().getOpposite());
-			return new MineLayout.Step(MineLayout.Action.FLOOR, standFloor, further, Direction.UP);
+			return MineLayout.Step.extra(MineLayout.Action.FLOOR, standFloor, step.stand().relative(step.backOff()));
 		}
 		return null;
 	}
@@ -516,7 +515,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			BlockPos next = pos.relative(direction);
 			boolean queued = this.oreDigs.stream().anyMatch(ore -> ore.pos().equals(next));
 			if (this.oreBudget > 0 && !queued && level.isLoaded(next) && isOre(level.getBlockState(next))) {
-				this.oreDigs.add(new MineLayout.Step(MineLayout.Action.DIG, next, stand, Direction.UP));
+				this.oreDigs.add(MineLayout.Step.extra(MineLayout.Action.DIG, next, stand));
 				this.oreBudget--;
 			}
 		}
@@ -584,19 +583,26 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	private boolean plugOrFlee(ServerLevel level, CopperGolem golem, MinerData data, BlockPos pos) {
 		ItemStack filler = Load.of(golem).takeOne(MineBehavior::isFiller);
 		if (filler.isEmpty()) {
-			// Nothing to plug the hole with: too dangerous, the golem packs up and goes home.
-			MinePlan plan = data.plan();
-			if (plan != null) {
-				data.setPlan(plan.withProgress(this.steps(level, plan).size()));
-			}
-			this.work = null;
-			this.startReturn(golem, true);
+			// Nothing to plug the hole with: too dangerous, so this bit stays undug and the golem carries on.
+			this.giveUp(golem, data);
 			return false;
 		}
 		this.placeBlock(level, golem, pos, ((BlockItem) filler.getItem()).getBlock().defaultBlockState());
 		golem.setState(CopperGolemState.DROPPING_ITEM);
 		this.pauseTicks = 15;
 		return false;
+	}
+
+	/** Extra work gives up only itself; a step of the plan gives up its Mine Section. */
+	private void giveUp(CopperGolem golem, MinerData data) {
+		MineLayout.Step step = this.work;
+		this.work = null;
+		golem.setState(CopperGolemState.IDLE);
+		if (this.extraWork) {
+			this.unreachable.add(step.pos());
+		} else {
+			data.setPlan(data.plan().givenUpAt(step.pos(), step.resumeAt()));
+		}
 	}
 
 	private void build(ServerLevel level, CopperGolem golem, MineLayout.Step step) {
@@ -696,7 +702,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			}
 			MinePlan plan = data.plan();
 			if (plan != null && !this.stopAfterReturn) {
-				this.restock(load, plan, chest);
+				this.restock(load, this.steps(level, plan), chest);
 			}
 			if (!load.hasNothingToBringHome()) {
 				this.backedUp = true;
@@ -707,17 +713,16 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		}
 	}
 
-	private void restock(Load load, MinePlan plan, Container chest) {
+	private void restock(Load load, List<MineLayout.Step> steps, Container chest) {
 		this.restockOne(load, chest, stack -> stack.is(Items.TORCH), 16);
-		// Every rail stays in the pouch until the shaft is dug, so it takes enough for the whole plan.
-		this.restockOne(load, chest, stack -> stack.is(Items.RAIL), plan.length());
+		// Rails stay in the pouch until the digging is done, so it takes what the most demanding dig asks for.
+		this.restockOne(load, chest, stack -> stack.is(Items.RAIL), steps.stream().mapToInt(step -> step.needs().rails()).max().orElse(0));
 		this.restockOne(load, chest, stack -> stack.is(ItemTags.PLANKS), 32);
 		this.restockOne(load, chest, stack -> stack.is(ItemTags.WOODEN_FENCES), 16);
 	}
 
-	/** Whether the golem carries (plus {@code chest}, if given, holds) what slice {@code slice} needs. */
-	private boolean hasSliceMaterials(CopperGolem golem, int slice, @Nullable Container chest) {
-		MineLayout.SliceNeeds needs = MineLayout.needs(slice);
+	/** Whether the golem carries (plus {@code chest}, if given, holds) {@code needs}. */
+	private static boolean hasMaterials(CopperGolem golem, MineLayout.Needs needs, @Nullable Container chest) {
 		Load load = Load.of(golem);
 		return countWith(load, chest, stack -> stack.is(Items.RAIL)) >= needs.rails()
 			&& countWith(load, chest, stack -> stack.is(ItemTags.WOODEN_FENCES)) >= needs.fences()

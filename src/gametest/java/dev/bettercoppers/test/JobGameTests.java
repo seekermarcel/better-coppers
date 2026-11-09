@@ -679,7 +679,8 @@ public class JobGameTests {
 		give(h, golem, planStack);
 		Homes.set(golem, h.absolutePos(home));
 		var firstSlice = MineLayout.build(plan, h.getLevel().getMinY()).stream()
-			.filter(step -> step.action() == MineLayout.Action.DIG && MineLayout.sliceOf(plan, step.pos()) == 0)
+			.filter(step -> step.action() == MineLayout.Action.DIG)
+			.limit(9)
 			.toList();
 		h.succeedWhen(() -> {
 			for (var step : firstSlice) {

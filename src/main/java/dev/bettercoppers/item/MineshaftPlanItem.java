@@ -67,6 +67,7 @@ public class MineshaftPlanItem extends Item {
 		if (plan.progress() > 0) {
 			builder.accept(Component.translatable("tooltip.bettercoppers.progress", plan.progress()).withStyle(ChatFormatting.GRAY));
 		}
+		plan.givenUp().ifPresent(pos -> builder.accept(Component.translatable("tooltip.bettercoppers.given_up", pos.getX(), pos.getY(), pos.getZ()).withStyle(ChatFormatting.YELLOW)));
 	}
 
 	private static Component directionName(Direction direction) {

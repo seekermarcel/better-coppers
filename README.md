@@ -83,7 +83,7 @@ The golem digs a **3×3 vanilla-style mineshaft**: plank floor over gaps, a supp
 - **No supplies, no digging.** It must carry the rails, fences and planks for what it digs. It fetches them from its chest, or waits there until you restock. Torches come from the chest too, but without them it digs on and leaves them out.
 - **Ores:** it digs out ores touching what it digs and follows each vein for up to 16 ores, diamond, gold, redstone and emerald included.
 - **Diamonds:** when it finds diamonds, it digs out the whole vein and hurries home with its antenna blinking.
-- **Safety:** it plugs water and lava with filler it dug itself (cobblestone, stone, dirt and the like) and clears gravel and sand that falls in.
+- **Safety:** it plugs water and lava with filler it dug itself (cobblestone, stone, dirt and the like) and clears gravel and sand that falls in. Out of filler, it gives up the rest of the tunnel, lays its rails in the part it dug, and the plan shows where it stopped.
 - **Slow and clumsy:** it digs two to three times slower than a player and skips blocks it can't reach.
 - **Loot:** it carries 64 items (more with a cart), then walks home. Link a sorter to the same chest and it sorts the loot, leaving the mining supplies alone.
 - **Getting things back:** end its job to get the pickaxe and the plan back. The plan keeps its progress. It takes the pickaxe first, then the plan.

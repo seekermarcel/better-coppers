@@ -125,8 +125,15 @@ Removing one rust stage with an axe, by hand or from a dispenser.
 ## Mining
 
 **Mineshaft Plan**:
-The item that holds a mine's entrance, direction, length and progress.
+The item that holds a mine's Mine Pattern, entrance, direction, size and progress.
 _Avoid_: Plan, on its own
+
+**Mine Pattern**:
+The shape of mine a Mineshaft Plan describes, such as a mineshaft or a strip mine.
+_Avoid_: Mine mode, layout
+
+**Mine Section**:
+A stretch of a mine that is given up as one: a branch, a level's tunnel or a stretch of corridor.
 
 **Survey Table**:
 The block that makes Mineshaft Plans.

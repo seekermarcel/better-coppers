@@ -1,8 +1,11 @@
 package dev.bettercoppers.test;
 
+import dev.bettercoppers.home.HomeLinking;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.Load;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import dev.bettercoppers.mining.MineLayout;
 import dev.bettercoppers.mining.MinePattern;
 import dev.bettercoppers.mining.MinePlan;
@@ -15,13 +18,18 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -82,6 +90,22 @@ public class MinerGameTests {
 		UseEntityCallback.EVENT.invoker().interact(player, h.getLevel(), InteractionHand.MAIN_HAND, golem, null);
 	}
 
+	/** Turns the first two slices to glass, which drops nothing, so the miner gets no filler from digging them. */
+	private static void glassSlices(GameTestHelper h) {
+		for (int x = 3; x <= 5; x++) {
+			for (int y = 1; y <= 3; y++) {
+				for (int z = 4; z <= 5; z++) {
+					h.setBlock(new BlockPos(x, y, z), Blocks.GLASS);
+				}
+			}
+		}
+	}
+
+	private static boolean hasKey(Component component, String key) {
+		return component.getContents() instanceof TranslatableContents contents && contents.getKey().equals(key)
+			|| component.getSiblings().stream().anyMatch(sibling -> hasKey(sibling, key));
+	}
+
 	private static int progress(CopperGolem golem) {
 		return MinerData.get(golem).plan().progress();
 	}
@@ -91,7 +115,8 @@ public class MinerGameTests {
 		// Starts 6 blocks from home, so a golem that never moves fails the "at home" check.
 		Scene s = scene(h, false, new BlockPos(7, 1, 7));
 		var firstSlice = MineLayout.build(s.plan(), h.getLevel().getMinY()).stream()
-			.filter(step -> step.action() == MineLayout.Action.DIG && MineLayout.sliceOf(s.plan(), step.pos()) == 0)
+			.filter(step -> step.action() == MineLayout.Action.DIG)
+			.limit(9)
 			.toList();
 		// The idle miner strolls around a bit, so check that it came to the chest at some point, not where it ends up.
 		int[] closest = {Integer.MAX_VALUE};
@@ -227,6 +252,46 @@ public class MinerGameTests {
 		h.succeedWhen(() -> {
 			h.assertTrue(h.getBlockState(WALL).is(Blocks.COBBLESTONE) || h.getBlockState(WALL).is(Blocks.STONE), "water not plugged yet");
 			h.assertTrue(progress(s.golem()) > TWO_SLICES, "plan did not carry on: " + progress(s.golem()));
+		});
+	}
+
+	@GameTest(maxTicks = 3600)
+	public void miner_without_filler_gives_up_the_tunnel_and_still_lays_its_rails(GameTestHelper h) {
+		Scene s = scene(h, true, START);
+		glassSlices(h);
+		// Above the first block of the third slice, shut in by stone.
+		h.setBlock(new BlockPos(4, 4, 3), Blocks.WATER);
+		BlockPos gaveUpAt = h.absolutePos(new BlockPos(4, 3, 3));
+		int allSteps = MineLayout.build(s.plan(), h.getLevel().getMinY()).size();
+		h.succeedWhen(() -> {
+			MinePlan plan = MinerData.get(s.golem()).plan();
+			h.assertTrue(plan.givenUp().equals(Optional.of(gaveUpAt)), "gave up at " + plan.givenUp());
+			h.assertTrue(h.getBlockState(new BlockPos(4, 1, 5)).is(Blocks.RAIL), "no rail in the first slice");
+			h.assertTrue(h.getBlockState(new BlockPos(4, 1, 4)).is(Blocks.RAIL), "no rail in the second slice");
+			h.assertTrue(h.getBlockState(new BlockPos(4, 3, 3)).is(Blocks.STONE), "dug on at the water");
+			h.assertValueEqual(plan.progress(), allSteps, "steps done");
+			h.assertTrue(hasKey(HomeLinking.status(s.golem()), "status.bettercoppers.given_up"), "not in the status line");
+			ItemStack stack = new ItemStack(ModItems.MINESHAFT_PLAN);
+			stack.set(ModComponents.MINE_PLAN, plan);
+			List<Component> tooltip = new ArrayList<>();
+			stack.getItem().appendHoverText(stack, Item.TooltipContext.EMPTY, TooltipDisplay.DEFAULT, tooltip::add, TooltipFlag.NORMAL);
+			h.assertTrue(tooltip.stream().anyMatch(line -> hasKey(line, "tooltip.bettercoppers.given_up")), "not in the tooltip");
+		});
+	}
+
+	@GameTest(maxTicks = 3600)
+	public void miner_without_filler_skips_only_a_chased_ore_at_a_fluid(GameTestHelper h) {
+		Scene s = scene(h, true, START);
+		glassSlices(h);
+		h.setBlock(WALL, Blocks.COAL_ORE);
+		// Behind the ore, out of reach of the shaft. The stone keeps the water from running out of the scene.
+		h.setBlock(WALL.east(), Blocks.WATER);
+		h.setBlock(WALL.east(2), Blocks.STONE);
+		h.succeedWhen(() -> {
+			// Dug by the plan itself: a plan jumped to its end would never open the third slice.
+			h.assertTrue(h.getBlockState(new BlockPos(4, 3, 3)).isAir(), "third slice not opened: progress " + progress(s.golem()));
+			h.assertTrue(MinerData.get(s.golem()).plan().givenUp().isEmpty(), "gave up a section for an ore");
+			h.assertTrue(h.getBlockState(WALL).is(Blocks.COAL_ORE), "dug the ore at the water");
 		});
 	}
 }

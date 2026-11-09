@@ -84,6 +84,7 @@ Extras are only shown on [paying jobs](/golem/running-costs). Eyes or upgrades o
 | Extra | When | Shown as |
 |---|---|---|
 | Lost tool | The job tool broke and no new one was found | `looking for a new <tool>` |
+| Given up | A miner [gave up a Mine Section](/jobs/miner#obstacles) | `gave up at X Y Z` |
 | [Eyes](/golem/eyes) | The golem has eyes | `eyes 150%`, `eyes 200%` or `eyes 300%` |
 | [Iron Plating](/items/iron_plating) (add-on) | Fitted | `plating N%` |
 | [Copper Coating](/items/copper_coating) (add-on) | Fitted | `coating N%` |

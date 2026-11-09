@@ -30,7 +30,7 @@ To **mark** a Mineshaft Plan, use it on a block where the mine should start.
 
 The entrance is the middle block of the first slice at floor height. The tunnel heads in the horizontal direction the player is facing. A message shows the entrance coordinates and heading.
 
-Marking a Mineshaft Plan again moves the entrance and resets its progress to 0. A Mineshaft Plan cannot be marked while a golem holds it.
+Marking a Mineshaft Plan again moves the entrance, resets its progress to 0 and clears where a golem gave up. A Mineshaft Plan cannot be marked while a golem holds it.
 
 ### Giving it to a golem
 
@@ -53,6 +53,7 @@ When the golem's job ends, the Mineshaft Plan comes back to the player with its 
 | Use on the ground at the mine entrance | While unmarked, in yellow |
 | Entrance: *x y z*, heading *direction* | Once marked |
 | In progress (*N* steps done) | Once progress is above 0 |
+| Given up at *x y z* | Once a golem [gave up a Mine Section](/jobs/miner#obstacles), in yellow, until marked again |
 
 <!-- MEDIA: items-mineshaft-plan-tooltip.png | screenshot | The tooltip of a marked Mineshaft Plan with its length, entrance coordinates and heading, and a progress line -->
 
@@ -94,3 +95,4 @@ The item component has these fields:
 | `entrance` | Block position, optional | Set by marking |
 | `heading` | Direction, optional | Set by marking |
 | `progress` | Integer, default 0 | Finished steps |
+| `given_up` | Block position, optional | The latest block where a Mine Section was given up |

@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import dev.bettercoppers.mining.MinerData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -202,7 +203,7 @@ public final class HomeLinking {
 	}
 
 	/** Job, place, energy and rust, for the status message. */
-	private static Component status(CopperGolem golem) {
+	public static Component status(CopperGolem golem) {
 		Component job = Jobs.name(golem);
 		CourierRoute route = Couriers.route(golem);
 		BlockPos place = Jobs.place(golem);
@@ -227,6 +228,11 @@ public final class HomeLinking {
 		Container chest = Homes.container(golem.level(), Homes.get(golem));
 		if (chest != null && !load.hasNothingToBringHome() && !load.fitsInto(chest)) {
 			status.append(", ").append(Component.translatable("status.bettercoppers.chest_full"));
+		}
+		MinerData miner = MinerData.get(golem);
+		if (miner != null && miner.plan() != null && miner.plan().givenUp().isPresent()) {
+			BlockPos pos = miner.plan().givenUp().orElseThrow();
+			status.append(", ").append(Component.translatable("status.bettercoppers.given_up", pos.getX(), pos.getY(), pos.getZ()));
 		}
 		if (Eyes.tier(golem) > 0) {
 			status.append(", ").append(Component.translatable("status.bettercoppers.eyes", Math.round(Eyes.multiplier(golem) * 100)));
