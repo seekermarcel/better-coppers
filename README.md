@@ -93,6 +93,7 @@ The golem digs a **3×3 vanilla-style mineshaft**: plank floor over gaps, a supp
 - It picks ripe cocoa and replants it, and takes sweet berries and glow berries and leaves the plant. You place those first.
 - It picks pumpkins and melons and leaves the stems, and cuts sugar cane, bamboo and cactus once they are 3 high.
 - It picks mushrooms but leaves the last one of a patch, so it can spread again.
+- It takes a chorus plant whole once no flower on it lives, then plants a new flower.
 - It keeps 16 of every seed it can plant and never tills new land. You build the field. A stem needs a free block next to it for its fruit, so leave those spots as plain dirt.
 
 ### Forester, fisher, animal keeper, crafter

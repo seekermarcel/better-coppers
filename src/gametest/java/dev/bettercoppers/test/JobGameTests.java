@@ -64,6 +64,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.CaveVines;
+import net.minecraft.world.level.block.ChorusFlowerBlock;
 import net.minecraft.world.level.block.CocoaBlock;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FarmlandBlock;
@@ -571,6 +572,25 @@ public class JobGameTests {
 		h.succeedWhen(() -> {
 			h.assertTrue(count(chest, Items.BROWN_MUSHROOM) >= 1, "no mushroom delivered yet");
 			h.assertTrue(h.getBlockState(first).is(Blocks.BROWN_MUSHROOM) || h.getBlockState(second).is(Blocks.BROWN_MUSHROOM), "the last mushroom was picked");
+		});
+	}
+
+	@GameTest(maxTicks = 2400)
+	public void farmer_takes_only_spent_chorus_and_plants_a_flower(GameTestHelper h) {
+		farmerWithHome(h);
+		BlockPos spent = new BlockPos(4, 1, 3);
+		BlockPos live = new BlockPos(7, 1, 3);
+		for (BlockPos base : List.of(spent, live)) {
+			h.setBlock(base.below(), Blocks.END_STONE);
+			h.setBlock(base, Blocks.CHORUS_PLANT);
+		}
+		h.setBlock(spent.above(), Blocks.CHORUS_FLOWER.defaultBlockState().setValue(ChorusFlowerBlock.AGE, ChorusFlowerBlock.DEAD_AGE));
+		h.setBlock(live.above(), Blocks.CHORUS_FLOWER);
+		h.succeedWhen(() -> {
+			h.assertBlockPresent(Blocks.CHORUS_FLOWER, spent);
+			h.assertTrue(h.getBlockState(spent).getValue(ChorusFlowerBlock.AGE) < ChorusFlowerBlock.DEAD_AGE, "not replanted yet");
+			h.assertBlockPresent(Blocks.AIR, spent.above());
+			h.assertBlockPresent(Blocks.CHORUS_PLANT, live);
 		});
 	}
 

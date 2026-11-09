@@ -37,6 +37,7 @@ The field is a box around the home chest: 8 blocks to each side and 3 up and dow
 | Ripe sweet berry bush, cave vine with glow berries | Takes the berries and leaves the plant |
 | Sugar cane, bamboo or cactus, at least 3 high | Cuts everything above the bottom block |
 | Mushroom with another of the same kind within 4 blocks | Picks it, so the last one of a patch stays and can spread |
+| Chorus plant on end stone with no live flower | Takes the whole plant and plants a chorus flower on the end stone |
 | Empty farmland | Plants a crop, pumpkin or melon seeds, or a pitcher pod from its supplies |
 | Empty soul sand | Plants nether wart from its supplies |
 
@@ -60,7 +61,7 @@ The harvest goes into a chained [Copper Chest Minecart](/items/copper_chest_mine
 
 | Action | Energy | Tool wear |
 |---|---|---|
-| Harvesting a block | 3 | 1, only for pumpkins, melons, bamboo, cocoa and cactus |
+| Harvesting a block | 3 | 1, only for pumpkins, melons, bamboo, cocoa, cactus and chorus |
 | Picking berries | 3 | None |
 | Planting | 3 | None |
 
@@ -74,6 +75,7 @@ Ripe crops, nether wart, pitcher crops, torchflowers, mushrooms and sugar cane b
 - A stem grows its fruit into a free block next to it. The farmer plants on all empty farmland, so leave the spots for the fruit as plain dirt or a field of stems never fruits.
 - If it carries no seed for a harvested crop, no replant happens. Ripe pitcher crops and torchflowers give no seeds back, so pitcher pods and torchflower seeds have to come from you.
 - Empty soul sand alone does not send the farmer home to fetch nether wart. It plants nether wart it already carries, or takes some on its next chest visit.
+- Taking a chorus plant costs energy and tool wear for every block of it. Only its bottom block has to be inside the field.
 - A blocked crop is skipped for 30 seconds after 15 seconds without getting closer.
 
 ## Advancements

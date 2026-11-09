@@ -6,6 +6,7 @@ import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.runningcosts.RunningCosts;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -26,6 +27,7 @@ import net.minecraft.world.level.block.AttachedStemBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CaveVines;
+import net.minecraft.world.level.block.ChorusFlowerBlock;
 import net.minecraft.world.level.block.CocoaBlock;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.MushroomBlock;
@@ -40,8 +42,9 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Looks after every field around the golem's home copper chest: harvests ripe crops and replants them, picks pumpkins
- * and melons off their stems, cuts sugar cane and bamboo down to the bottom block, and plants seeds on empty farmland.
+ * Looks after every field around the golem's home copper chest: harvests ripe crops and replants them, picks fruit,
+ * berries and mushrooms, cuts sugar cane, bamboo and cactus down to the bottom block, takes spent chorus plants, and
+ * plants seeds on empty farmland and soul sand. Other plants are only kept going once a player has placed them.
  * The harvest goes into the pouch or the chained cart and is brought to the home chest; seeds are kept in the supplies
  * for replanting.
  */
@@ -51,6 +54,7 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 	private static final int WORK_TICKS = 25;
 	private static final int STALK_MIN_HEIGHT = 3;
 	private static final int ENERGY_PER_ACTION = 3;
+	private static final int CHORUS_MAX_BLOCKS = 256;
 
 	enum Kind {
 		/** Ripe wheat, carrots, potatoes, beetroot, nether wart, pitcher crop or torchflower: harvest and replant. */
@@ -63,6 +67,8 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 		HARVEST_COCOA,
 		/** Sweet berries or glow berries: take the berries and leave the plant. */
 		PICK_BERRIES,
+		/** A chorus plant with no live flower: take all of it and plant a new flower. */
+		HARVEST_CHORUS,
 		PLANT
 	}
 
@@ -134,6 +140,9 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 		if (block instanceof SweetBerryBushBlock && state.getValue(SweetBerryBushBlock.AGE) >= SweetBerryBushBlock.MAX_AGE || block instanceof CaveVines && CaveVines.hasGlowBerries(state)) {
 			return new Task(Kind.PICK_BERRIES, pos, null);
 		}
+		if ((state.is(Blocks.CHORUS_PLANT) || state.is(Blocks.CHORUS_FLOWER)) && level.getBlockState(pos.below()).is(Blocks.END_STONE) && !spentChorus(level, pos).isEmpty()) {
+			return new Task(Kind.HARVEST_CHORUS, pos, null);
+		}
 		if ((state.is(Blocks.PUMPKIN) || state.is(Blocks.MELON)) && isGrownFromStem(level, pos)) {
 			return new Task(Kind.HARVEST_FRUIT, pos, null);
 		}
@@ -166,6 +175,27 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 			}
 		}
 		return false;
+	}
+
+	/** Every block of the chorus plant on this base, top first. Empty while a flower on it still lives. */
+	private static List<BlockPos> spentChorus(ServerLevel level, BlockPos base) {
+		List<BlockPos> plant = new ArrayList<>(List.of(base));
+		Set<BlockPos> seen = new HashSet<>(plant);
+		for (int i = 0; i < plant.size() && plant.size() < CHORUS_MAX_BLOCKS; i++) {
+			BlockState state = level.getBlockState(plant.get(i));
+			if (state.is(Blocks.CHORUS_FLOWER) && state.getValue(ChorusFlowerBlock.AGE) < ChorusFlowerBlock.DEAD_AGE) {
+				return List.of();
+			}
+			for (Direction direction : Direction.values()) {
+				BlockPos next = plant.get(i).relative(direction);
+				BlockState neighbour = level.getBlockState(next);
+				if ((neighbour.is(Blocks.CHORUS_PLANT) || neighbour.is(Blocks.CHORUS_FLOWER)) && seen.add(next)) {
+					plant.add(next);
+				}
+			}
+		}
+		plant.sort(Comparator.comparingInt(pos -> -pos.getY()));
+		return plant;
 	}
 
 	/** Within the box a mushroom spreads in, so the last one of a patch stays and can spread again. */
@@ -249,6 +279,7 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 			case HARVEST_STALK -> harvestStalk(level, golem, pos);
 			case HARVEST_COCOA -> harvestCocoa(level, golem, pos);
 			case PICK_BERRIES -> pickBerries(level, golem, pos);
+			case HARVEST_CHORUS -> this.harvestChorus(level, golem, pos);
 			case PLANT -> this.plant(level, golem, pos, task.seed());
 		}
 		return true;
@@ -273,6 +304,11 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 		Block.getDrops(state, level, pos, null, golem, golem.getMainHandItem()).forEach(Load.of(golem)::stash);
 		level.setBlockAndUpdate(pos, state.getBlock() instanceof SweetBerryBushBlock ? state.setValue(SweetBerryBushBlock.AGE, 1) : state.setValue(CaveVines.BERRIES, false));
 		RunningCosts.spend(golem, ENERGY_PER_ACTION);
+	}
+
+	private void harvestChorus(ServerLevel level, CopperGolem golem, BlockPos base) {
+		harvestBlocks(level, golem, spentChorus(level, base));
+		this.plant(level, golem, base, Items.CHORUS_FLOWER);
 	}
 
 	private static void harvestStalk(ServerLevel level, CopperGolem golem, BlockPos bottom) {
