@@ -50,6 +50,7 @@ When the golem's job ends, the Mineshaft Plan comes back to the player with its 
 |---|---|
 | Mineshaft | Always, in gold |
 | Length: *N* blocks | Always |
+| The Mine Pattern's setting and value | For a Mine Pattern that has a setting |
 | Use on the ground at the mine entrance | While unmarked, in yellow |
 | Entrance: *x y z*, heading *direction* | Once marked |
 | In progress (*N* steps done) | Once progress is above 0 |
@@ -92,6 +93,7 @@ The item component has these fields:
 |---|---|---|
 | `pattern` | String | Always `mineshaft` |
 | `length` | Integer, 8 to 128 | Tunnel length in blocks |
+| `setting` | Integer, default 0 | The value of the Mine Pattern's setting, 0 if it has none |
 | `entrance` | Block position, optional | Set by marking |
 | `heading` | Direction, optional | Set by marking |
 | `progress` | Integer, default 0 | Finished steps |

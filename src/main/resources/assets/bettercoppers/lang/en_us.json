@@ -7,6 +7,7 @@
   "screen.bettercoppers.length": "Length",
   "pattern.bettercoppers.mineshaft": "Mineshaft",
   "tooltip.bettercoppers.length": "Length: %s blocks",
+  "tooltip.bettercoppers.setting": "%s: %s",
   "tooltip.bettercoppers.entrance": "Entrance: %s %s %s, heading %s",
   "tooltip.bettercoppers.unmarked": "Use on the ground at the mine entrance",
   "tooltip.bettercoppers.progress": "In progress (%s steps done)",

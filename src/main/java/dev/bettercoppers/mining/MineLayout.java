@@ -7,9 +7,7 @@ import net.minecraft.core.Direction;
 
 /**
  * Turns a plan into the flat, ordered list of steps a golem works through; each step says all the golem needs to know
- * about it. Golems only build mineshafts like the vanilla
- * abandoned ones: 3 wide, 3 high, plank floor where there is none, and every few blocks a support of two fence posts
- * carrying a plank beam, with a torch hung on every other beam. Rails come last.
+ * about it. Each Mine Pattern has one generator method, chosen in {@link #build}.
  * <p>
  * Cells are addressed relative to the entrance: {@code forward} along the heading, {@code side} to the right,
  * {@code up} above the tunnel floor. A slice is everything at one {@code forward} distance.
@@ -69,22 +67,31 @@ public final class MineLayout {
 
 	public static List<Step> build(MinePlan plan, int minY) {
 		MineLayout layout = new MineLayout(plan.entrance().orElseThrow(), plan.heading().orElseThrow());
-		int length = plan.length();
+		return switch (plan.pattern()) {
+			case MINESHAFT -> layout.mineshaft(plan.length());
+		};
+	}
+
+	/**
+	 * Like the vanilla abandoned ones: 3 wide, 3 high, plank floor where there is none, and every few blocks a support
+	 * of two fence posts carrying a plank beam, with a torch hung on every other beam. Rails come last.
+	 */
+	private List<Step> mineshaft(int length) {
 		for (int i = 0; i < length; i++) {
-			layout.standBehind(i);
-			layout.slice(i);
+			this.standBehind(i);
+			this.slice(i);
 		}
 		// A hazard gives up the rest of the tunnel, and the rails then still go down in the part already dug.
-		int railsStart = layout.steps.size();
-		layout.steps.replaceAll(step -> step.resumingAt(railsStart));
-		layout.resumeAt = railsStart + length;
+		int railsStart = this.steps.size();
+		this.steps.replaceAll(step -> step.resumingAt(railsStart));
+		this.resumeAt = railsStart + length;
 		// Mobs cannot step onto rails (that is what keeps them inside vanilla mineshafts), so the rails go down last,
 		// from the far end back to the entrance, each laid from the slice behind it.
 		for (int i = length - 1; i >= 0; i--) {
-			layout.standBehind(i);
-			layout.add(Action.RAIL, layout.cell(i, 0, 0));
+			this.standBehind(i);
+			this.add(Action.RAIL, this.cell(i, 0, 0));
 		}
-		return layout.steps;
+		return this.steps;
 	}
 
 	/** Slices that get two fence posts and a plank beam. */

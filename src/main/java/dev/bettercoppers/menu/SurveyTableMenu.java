@@ -21,12 +21,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 /**
- * Paper in the left slot, a mineshaft plan of the chosen length in the right slot. The length buttons (see the ids
- * below) are sent by the screen as menu button clicks.
+ * Paper in the left slot, a mineshaft plan of the chosen Mine Pattern, length and setting in the right slot. The
+ * buttons (see the ids below) are sent by the screen as menu button clicks.
  */
 public class SurveyTableMenu extends AbstractContainerMenu {
 	public static final int BUTTON_SHORTER = 2;
 	public static final int BUTTON_LONGER = 3;
+	public static final int BUTTON_NEXT_PATTERN = 4;
+	public static final int BUTTON_LESS = 5;
+	public static final int BUTTON_MORE = 6;
 	private static final int LENGTH_STEP = 8;
 
 	private final ContainerLevelAccess access;
@@ -38,7 +41,9 @@ public class SurveyTableMenu extends AbstractContainerMenu {
 		}
 	};
 	private final ResultContainer result = new ResultContainer();
+	private final DataSlot pattern = DataSlot.standalone();
 	private final DataSlot length = DataSlot.standalone();
+	private final DataSlot setting = DataSlot.standalone();
 	private final Slot inputSlot;
 
 	public SurveyTableMenu(int containerId, Inventory inventory) {
@@ -70,23 +75,36 @@ public class SurveyTableMenu extends AbstractContainerMenu {
 		});
 		this.addStandardInventorySlots(inventory, 8, 84);
 		this.length.set(MinePlan.DEFAULT_LENGTH);
+		this.addDataSlot(this.pattern);
 		this.addDataSlot(this.length);
+		this.addDataSlot(this.setting);
 	}
 
-	/** Golems only dig mineshafts; the pattern stays in the plan so older plans still load. */
 	public MinePattern getPattern() {
-		return MinePattern.MINESHAFT;
+		return MinePattern.values()[this.pattern.get()];
 	}
 
 	public int getLength() {
 		return this.length.get();
 	}
 
+	public int getSetting() {
+		return this.setting.get();
+	}
+
 	@Override
 	public boolean clickMenuButton(Player player, int buttonId) {
 		switch (buttonId) {
 			case BUTTON_SHORTER -> this.length.set(Math.max(MinePlan.MIN_LENGTH, this.length.get() - LENGTH_STEP));
-			case BUTTON_LONGER -> this.length.set(Math.min(MinePlan.MAX_LENGTH, this.length.get() + LENGTH_STEP));
+			case BUTTON_LONGER -> this.length.set(Math.min(this.getPattern().maxLength(), this.length.get() + LENGTH_STEP));
+			case BUTTON_NEXT_PATTERN -> {
+				MinePattern next = this.getPattern().next();
+				this.pattern.set(next.ordinal());
+				this.length.set(Math.min(next.maxLength(), this.length.get()));
+				this.setting.set(next.setting().defaultValue());
+			}
+			case BUTTON_LESS -> this.setting.set(this.getPattern().setting().moved(this.getSetting(), -1));
+			case BUTTON_MORE -> this.setting.set(this.getPattern().setting().moved(this.getSetting(), 1));
 			default -> {
 				return false;
 			}
@@ -104,7 +122,7 @@ public class SurveyTableMenu extends AbstractContainerMenu {
 	private void updateResult() {
 		if (this.input.getItem(0).is(Items.PAPER)) {
 			ItemStack plan = new ItemStack(ModItems.MINESHAFT_PLAN);
-			plan.set(ModComponents.MINE_PLAN, MinePlan.blank(this.getPattern(), this.getLength()));
+			plan.set(ModComponents.MINE_PLAN, MinePlan.blank(this.getPattern(), this.getLength(), this.getSetting()));
 			this.result.setItem(1, plan);
 		} else {
 			this.result.setItem(1, ItemStack.EMPTY);

@@ -7,6 +7,7 @@
   "screen.bettercoppers.length": "Länge",
   "pattern.bettercoppers.mineshaft": "Minenschacht",
   "tooltip.bettercoppers.length": "Länge: %s Blöcke",
+  "tooltip.bettercoppers.setting": "%s: %s",
   "tooltip.bettercoppers.entrance": "Eingang: %s %s %s, Richtung %s",
   "tooltip.bettercoppers.unmarked": "Am Mineneingang auf den Boden anwenden",
   "tooltip.bettercoppers.progress": "In Arbeit (%s Schritte erledigt)",

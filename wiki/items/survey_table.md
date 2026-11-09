@@ -30,22 +30,22 @@ The block drops itself when broken with any tool or by hand, unless it is destro
 
 Right-clicking a Survey Table opens its screen. The screen looks like a [stonecutter](https://minecraft.wiki/w/Stonecutter)'s, with a panel in the middle instead of a recipe list.
 
-<!-- MEDIA: items-survey-table-screen.png | screenshot | The Survey Table screen with paper in the left slot, a Mineshaft Plan in the right slot, and the length panel in the middle showing 32 with its minus and plus buttons -->
+<!-- MEDIA: items-survey-table-screen.png | screenshot | The Survey Table screen with paper in the left slot, a Mineshaft Plan in the right slot, and the panel in the middle showing the Mine Pattern button and the length 32 with its minus and plus buttons -->
 
 | Part | Function |
 |---|---|
 | Left slot | Takes paper, and only paper |
-| Middle panel | Shows "Mineshaft", "Length" and the chosen length, with a **-** and a **+** button |
+| Middle panel | A button with the name of the Mine Pattern, then "Length" and the chosen length, with a **-** and a **+** button |
 | Right slot | The finished Mineshaft Plan. Taking it uses up one paper |
 
 | Length setting | Value |
 |---|---|
 | Shortest | 8 blocks |
 | Starting value | 32 blocks |
-| Longest | 128 blocks, shown with "max" |
+| Longest | 128 blocks for a Mineshaft, shown with "max" |
 | Step | 8 blocks per click |
 
-The length resets to 32 when the screen is opened. There are 16 possible lengths. The result is a blank Mineshaft Plan with no entrance marked. Paper left in the slot returns to the player when the screen closes.
+The length resets to 32 when the screen is opened. There are 16 possible lengths. Clicking the Mine Pattern button moves on to the next Mine Pattern; Mineshaft is the only one so far. A Mine Pattern with a setting besides length adds a second row of **-** and **+** buttons for it. The result is a blank Mineshaft Plan with no entrance marked. Paper left in the slot returns to the player when the screen closes.
 
 ## Advancements
 

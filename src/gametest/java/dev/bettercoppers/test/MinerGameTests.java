@@ -3,6 +3,7 @@ package dev.bettercoppers.test;
 import dev.bettercoppers.home.HomeLinking;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.Load;
+import dev.bettercoppers.menu.SurveyTableMenu;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -99,6 +100,25 @@ public class MinerGameTests {
 				}
 			}
 		}
+	}
+
+	/** The screen sends these button ids to the menu on the server. */
+	@GameTest
+	public void survey_table_makes_the_plan_shown_on_its_panel(GameTestHelper h) {
+		Player player = h.makeMockPlayer(GameType.SURVIVAL);
+		SurveyTableMenu menu = new SurveyTableMenu(1, player.getInventory());
+		menu.getSlot(0).set(new ItemStack(Items.PAPER));
+		menu.clickMenuButton(player, SurveyTableMenu.BUTTON_NEXT_PATTERN);
+		h.assertTrue(menu.getPattern() == MinePattern.MINESHAFT, Component.literal("the only Mine Pattern cycles back to itself"));
+		for (int i = 0; i < 20; i++) {
+			menu.clickMenuButton(player, SurveyTableMenu.BUTTON_LONGER);
+		}
+		menu.clickMenuButton(player, SurveyTableMenu.BUTTON_MORE);
+		MinePlan plan = menu.getSlot(1).getItem().get(ModComponents.MINE_PLAN);
+		h.assertTrue(plan != null && plan.pattern() == MinePattern.MINESHAFT, Component.literal("the result is a Mineshaft plan"));
+		h.assertTrue(plan.length() == 128, Component.literal("length stops at the pattern's maximum: " + plan.length()));
+		h.assertTrue(plan.setting() == 0, Component.literal("a pattern without a setting ignores its buttons: " + plan.setting()));
+		h.succeed();
 	}
 
 	private static boolean hasKey(Component component, String key) {

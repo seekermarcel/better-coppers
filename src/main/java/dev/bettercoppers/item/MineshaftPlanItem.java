@@ -55,6 +55,9 @@ public class MineshaftPlanItem extends Item {
 		}
 		builder.accept(plan.pattern().displayName().copy().withStyle(ChatFormatting.GOLD));
 		builder.accept(Component.translatable("tooltip.bettercoppers.length", plan.length()).withStyle(ChatFormatting.GRAY));
+		if (plan.pattern().hasSetting()) {
+			builder.accept(Component.translatable("tooltip.bettercoppers.setting", plan.pattern().setting().displayName(), plan.setting()).withStyle(ChatFormatting.GRAY));
+		}
 		if (plan.isMarked()) {
 			BlockPos entrance = plan.entrance().orElseThrow();
 			builder.accept(
