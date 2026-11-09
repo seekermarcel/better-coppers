@@ -52,6 +52,10 @@ public final class MineLayout {
 	private static final int STAIR_TORCH_SPACING = 8;
 	/** How high vanilla's bedrock floor reaches; a golem cannot dig it. */
 	private static final int BEDROCK_LAYERS = 5;
+	private static final int BRANCH_SPACING = 3;
+	private static final int STRIP_TORCH_SPACING = 9;
+	/** Marks a Strip Mine's corridor steps until the index past the last step is known. */
+	private static final int CORRIDOR = -1;
 
 	private final BlockPos entrance;
 	private final Direction forward;
@@ -75,7 +79,55 @@ public final class MineLayout {
 		return switch (plan.pattern()) {
 			case MINESHAFT -> layout.mineshaft(plan.length());
 			case STAIRCASE -> layout.staircase(plan.length(), minY);
+			case STRIP_MINE -> layout.stripMine(plan.length(), plan.setting());
 		};
+	}
+
+	/**
+	 * A 3x3 corridor dug a stretch at a time, each stretch followed by its 1 wide, 2 high branches to both sides. Torches
+	 * are the only supply. A branch is on the last slice of its stretch, so a hazard anywhere in a stretch also cuts off
+	 * that stretch's branches, and giving up the corridor gives up the rest of the mine.
+	 */
+	private List<Step> stripMine(int plannedLength, int plannedBranchLength) {
+		// A plan edited by command can ask for anything.
+		int length = Math.clamp(plannedLength, MinePlan.MIN_LENGTH, MinePattern.STRIP_MINE.maxLength());
+		MinePattern.Setting setting = MinePattern.STRIP_MINE.setting();
+		int branchLength = Math.clamp(plannedBranchLength, setting.min(), setting.max());
+		this.resumeAt = CORRIDOR;
+		for (int i = 0; i < length; i++) {
+			this.standBehind(i);
+			this.digSlice(i);
+			// On a slice without branches, so there is rock to hang on.
+			if (i % STRIP_TORCH_SPACING == 3) {
+				this.add(Action.TORCH, this.cell(i, 1, 1), this.right.getOpposite());
+			}
+			if (i % BRANCH_SPACING == BRANCH_SPACING - 1) {
+				this.branch(i, 1, branchLength);
+				this.branch(i, -1, branchLength);
+			}
+		}
+		int end = this.steps.size();
+		this.steps.replaceAll(step -> step.resumeAt() == CORRIDOR ? step.resumingAt(end) : step);
+		return this.steps;
+	}
+
+	/** One side's branch at {@code slice}, heading away from the corridor; {@code towards} is 1 for the right, -1 for the left. */
+	private void branch(int slice, int towards, int length) {
+		int start = this.steps.size();
+		this.backOff = towards > 0 ? this.right.getOpposite() : this.right;
+		for (int i = 0; i < length; i++) {
+			int side = towards * (2 + i);
+			this.stand = this.cell(slice, side - towards, 0);
+			this.add(Action.DIG, this.cell(slice, side, 1));
+			this.add(Action.DIG, this.cell(slice, side, 0));
+			this.add(Action.FLOOR, this.cell(slice, side, -1));
+			if (i % STRIP_TORCH_SPACING == 3) {
+				this.add(Action.TORCH, this.cell(slice, side, 1), this.forward);
+			}
+		}
+		this.backOff = this.forward.getOpposite();
+		int next = this.steps.size();
+		this.steps.subList(start, next).replaceAll(step -> step.resumingAt(next));
 	}
 
 	/**
@@ -156,16 +208,7 @@ public final class MineLayout {
 	private void slice(int i) {
 		// A rail for this slice and every slice before it (they are laid at the end), fences and planks for a support.
 		this.needs = isSupportSlice(i) ? new Needs(i + 1, 4, 3) : new Needs(i + 1, 0, 0);
-		// Middle column first, then the sides: side blocks are then seen from the open middle instead of past the
-		// fence posts beside the golem. Each column top down, like a player.
-		for (int side : new int[] {0, -1, 1}) {
-			for (int up = 2; up >= 0; up--) {
-				this.add(Action.DIG, this.cell(i, side, up));
-			}
-		}
-		for (int side = -1; side <= 1; side++) {
-			this.add(Action.FLOOR, this.cell(i, side, -1));
-		}
+		this.digSlice(i);
 		if (isSupportSlice(i)) {
 			for (int side : new int[] {-1, 1}) {
 				this.add(Action.FENCE, this.cell(i, side, 0));
@@ -178,6 +221,20 @@ public final class MineLayout {
 		// Hangs on the far side of the previous beam, so it needs this slice dug out first.
 		if (i % (SUPPORT_SPACING * 2) == 3) {
 			this.add(Action.TORCH, this.cell(i, 0, 2), this.forward);
+		}
+	}
+
+	/** Opens a 3x3 slice and makes sure its floor is solid. */
+	private void digSlice(int i) {
+		// Middle column first, then the sides: side blocks are then seen from the open middle instead of past the
+		// fence posts beside the golem. Each column top down, like a player.
+		for (int side : new int[] {0, -1, 1}) {
+			for (int up = 2; up >= 0; up--) {
+				this.add(Action.DIG, this.cell(i, side, up));
+			}
+		}
+		for (int side = -1; side <= 1; side++) {
+			this.add(Action.FLOOR, this.cell(i, side, -1));
 		}
 	}
 }

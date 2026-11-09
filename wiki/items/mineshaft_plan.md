@@ -70,7 +70,7 @@ Progress counts finished steps of the [tunnel layout](/jobs/miner#the-tunnel), i
 | 64 | 768 | 120 | 64 | 952 |
 | 128 | 1536 | 240 | 128 | 1904 |
 
-Each slice has 12 dig and floor steps. Each support adds 7 steps. Each torch adds 1 step.
+Each slice has 12 dig and floor steps. Each support adds 7 steps. Each torch adds 1 step. The table is for a Mineshaft; a [Strip Mine](/jobs/miner#strip-mine) has no support or rail steps, and each branch block adds 3 steps.
 
 A [Staircase](/jobs/miner#the-staircase) has 3 steps per block of depth plus 1 per torch: 25 steps at length 8, 50 at 16, 100 at 32, 200 at 64 and 400 at 128.
 
@@ -93,9 +93,9 @@ The item component has these fields:
 
 | Field | Type | Meaning |
 |---|---|---|
-| `pattern` | String | `mineshaft` or `staircase` |
-| `length` | Integer, 8 to 128 | Length of the tunnel, or depth of a Staircase, in blocks |
-| `setting` | Integer, default 0 | The value of the Mine Pattern's setting, 0 if it has none |
+| `pattern` | String | `mineshaft`, `staircase` or `strip_mine` |
+| `length` | Integer, 8 to 128 | Length of the tunnel or corridor, or depth of a Staircase, in blocks |
+| `setting` | Integer, default 0 | The value of the Mine Pattern's setting, 0 if it has none. A Strip Mine's branch length; out of range it digs the nearest allowed length |
 | `entrance` | Block position, optional | Set by marking |
 | `heading` | Direction, optional | Set by marking |
 | `progress` | Integer, default 0 | Finished steps |

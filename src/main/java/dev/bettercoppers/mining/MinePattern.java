@@ -15,7 +15,9 @@ public enum MinePattern implements StringRepresentable {
 	/** Vanilla-style corridor with wooden supports and rails. */
 	MINESHAFT("mineshaft", MinePlan.MAX_LENGTH, Setting.NONE),
 	/** Walkable stairway going down from the entrance, its length being its depth. */
-	STAIRCASE("staircase", MinePlan.MAX_LENGTH, Setting.NONE);
+	STAIRCASE("staircase", MinePlan.MAX_LENGTH, Setting.NONE),
+	/** A corridor with long, narrow branches to both sides, to expose as much ore as possible. */
+	STRIP_MINE("strip_mine", MinePlan.MAX_LENGTH, new Setting("branch_length", 4, 32, 4, 16));
 
 	public static final Codec<MinePattern> CODEC = StringRepresentable.fromEnum(MinePattern::values);
 	public static final StreamCodec<ByteBuf, MinePattern> STREAM_CODEC = ByteBufCodecs.idMapper(i -> values()[i], MinePattern::ordinal);

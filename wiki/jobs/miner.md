@@ -12,7 +12,7 @@ infobox:
 
 # Miner
 
-A **miner** is a [copper golem](/golem/copper-golem) that digs the mine a [Mineshaft Plan](/items/mineshaft_plan) describes: a [mineshaft](#the-tunnel) in the style of a vanilla [abandoned mineshaft](https://minecraft.wiki/w/Mineshaft) or a [Staircase](#the-staircase). It digs out the ores it comes across, keeps the tunnel safe from water and lava, and brings what it mines to its [home](/start/homes-and-status) chest.
+A **miner** is a [copper golem](/golem/copper-golem) that digs the mine a [Mineshaft Plan](/items/mineshaft_plan) describes: a [mineshaft](#the-tunnel) in the style of a vanilla [abandoned mineshaft](https://minecraft.wiki/w/Mineshaft), a [Staircase](#the-staircase) or a [Strip Mine](#strip-mine). It digs out the ores it comes across, keeps the tunnel safe from water and lava, and brings what it mines to its [home](/start/homes-and-status) chest.
 
 ## Setup
 
@@ -61,14 +61,27 @@ A **Staircase** is a walkable stairway going down from the entrance, one block d
 
 The golem works from the step above, the upper block first. A Staircase needs no rails, fences or supports, so there is nothing to [check before digging](#supplies); the golem still takes floor patches and torches along when it visits its chest. Golems and chained [Copper Chest Minecarts](/items/copper_chest_minecart) walk the stairs, and every trip goes back to the one home chest.
 
+### Strip Mine
+
+A **Strip Mine** exposes as much ore as possible. It has a corridor as long as the Mineshaft Plan's length and branches to both sides. Slices count from 0, as in the tunnel.
+
+| Part | Where | Made of |
+|---|---|---|
+| Corridor | Every slice, 3 wide and 3 high | Dug out |
+| Branch | Both sides of slices 2, 5, 8, and so on, 1 wide and 2 high, leaving 2 blocks of rock between branches. As long as the Mineshaft Plan's branch length, 4 to 32 blocks | Dug out |
+| Floor | Under the corridor and branches, where the block below is not solid | Any planks or [filler](#filler) |
+| Torch | Slices 3, 12, 21, and so on, on the right wall, and every 9th block of a branch starting at the 4th | Skipped where the light level is already 10 or more |
+
+The golem digs a stretch of 3 slices of corridor, then that stretch's right branch, then its left branch, then the next stretch. There are no rails or supports, and a miner on a Strip Mine leaves fences in the chest. Torches are optional: without any it digs on in the dark.
+
 ### Supplies
 
-No rails, no digging. Before digging a slice, the golem checks that it and its chest together hold enough for that slice. Rails are checked for that slice and all before it, because rails go down last. If the chest has enough, it fetches them. If not, it goes home and waits, looking again every 7 seconds. It takes supplies only when it goes home to restock.
+In a Mineshaft, no rails, no digging. Before digging a slice, the golem checks that it and its chest together hold enough for that slice. Rails are checked for that slice and all before it, because rails go down last. If the chest has enough, it fetches them. If not, it goes home and waits, looking again every 7 seconds. It takes supplies only when it goes home to restock.
 
 | Supply | Needed | Taken along per visit | Checked before digging |
 |---|---|---|---|
 | <Icon id="rail" /> Rails | 1 per slice | Up to the Mineshaft Plan's length | Yes |
-| Wooden fences, any kind | 4 per support | Up to 16 | Yes, on support slices |
+| Wooden fences, any kind | 4 per support | Up to 16, none for a Staircase or Strip Mine | Yes, on support slices |
 | <Icon id="oak_planks" /> Planks, any kind | 3 per support, plus floors | Up to 32 | Yes, on support slices |
 | Torches | 1 every 8 slices | Up to 16 | No |
 
@@ -105,7 +118,7 @@ A miner can harvest diamond, gold, redstone and emerald ore with its copper pick
 | Situation | What the golem does |
 |---|---|
 | Water or lava in the block, or touching it | Plugs it with filler, 15 ticks each, then digs on. Skips fluids the golem itself stands in |
-| No filler at a fluid | Gives up the current Mine Section, which in a mineshaft is the rest of the tunnel and in a Staircase the rest of the stairs. It does not go home for filler: it carries on at once and, in a mineshaft, lays rails in the part already dug. The Mineshaft Plan's tooltip and the golem's status show the block where it gave up (only the latest). Marking the Mineshaft Plan again is the retry: finished steps skip themselves |
+| No filler at a fluid | Gives up the current Mine Section, which in a mineshaft is the rest of the tunnel and in a Staircase the rest of the stairs. In a Strip Mine it is the rest of one branch, or in the corridor the rest of the corridor and its later branches. It does not go home for filler: it carries on at once and, in a mineshaft, lays rails in the part already dug. The Mineshaft Plan's tooltip and the golem's status show the block where it gave up (only the latest). Marking the Mineshaft Plan again is the retry: finished steps skip themselves |
 | No filler at a fluid beside a chased ore or fallen block | Skips only that block. The Mineshaft Plan is untouched |
 | Gravel or sand fell into its last 32 digs | Clears it before anything else |
 | Walking without getting closer | Every 5 seconds, digs out the nearest block that fell into the finished tunnel |

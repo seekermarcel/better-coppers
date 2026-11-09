@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -149,5 +151,97 @@ class MineLayoutTest {
 	@Test
 	void stepsBackOffTowardsTheEntrance() {
 		north(8).forEach(step -> assertEquals(Direction.SOUTH, step.backOff(), "step: " + step));
+	}
+
+	private static List<MineLayout.Step> stripMine(int length, int branchLength) {
+		return MineLayout.build(MinePlan.blank(MinePattern.STRIP_MINE, length, branchLength).marked(BlockPos.ZERO, Direction.NORTH), 0);
+	}
+
+	private static Set<BlockPos> digs(List<MineLayout.Step> steps) {
+		return steps.stream().filter(step -> step.action() == MineLayout.Action.DIG).map(MineLayout.Step::pos).collect(Collectors.toSet());
+	}
+
+	@Test
+	void stripMineIsACorridorWithTwoHighBranchesEveryThreeBlocks() {
+		Set<BlockPos> expected = new HashSet<>();
+		for (int slice = 0; slice < 8; slice++) {
+			for (int side = -1; side <= 1; side++) {
+				for (int up = 0; up < 3; up++) {
+					expected.add(new BlockPos(side, up, -slice));
+				}
+			}
+		}
+		for (int slice : new int[] {2, 5}) {
+			for (int cell = 2; cell < 6; cell++) {
+				for (int up = 0; up < 2; up++) {
+					expected.add(new BlockPos(cell, up, -slice));
+					expected.add(new BlockPos(-cell, up, -slice));
+				}
+			}
+		}
+		assertEquals(expected, digs(stripMine(8, 4)));
+	}
+
+	@Test
+	void stripMineDigsAStretchThenItsBranches() {
+		List<BlockPos> digs = stripMine(8, 4).stream().filter(step -> step.action() == MineLayout.Action.DIG).map(MineLayout.Step::pos).toList();
+		int lastOfStretch = digs.lastIndexOf(new BlockPos(1, 0, -2));
+		int branch = digs.indexOf(new BlockPos(2, 1, -2));
+		int nextStretch = digs.indexOf(new BlockPos(0, 2, -3));
+		assertTrue(lastOfStretch < branch && branch < nextStretch, "order: " + lastOfStretch + ", " + branch + ", " + nextStretch);
+	}
+
+	@Test
+	void stripMineNeedsNoRailsOrSupports() {
+		for (MineLayout.Step step : stripMine(16, 8)) {
+			assertTrue(EnumSet.of(MineLayout.Action.DIG, MineLayout.Action.FLOOR, MineLayout.Action.TORCH).contains(step.action()), "step: " + step);
+			assertEquals(MineLayout.Needs.NONE, step.needs(), "step: " + step);
+		}
+	}
+
+	@Test
+	void stripMineBranchGivesUpOnlyItself() {
+		List<MineLayout.Step> steps = stripMine(8, 4);
+		MineLayout.Step inRight = steps.stream().filter(step -> step.pos().equals(new BlockPos(3, 1, -2))).findFirst().orElseThrow();
+		MineLayout.Step firstOfLeft = steps.stream().filter(step -> step.pos().equals(new BlockPos(-2, 1, -2))).findFirst().orElseThrow();
+		assertSame(firstOfLeft, steps.get(inRight.resumeAt()));
+		MineLayout.Step inLeft = steps.stream().filter(step -> step.pos().equals(new BlockPos(-5, 0, -2))).findFirst().orElseThrow();
+		assertEquals(new BlockPos(0, 2, -3), steps.get(inLeft.resumeAt()).pos(), "the next stretch of corridor");
+	}
+
+	@Test
+	void stripMineCorridorGivesUpTheRestOfTheMine() {
+		List<MineLayout.Step> steps = stripMine(8, 4);
+		for (MineLayout.Step step : steps) {
+			if (Math.abs(step.pos().getX()) <= 1) {
+				assertEquals(steps.size(), step.resumeAt(), "corridor step: " + step);
+			}
+		}
+	}
+
+	@Test
+	void stripMineBranchBacksOffTowardsTheCorridor() {
+		List<MineLayout.Step> steps = stripMine(8, 4);
+		steps.stream().filter(step -> step.pos().getX() > 1).forEach(step -> assertEquals(Direction.WEST, step.backOff(), "right: " + step));
+		steps.stream().filter(step -> step.pos().getX() < -1).forEach(step -> assertEquals(Direction.EAST, step.backOff(), "left: " + step));
+		steps.stream().filter(step -> Math.abs(step.pos().getX()) <= 1).forEach(step -> assertEquals(Direction.SOUTH, step.backOff(), "corridor: " + step));
+	}
+
+	@Test
+	void stripMineHangsItsTorchesOnSolidWalls() {
+		Set<BlockPos> dug = digs(stripMine(32, 16));
+		List<MineLayout.Step> torches = stripMine(32, 16).stream().filter(step -> step.action() == MineLayout.Action.TORCH).toList();
+		assertTrue(torches.stream().anyMatch(torch -> Math.abs(torch.pos().getX()) > 1), "branches get torches");
+		assertTrue(torches.stream().anyMatch(torch -> Math.abs(torch.pos().getX()) <= 1), "the corridor gets torches");
+		for (MineLayout.Step torch : torches) {
+			assertTrue(dug.contains(torch.pos()), "torch in rock: " + torch);
+			assertTrue(!dug.contains(torch.pos().relative(torch.facing().getOpposite())), "nothing to hang on: " + torch);
+		}
+	}
+
+	@Test
+	void stripMineStaysInsideItsRangeWhateverThePlanSays() {
+		assertEquals(digs(stripMine(8, 4)), digs(stripMine(-3, -100)));
+		assertEquals(digs(stripMine(128, 32)), digs(stripMine(100000, 100000)));
 	}
 }

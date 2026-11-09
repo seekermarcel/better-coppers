@@ -182,6 +182,74 @@ public class MinerGameTests {
 		});
 	}
 
+	@GameTest
+	public void survey_table_makes_a_strip_mine_plan_with_its_branch_length(GameTestHelper h) {
+		Player player = h.makeMockPlayer(GameType.SURVIVAL);
+		SurveyTableMenu menu = new SurveyTableMenu(1, player.getInventory());
+		menu.getSlot(0).set(new ItemStack(Items.PAPER));
+		while (menu.getPattern() != MinePattern.STRIP_MINE) {
+			menu.clickMenuButton(player, SurveyTableMenu.BUTTON_NEXT_PATTERN);
+		}
+		h.assertValueEqual(menu.getSetting(), 16, "default branch length");
+		menu.clickMenuButton(player, SurveyTableMenu.BUTTON_LESS);
+		MinePlan plan = menu.getSlot(1).getItem().get(ModComponents.MINE_PLAN);
+		h.assertTrue(plan != null && plan.pattern() == MinePattern.STRIP_MINE, Component.literal("the result is a Strip Mine plan"));
+		h.assertValueEqual(plan.setting(), 12, "branch length");
+		for (int i = 0; i < 20; i++) {
+			menu.clickMenuButton(player, SurveyTableMenu.BUTTON_MORE);
+		}
+		h.assertValueEqual(menu.getSetting(), 32, "longest branch");
+		h.succeed();
+	}
+
+	/**
+	 * A rock block big enough for an 8 long Strip Mine with the shortest branches, heading north from (8, 1, 10). Runs
+	 * past the test's own structure, so its chunks are kept loaded for the golem to walk in.
+	 */
+	@GameTest(maxTicks = 9600, padding = 48)
+	public void miner_digs_a_strip_mine_to_the_end(GameTestHelper h) {
+		ServerLevel level = h.getLevel();
+		level.clockManager().setTotalTicks(level.dimensionType().defaultClock().orElseThrow(), 1000L);
+		for (int cx = h.absolutePos(BlockPos.ZERO).getX() >> 4; cx <= h.absolutePos(new BlockPos(16, 0, 0)).getX() >> 4; cx++) {
+			for (int cz = h.absolutePos(BlockPos.ZERO).getZ() >> 4; cz <= h.absolutePos(new BlockPos(0, 0, 16)).getZ() >> 4; cz++) {
+				level.setChunkForced(cx, cz, true);
+			}
+		}
+		for (BlockPos pos : BlockPos.betweenClosed(BlockPos.ZERO, new BlockPos(16, 0, 16))) {
+			h.setBlock(pos, Blocks.STONE);
+		}
+		for (BlockPos pos : BlockPos.betweenClosed(new BlockPos(1, 1, 1), new BlockPos(15, 4, 10))) {
+			h.setBlock(pos, Blocks.STONE);
+		}
+		BlockPos home = new BlockPos(5, 1, 13);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.RAIL, 16));
+		chest.setItem(1, new ItemStack(Items.OAK_PLANKS, 32));
+		chest.setItem(2, new ItemStack(Items.OAK_FENCE, 16));
+		chest.setItem(3, new ItemStack(Items.TORCH, 16));
+		CopperGolem golem = GameTests.golem(h, new BlockPos(8, 1, 12));
+		GameTests.energize(golem);
+		MinePlan plan = MinePlan.blank(MinePattern.STRIP_MINE, 8, 4).marked(h.absolutePos(new BlockPos(8, 1, 10)), Direction.NORTH);
+		ItemStack planStack = new ItemStack(ModItems.MINESHAFT_PLAN);
+		planStack.set(ModComponents.MINE_PLAN, plan);
+		give(h, golem, new ItemStack(Items.COPPER_PICKAXE));
+		give(h, golem, planStack);
+		Homes.set(golem, h.absolutePos(home));
+		List<MineLayout.Step> steps = MineLayout.build(plan, level.getMinY());
+		h.succeedWhen(() -> {
+			h.assertValueEqual(progress(golem), steps.size(), "steps done");
+			for (MineLayout.Step step : steps) {
+				if (step.action() == MineLayout.Action.DIG) {
+					h.assertTrue(level.getBlockState(step.pos()).isAir() || level.getBlockState(step.pos()).is(Blocks.WALL_TORCH), "not dug: " + step.pos());
+				}
+			}
+			h.assertTrue(h.getBlockState(new BlockPos(13, 1, 7)).is(Blocks.STONE), "rock between the branches is gone");
+			h.assertTrue(h.getBlockState(new BlockPos(13, 2, 8)).is(Blocks.WALL_TORCH), "no torch in the far end of a branch");
+			h.assertValueEqual(chest.countItem(Items.RAIL), 16, "rails left in the chest");
+			h.assertValueEqual(chest.countItem(Items.OAK_FENCE), 16, "fences left in the chest");
+		});
+	}
+
 	private static boolean hasKey(Component component, String key) {
 		return component.getContents() instanceof TranslatableContents contents && contents.getKey().equals(key)
 			|| component.getSiblings().stream().anyMatch(sibling -> hasKey(sibling, key));

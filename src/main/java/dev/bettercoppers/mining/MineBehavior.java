@@ -718,7 +718,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		// Rails stay in the pouch until the digging is done, so it takes what the most demanding dig asks for.
 		this.restockOne(load, chest, stack -> stack.is(Items.RAIL), steps.stream().mapToInt(step -> step.needs().rails()).max().orElse(0));
 		this.restockOne(load, chest, stack -> stack.is(ItemTags.PLANKS), 32);
-		this.restockOne(load, chest, stack -> stack.is(ItemTags.WOODEN_FENCES), 16);
+		this.restockOne(load, chest, stack -> stack.is(ItemTags.WOODEN_FENCES), steps.stream().anyMatch(step -> step.needs().fences() > 0) ? 16 : 0);
 	}
 
 	/** Whether the golem carries (plus {@code chest}, if given, holds) {@code needs}. */

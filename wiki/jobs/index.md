@@ -11,7 +11,7 @@ A **job** is work a player assigns to a [copper golem](/golem/copper-golem). Bet
 | Job | Job item | Needs | Paying job | Work area | Mod |
 |---|---|---|---|---|---|
 | [Sorter](/jobs/sorter) | <Icon id="bundle" /> Any bundle | Home | No | Containers within 32 blocks of the golem, 8 up and down | Better Coppers |
-| [Miner](/jobs/miner) | <Icon id="copper_pickaxe" /> Copper pickaxe, then <Icon id="mineshaft_plan" /> [Mineshaft Plan](/items/mineshaft_plan) | Home | Yes | The Mineshaft Plan's tunnel, 8 to 128 blocks long | Better Coppers |
+| [Miner](/jobs/miner) | <Icon id="copper_pickaxe" /> Copper pickaxe, then <Icon id="mineshaft_plan" /> [Mineshaft Plan](/items/mineshaft_plan) | Home | Yes | The Mineshaft Plan's mine, 8 to 128 blocks long | Better Coppers |
 | [Farmer](/jobs/farmer) | <Icon id="copper_hoe" /> Copper hoe | Home | Yes | 8 blocks around the home, 3 up and down | Better Coppers |
 | [Forester](/jobs/forester) | <Icon id="copper_axe" /> Copper axe | Home | Yes | 12 blocks around the home, 6 up and down | Better Coppers |
 | [Fisher](/jobs/fisher) | <Icon id="fishing_rod" /> Fishing rod | Home | Yes | 10 blocks around the home, 4 down and 2 up | Better Coppers |
