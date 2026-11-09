@@ -9,6 +9,7 @@ import dev.bettercoppers.golem.Eyes;
 import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.job.JobHandover;
 import dev.bettercoppers.job.Jobs;
+import dev.bettercoppers.job.Load;
 import dev.bettercoppers.job.Tools;
 import dev.bettercoppers.runningcosts.GolemRunningCosts;
 import dev.bettercoppers.runningcosts.RunningCosts;
@@ -27,6 +28,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -220,6 +222,11 @@ public final class HomeLinking {
 		Item lost = Tools.lostTool(golem);
 		if (lost != null) {
 			status.append(", ").append(Component.translatable("status.bettercoppers.lost_tool", new ItemStack(lost).getHoverName()));
+		}
+		Load load = Load.of(golem);
+		Container chest = Homes.container(golem.level(), Homes.get(golem));
+		if (chest != null && !load.hasNothingToBringHome() && !load.fitsInto(chest)) {
+			status.append(", ").append(Component.translatable("status.bettercoppers.chest_full"));
 		}
 		if (Eyes.tier(golem) > 0) {
 			status.append(", ").append(Component.translatable("status.bettercoppers.eyes", Math.round(Eyes.multiplier(golem) * 100)));

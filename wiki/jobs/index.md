@@ -56,7 +56,7 @@ The farmer, forester, fisher, animal keeper and crafter follow one routine. The 
 
 Rust slows work and walking: exposed golems run at 85%, weathered ones at 70%. A fully oxidized or waxed golem does not work.
 
-A full chest loses nothing: what does not fit stays in the load. A golem whose home chest is broken or unloaded stops working and waits with everything it carries. Items drop only when the golem dies or turns into a statue. A leashed golem does not work.
+A full chest loses nothing: what does not fit stays in the load, and the golem is [backed up](/golem/tools#full-or-missing-chest). It stops working and waits at home until something it carries fits. A golem whose home chest is broken or unloaded stops working and waits with everything it carries. Items drop only when the golem dies or turns into a statue. A leashed golem does not work.
 
 Every paying job looks for a new tool when its tool breaks, except that an operator's Copper Wrench and a crafter's crafting table never wear out. See [Tools](/golem/tools).
 

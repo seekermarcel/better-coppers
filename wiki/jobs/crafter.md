@@ -29,7 +29,7 @@ The golem looks at every item frame with an item within 2 blocks of the home che
 
 It uses shaped and shapeless crafting recipes whose result is the framed item, and only ingredients from that chest. Recipes the game marks as special are not used. Furnace, smithing and stonecutter recipes are not used.
 
-Each craft takes 80 ticks (4 seconds), longer with rust, and makes one recipe's output. The result and any leftover items, such as an empty bucket, go in the chest. If the chest is full, they stay in the golem's load until there is room.
+Each craft takes 80 ticks (4 seconds), longer with rust, and makes one recipe's output. The result and any leftover items, such as an empty bucket, go in the chest. If the chest is full, they stay in the golem's load and it stops crafting until there is room.
 
 ## Running costs
 

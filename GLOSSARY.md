@@ -37,6 +37,9 @@ _Avoid_: Loot
 **Supplies**:
 Materials a golem holds to use in its job, such as a miner's rails or a farmer's seeds.
 
+**Backed up**:
+A golem with a paying job that has stopped working because its home chest cannot take what it carries.
+
 **Eyes**:
 A golem's upgrade from a block of iron, gold or diamond, which widens its work radius.
 _Avoid_: Upgrade

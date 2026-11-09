@@ -830,6 +830,37 @@ public class JobGameTests {
 			.thenSucceed();
 	}
 
+	@GameTest(maxTicks = 2400)
+	public void backed_up_farmer_leaves_crops_until_there_is_room(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		// Room for 60 of the 64 it carries: the visit leaves it holding 4.
+		chest.setItem(0, new ItemStack(Items.WHEAT, 4));
+		for (int slot = 1; slot < chest.getContainerSize(); slot++) {
+			chest.setItem(slot, new ItemStack(Items.COBBLESTONE, 64));
+		}
+		BlockPos crop = new BlockPos(3, 1, 3);
+		h.setBlock(crop.below(), Blocks.FARMLAND);
+		h.setBlock(crop, Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, 7));
+		CopperGolem golem = GameTests.golem(h, new BlockPos(2, 1, 2));
+		GameTests.energize(golem);
+		give(h, golem, new ItemStack(Items.COPPER_HOE));
+		Homes.set(golem, h.absolutePos(home));
+		Load.of(golem).stash(new ItemStack(Items.WHEAT, 64));
+		h.startSequence()
+			.thenExecuteAfter(600, () -> {
+				h.assertValueEqual(Load.of(golem).count(stack -> stack.is(Items.WHEAT)), 4, "wheat still carried");
+				h.assertValueEqual(h.getBlockState(crop).getValue(CropBlock.AGE), 7, "crop age");
+				chest.setItem(1, ItemStack.EMPTY);
+			})
+			.thenWaitUntil(() -> {
+				h.assertTrue(count(chest, Items.WHEAT) >= 68, "leftover wheat not delivered yet");
+				h.assertTrue(h.getBlockState(crop).getValue(CropBlock.AGE) < 7, "crop not harvested yet");
+			})
+			.thenSucceed();
+	}
+
 	@GameTest(maxTicks = 2400, padding = SORTER_PADDING)
 	public void sorter_prefers_chest_with_item_frame(GameTestHelper h) {
 		scene(h);

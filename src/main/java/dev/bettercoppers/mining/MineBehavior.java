@@ -92,6 +92,8 @@ public class MineBehavior extends Behavior<CopperGolem> {
 
 	private Mode mode = Mode.WORKING;
 	private boolean stopAfterReturn;
+	/** Left the chest still holding something. Not reset in {@link #stop}: a scare does not send it back to work. */
+	private boolean backedUp;
 
 	private MineLayout.@Nullable Step work;
 	private boolean extraWork;
@@ -193,6 +195,13 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		if (home == null) {
 			// Chest broken or not loaded: keep the load and look again in a while, like the other paying jobs.
 			golem.getBrain().setMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS, IDLE_COOLDOWN);
+			return;
+		}
+		if (this.backedUp) {
+			if (JobBehavior.waitBackedUp(level, golem, Homes.container(level, home))) {
+				this.backedUp = false;
+				this.startReturn(golem, false);
+			}
 			return;
 		}
 		if (this.mode == Mode.RETURNING) {
@@ -690,8 +699,8 @@ public class MineBehavior extends Behavior<CopperGolem> {
 				this.restock(load, plan, chest);
 			}
 			if (!load.hasNothingToBringHome()) {
-				// The chest is full: try again in a while instead of opening it over and over.
-				this.stopAfterReturn = true;
+				this.backedUp = true;
+				this.stopAfterReturn = false;
 			}
 			ChestVisit.close(golem, chest);
 			this.endReturn(golem);

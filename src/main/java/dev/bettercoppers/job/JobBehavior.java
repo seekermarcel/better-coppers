@@ -37,6 +37,8 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 	protected final Job job;
 	private @Nullable T task;
 	private boolean returning;
+	/** Left the chest still holding something. Not reset in {@link #stop}: a scare does not send it back to work. */
+	private boolean backedUp;
 	private boolean hesitated;
 	private int pauseTicks;
 	private final TravelWatch travel = new TravelWatch();
@@ -127,6 +129,13 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 		BlockPos home = Homes.valid(level, golem);
 		if (home == null) {
 			this.idle(golem);
+			return;
+		}
+		if (this.backedUp) {
+			if (waitBackedUp(level, golem, Homes.container(level, home))) {
+				this.backedUp = false;
+				this.requestReturn();
+			}
 			return;
 		}
 		if (this.returning) {
@@ -272,11 +281,25 @@ public abstract class JobBehavior<T> extends Behavior<CopperGolem> {
 			ChestVisit.close(golem, chest);
 			this.returning = false;
 			this.homeTicks = 0;
-			// No tool, or the chest is full: try again in a while instead of opening it over and over.
-			if (!this.job.isTool(golem.getMainHandItem()) || !load.hasNothingToBringHome()) {
+			if (!load.hasNothingToBringHome()) {
+				this.backedUp = true;
+			} else if (!this.job.isTool(golem.getMainHandItem())) {
 				this.idle(golem);
 			}
 		}
+	}
+
+	/**
+	 * Stands still without opening the chest. True once something it carries fits, or it has nothing to bring home any
+	 * more. Stays in the behaviour instead of using the idle cooldown, which would let the golem stroll.
+	 */
+	public static boolean waitBackedUp(ServerLevel level, CopperGolem golem, Container chest) {
+		Golems.stopInPlace(golem);
+		if (level.getGameTime() % IDLE_COOLDOWN != 0) {
+			return false;
+		}
+		Load load = Load.of(golem);
+		return load.hasNothingToBringHome() || load.fitsInto(chest);
 	}
 
 	/**

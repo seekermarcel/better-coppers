@@ -77,6 +77,21 @@ public final class Load {
 		return this.pouch.isEmpty() && (this.cart == null || this.cart.isEmpty());
 	}
 
+	/** Some of the pouch or the cart would fit in {@code chest}. */
+	public boolean fitsInto(Container chest) {
+		if (this.pouch.stream().anyMatch(stack -> Inventories.hasRoom(chest, stack))) {
+			return true;
+		}
+		if (this.cart != null) {
+			for (ItemStack stack : this.cart) {
+				if (!stack.isEmpty() && Inventories.hasRoom(chest, stack)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	/** The first matching stack (not taken) in the supplies, the pouch, then the cart; or an empty stack. */
 	public ItemStack find(Predicate<ItemStack> filter) {
 		return Inventories.find(List.of(this.supplies, this.pouch), this.cart, filter);

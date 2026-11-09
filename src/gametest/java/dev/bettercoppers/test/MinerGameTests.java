@@ -153,6 +153,32 @@ public class MinerGameTests {
 	}
 
 	@GameTest(maxTicks = 3600)
+	public void backed_up_miner_stops_digging_until_there_is_room(GameTestHelper h) {
+		Scene s = scene(h, true, START);
+		// Stacks big enough that restocking leaves no slot empty.
+		for (int slot = 0; slot < 4; slot++) {
+			s.chest().getItem(slot).setCount(64);
+		}
+		// Room for 30 of the 64 coal it carries: the visit leaves it holding 34.
+		s.chest().setItem(4, new ItemStack(Items.COAL, 34));
+		for (int slot = 5; slot < s.chest().getContainerSize(); slot++) {
+			s.chest().setItem(slot, new ItemStack(Items.DIRT, 64));
+		}
+		Load.of(s.golem()).stash(new ItemStack(Items.COAL, 64));
+		h.startSequence()
+			.thenExecuteAfter(600, () -> {
+				h.assertValueEqual(Load.of(s.golem()).count(stack -> stack.is(Items.COAL)), 34, "coal still carried");
+				h.assertValueEqual(progress(s.golem()), 0, "plan progress");
+				s.chest().setItem(5, ItemStack.EMPTY);
+			})
+			.thenWaitUntil(() -> {
+				h.assertValueEqual(s.chest().countItem(Items.COAL), 98, "coal in the chest");
+				h.assertTrue(progress(s.golem()) > 0, "plan did not carry on");
+			})
+			.thenSucceed();
+	}
+
+	@GameTest(maxTicks = 3600)
 	public void miner_digs_ore_vein_and_carries_on(GameTestHelper h) {
 		Scene s = scene(h, true, START);
 		// A nearly full pouch, so the trip home does not wait on how fast it digs: 64 items fill it, and it returns on its own.

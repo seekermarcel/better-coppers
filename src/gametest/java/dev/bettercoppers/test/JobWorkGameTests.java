@@ -251,4 +251,38 @@ public class JobWorkGameTests {
 			.thenExecuteAfter(200, oneBatch)
 			.thenSucceed();
 	}
+
+	@GameTest(maxTicks = 2400, padding = PADDING)
+	public void backed_up_crafter_delivers_then_stops_at_a_stack_until_it_is_taken(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		for (int slot = 0; slot < chest.getContainerSize(); slot++) {
+			chest.setItem(slot, new ItemStack(Items.OAK_LOG, 64));
+		}
+		ItemFrame frame = new ItemFrame(h.getLevel(), h.absolutePos(home.west()), Direction.WEST);
+		frame.setItem(new ItemStack(Items.OAK_PLANKS));
+		h.getLevel().addFreshEntity(frame);
+		CopperGolem golem = worker(h, new BlockPos(2, 1, 2), Items.CRAFTING_TABLE, home);
+		Load.of(golem).stash(new ItemStack(Items.OAK_PLANKS, 64));
+		int full = 27 * 64;
+		h.startSequence()
+			.thenExecuteAfter(400, () -> {
+				h.assertValueEqual(Load.of(golem).count(stack -> stack.is(Items.OAK_PLANKS)), 64, "planks while backed up");
+				h.assertValueEqual(chest.countItem(Items.OAK_LOG), full, "logs while backed up");
+				chest.setItem(0, ItemStack.EMPTY);
+			})
+			.thenWaitUntil(() -> h.assertValueEqual(chest.countItem(Items.OAK_PLANKS), 64, "planks delivered"))
+			// A stack of the result is in the chest: its normal stop, so taking more logs changes nothing.
+			.thenExecuteAfter(400, () -> {
+				h.assertValueEqual(chest.countItem(Items.OAK_LOG), full - 64, "logs at a full stack of planks");
+				chest.setItem(1, ItemStack.EMPTY);
+			})
+			.thenExecuteAfter(400, () -> {
+				h.assertValueEqual(chest.countItem(Items.OAK_LOG), full - 128, "logs after taking more logs");
+				chest.setItem(0, ItemStack.EMPTY);
+			})
+			.thenWaitUntil(() -> h.assertTrue(chest.countItem(Items.OAK_PLANKS) >= 4, "did not craft again"))
+			.thenSucceed();
+	}
 }

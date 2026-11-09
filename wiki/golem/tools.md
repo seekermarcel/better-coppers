@@ -71,7 +71,7 @@ A golem never loses items because of a chest:
 
 | Situation | What happens |
 |---|---|
-| Chest full | The golem keeps what does not fit and tries again about every 10 seconds (200 ticks) |
+| Chest full | The golem keeps what does not fit and is backed up: it stops working and waits at home, without opening the chest. About every 10 seconds (200 ticks) it checks for room, and once something it carries fits it unloads and goes back to work. Its status says `home chest full` |
 | Chest broken or its chunk not loaded | The golem stops working and waits with everything it carries, until the chest is back or a new home is linked |
 
 Its items only drop when it [dies or turns into a statue](/golem/monsters#death). The home must still be a copper chest; a chest of another kind does not count as a home.

@@ -133,7 +133,7 @@ When the pickaxe breaks, the golem keeps its job, brings its load home and looks
 - When a miner dies, the Mineshaft Plan drops with its progress.
 - A miner needs a home. Without one, it does nothing.
 - If the chest is broken or unloaded, the golem keeps its load and looks again every 10 seconds.
-- If the chest is full, what does not fit stays with the golem and it tries again.
+- If the chest is full, what does not fit stays with the golem. It waits at home and goes back to its plan once something it carries fits.
 - Marking a Mineshaft Plan again resets its progress to 0.
 
 ## Advancements
