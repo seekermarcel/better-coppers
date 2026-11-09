@@ -91,7 +91,8 @@ The golem digs a **3×3 vanilla-style mineshaft**: plank floor over gaps, a supp
 - Sneak + right-click it with a **copper hoe**. Its field is everything within 8 blocks of its home chest.
 - It harvests ripe wheat, carrots, potatoes, beetroot, nether wart, pitcher crops and torchflowers on farmland and replants them right away. Empty farmland gets what the neighbouring rows grow.
 - It picks ripe cocoa and replants it, and takes sweet berries and glow berries and leaves the plant. You place those first.
-- It picks pumpkins and melons and leaves the stems, and cuts sugar cane and bamboo once they are 3 high.
+- It picks pumpkins and melons and leaves the stems, and cuts sugar cane, bamboo and cactus once they are 3 high.
+- It picks mushrooms but leaves the last one of a patch, so it can spread again.
 - It keeps 16 of every seed it can plant and never tills new land. You build the field. A stem needs a free block next to it for its fruit, so leave those spots as plain dirt.
 
 ### Forester, fisher, animal keeper, crafter

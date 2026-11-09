@@ -544,6 +544,36 @@ public class JobGameTests {
 		});
 	}
 
+	@GameTest(maxTicks = 2400)
+	public void farmer_cuts_cactus_above_the_bottom_block(GameTestHelper h) {
+		Container chest = farmerWithHome(h);
+		BlockPos base = new BlockPos(4, 1, 3);
+		h.setBlock(base.below(), Blocks.SAND);
+		for (int up = 0; up < 3; up++) {
+			h.setBlock(base.above(up), Blocks.CACTUS);
+		}
+		h.succeedWhen(() -> {
+			h.assertTrue(count(chest, Items.CACTUS) >= 2, "no cactus delivered yet");
+			h.assertBlockPresent(Blocks.CACTUS, base);
+			h.assertBlockPresent(Blocks.AIR, base.above(2));
+		});
+	}
+
+	@GameTest(maxTicks = 2400)
+	public void farmer_leaves_the_last_mushroom_of_a_patch(GameTestHelper h) {
+		Container chest = farmerWithHome(h);
+		BlockPos first = new BlockPos(4, 1, 3);
+		BlockPos second = new BlockPos(5, 1, 3);
+		for (BlockPos pos : List.of(first, second)) {
+			h.setBlock(pos.below(), Blocks.MYCELIUM);
+			h.setBlock(pos, Blocks.BROWN_MUSHROOM);
+		}
+		h.succeedWhen(() -> {
+			h.assertTrue(count(chest, Items.BROWN_MUSHROOM) >= 1, "no mushroom delivered yet");
+			h.assertTrue(h.getBlockState(first).is(Blocks.BROWN_MUSHROOM) || h.getBlockState(second).is(Blocks.BROWN_MUSHROOM), "the last mushroom was picked");
+		});
+	}
+
 	/** Bare dry farmland can turn to dirt on any random tick, before the golem gets there. */
 	private static final BlockState MOIST_FARMLAND = Blocks.FARMLAND.defaultBlockState().setValue(FarmlandBlock.MOISTURE, FarmlandBlock.MAX_MOISTURE);
 

@@ -364,7 +364,8 @@ Findet er Diamanten, baut er die ganze Ader ab und eilt dann mit blinkender Ante
 - It harvests ripe wheat, carrots, potatoes, beetroot, nether wart, pitcher crops and torchflowers on farmland and replants them right away.
 - It picks pumpkins and melons and leaves the stems.
 - It picks ripe cocoa and replants it, and takes sweet berries and glow berries and leaves the plant. You place those first.
-- It cuts sugar cane and bamboo once they are 3 high.
+- It cuts sugar cane, bamboo and cactus once they are 3 high.
+- It picks mushrooms but leaves the last one of a patch, so it can spread again.
 
 It keeps 16 of every seed it can plant. It never tills new land: you build the field, the golem looks after it. A stem needs a free block next to it for its fruit, so leave those spots as plain dirt. Sneak + right-click the farmer with seeds to give it some."""),
                ("Bauer", """Schleichen + Rechtsklick mit einer Kupferhacke auf einen Golem. Sein Feld ist alles im Umkreis von 8 Blöcken um seine Heimattruhe.
@@ -372,7 +373,8 @@ It keeps 16 of every seed it can plant. It never tills new land: you build the f
 - Er erntet reifen Weizen, Karotten, Kartoffeln, Rote Bete, Netherwarzen, Kannenpflanzen und Fackellilien auf Ackerboden und pflanzt sofort nach.
 - Er erntet Kürbisse und Melonen und lässt die Stiele stehen.
 - Er erntet reifen Kakao und pflanzt ihn nach, und er pflückt Süßbeeren und Leuchtbeeren und lässt die Pflanze stehen. Diese setzt du zuerst selbst.
-- Er schneidet Zuckerrohr und Bambus, sobald sie 3 hoch sind.
+- Er schneidet Zuckerrohr, Bambus und Kakteen, sobald sie 3 hoch sind.
+- Er erntet Pilze, lässt aber den letzten einer Gruppe stehen, damit sie sich wieder ausbreiten kann.
 
 Er behält 16 von jedem Saatgut, das er pflanzen kann. Neues Land pflügt er nie: Du legst das Feld an, der Golem pflegt es. Ein Stiel braucht für seine Frucht einen freien Block daneben, lass diese Stellen also als einfache Erde. Schleichen + Rechtsklick mit Saatgut auf den Bauern gibt ihm welches.""")),
     "workers": (("Forester, Fisher, Keeper, Crafter", """Sneak + right-click a golem with one of these items to give it the job.

@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CaveVines;
 import net.minecraft.world.level.block.CocoaBlock;
 import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.MushroomBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.PitcherCropBlock;
 import net.minecraft.world.level.block.SoundType;
@@ -54,9 +55,9 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 	enum Kind {
 		/** Ripe wheat, carrots, potatoes, beetroot, nether wart, pitcher crop or torchflower: harvest and replant. */
 		HARVEST_CROP,
-		/** A pumpkin or melon grown from a stem. */
+		/** A pumpkin or melon grown from a stem, or a mushroom that has another one near it. */
 		HARVEST_FRUIT,
-		/** Sugar cane or bamboo: cut everything above the bottom block. */
+		/** Sugar cane, bamboo or cactus: cut everything above the bottom block. */
 		HARVEST_STALK,
 		/** Ripe cocoa: harvest and replant on the same log, facing the same way. */
 		HARVEST_COCOA,
@@ -136,7 +137,10 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 		if ((state.is(Blocks.PUMPKIN) || state.is(Blocks.MELON)) && isGrownFromStem(level, pos)) {
 			return new Task(Kind.HARVEST_FRUIT, pos, null);
 		}
-		if ((state.is(Blocks.SUGAR_CANE) || state.is(Blocks.BAMBOO)) && !level.getBlockState(pos.below()).is(block) && stalkHeight(level, pos) >= STALK_MIN_HEIGHT) {
+		if (block instanceof MushroomBlock && hasSameNearby(level, pos, block)) {
+			return new Task(Kind.HARVEST_FRUIT, pos, null);
+		}
+		if ((state.is(Blocks.SUGAR_CANE) || state.is(Blocks.BAMBOO) || state.is(Blocks.CACTUS)) && !level.getBlockState(pos.below()).is(block) && stalkHeight(level, pos) >= STALK_MIN_HEIGHT) {
 			return new Task(Kind.HARVEST_STALK, pos, null);
 		}
 		BlockPos above = pos.above();
@@ -158,6 +162,16 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 		for (Direction direction : Direction.Plane.HORIZONTAL) {
 			BlockState neighbour = level.getBlockState(pos.relative(direction));
 			if (neighbour.getBlock() instanceof AttachedStemBlock && neighbour.getValue(AttachedStemBlock.FACING) == direction.getOpposite()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** Within the box a mushroom spreads in, so the last one of a patch stays and can spread again. */
+	private static boolean hasSameNearby(ServerLevel level, BlockPos pos, Block block) {
+		for (BlockPos other : BlockPos.betweenClosed(pos.offset(-4, -1, -4), pos.offset(4, 1, 4))) {
+			if (!other.equals(pos) && level.getBlockState(other).is(block)) {
 				return true;
 			}
 		}
