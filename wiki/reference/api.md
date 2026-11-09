@@ -120,6 +120,7 @@ public class GardenBehavior extends Behavior<CopperGolem> {
 |---|---|
 | `canWork(ServerLevel, CopperGolem)` | Whether the golem may start work: daytime, not on an errand, not recharging after running empty, not oxidized and not waxed. |
 | `workSpeed(CopperGolem)` | How fast the golem moves and works, 1 being normal. Rust and upgrades both count. |
+| `paysRunningCosts(CopperGolem)` | Whether the golem has a paying job: not a sorter, not a courier, and not without a job. |
 | `spendEnergy(CopperGolem, int)` | Spends energy for a piece of work and adds rust progress. |
 | `radius(CopperGolem, int)` | A work radius, widened by the golem's [eyes](/golem/eyes) (1.5x iron, 2x gold, 3x diamond). |
 | `carryLimit(CopperGolem, int)` | How many items the golem carries in its hand, upgrades included. |

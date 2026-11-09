@@ -16,7 +16,7 @@ What the factory makes goes back into the colony:
 |---|---|---|
 | **Iron Plating** | iron sheets | Golem armour: soaks up most of each monster hit |
 | **Copper Coating** | copper sheets + honeycomb | No rusting from work for about three days |
-| **Gold Gearwork** | gold gears + a copper gear + redstone | Golem walks and works 30 % faster for a while (operators only walk faster; no effect on sorters and couriers) |
+| **Gold Gearwork** | gold gears + a copper gear + redstone | Golem walks and works 30 % faster for a while, and an operator's machine runs 30 % faster (not belts). Refused by sorters, couriers and golems without a job |
 | **Copper Satchel** | leather + a copper sheet | Sorters and couriers carry 32 items per trip instead of 16 |
 | **Cart Extension** | copper sheets + a chest | Turns a copper chest minecart into a double chest (54 slots) |
 | **Charging Station** | gold sheets + redstone block + copper | Golems recharge without a redstone clock, twice as fast as a pad on the fastest clock |
@@ -135,7 +135,7 @@ Sneak + right-click a copper golem with the item. Sneak + right-click the golem 
 
 - **Iron Plating:** takes three quarters of every hit until it has taken 40 damage, then it's gone.
 - **Copper Coating:** the golem doesn't rust from work for 3000 energy, about three days of steady work.
-- **Gold Gearwork:** the golem walks and works 30 % faster for 2000 energy. An operator only walks faster, because machines run at a fixed speed. Sorters and couriers get nothing from it.
+- **Gold Gearwork:** the golem walks and works 30 % faster for 2000 energy. An operator's machine also runs 30 % faster, except a Belt Drive, because belts run at one speed. Sorters, couriers and golems without a job refuse it and you keep the item.
 - **Copper Satchel:** the golem carries twice as much per trip as a sorter or courier, for good. It drops when the golem dies.
 
 Plating, coating and gearwork can be topped up once they've dropped below their full amount.

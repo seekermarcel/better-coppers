@@ -2,6 +2,7 @@ package dev.bettercoppers.automatisation.machine;
 
 import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.automatisation.Automatisation;
+import dev.bettercoppers.automatisation.upgrade.Upgrades;
 import net.minecraft.core.BlockPos;
 import dev.bettercoppers.automatisation.registry.AutoItems;
 import net.minecraft.core.HolderLookup;
@@ -41,6 +42,10 @@ public abstract class MachineBlockEntity extends BlockEntity {
 	public float spinO;
 	private long runningUntil;
 	private int wear;
+	/** Cranked by an operator with gearwork. Saved so that the client hears of it through the update tag. */
+	private boolean geared;
+	private long gearedUntil;
+	private float gearedWork;
 
 	protected MachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
@@ -51,6 +56,11 @@ public abstract class MachineBlockEntity extends BlockEntity {
 
 	/** One tick of work; only called while the machine runs. */
 	protected abstract void tickRunning(ServerLevel level);
+
+	/** The extra step of work gearwork earns. */
+	protected void tickGeared(ServerLevel level) {
+		this.tickRunning(level);
+	}
 
 	/** One tick while standing still. */
 	protected void tickIdle(ServerLevel level) {
@@ -89,12 +99,19 @@ public abstract class MachineBlockEntity extends BlockEntity {
 		this.sync();
 	}
 
-	/** Called by the operator every tick it turns the crank. A jammed machine does not move. */
-	public void operate(ServerLevel level) {
+	/** Called by the operator every tick it turns the crank; {@code geared} if it has gearwork. A jammed machine does not move. */
+	public void operate(ServerLevel level, boolean geared) {
 		if (this.isBroken()) {
 			return;
 		}
 		this.runningUntil = level.getGameTime() + RUN_TICKS;
+		if (geared) {
+			this.gearedUntil = this.runningUntil;
+			if (!this.geared) {
+				this.geared = true;
+				this.sync();
+			}
+		}
 		BlockState state = this.getBlockState();
 		if (!state.getValue(MachineBlock.RUNNING)) {
 			level.setBlock(this.worldPosition, state.setValue(MachineBlock.RUNNING, true), Block.UPDATE_ALL);
@@ -110,6 +127,19 @@ public abstract class MachineBlockEntity extends BlockEntity {
 		return null;
 	}
 
+	/** Whether gearwork earns this tick a second step of work, {@link Upgrades#GEARWORK_SPEED}× as many in all. */
+	protected boolean extraStep() {
+		if (!this.geared) {
+			return false;
+		}
+		this.gearedWork += Upgrades.GEARWORK_SPEED - 1.0F;
+		if (this.gearedWork < 1.0F) {
+			return false;
+		}
+		this.gearedWork -= 1.0F;
+		return true;
+	}
+
 	public boolean isRunning() {
 		return this.getBlockState().getValue(MachineBlock.RUNNING);
 	}
@@ -117,6 +147,10 @@ public abstract class MachineBlockEntity extends BlockEntity {
 	public static void serverTick(Level level, BlockPos pos, BlockState state, MachineBlockEntity machine) {
 		if (!(level instanceof ServerLevel serverLevel)) {
 			return;
+		}
+		if (machine.geared && level.getGameTime() > machine.gearedUntil) {
+			machine.geared = false;
+			machine.sync();
 		}
 		if (machine.isBroken() && level.getGameTime() % 20 == 0) {
 			serverLevel.sendParticles(ParticleTypes.SMOKE, pos.getX() + 0.5, pos.getY() + 0.9, pos.getZ() + 0.5, 3, 0.2, 0.1, 0.2, 0.01);
@@ -128,6 +162,9 @@ public abstract class MachineBlockEntity extends BlockEntity {
 		}
 		if (machine.isRunning()) {
 			machine.tickRunning(serverLevel);
+			if (machine.extraStep()) {
+				machine.tickGeared(serverLevel);
+			}
 		} else {
 			machine.tickIdle(serverLevel);
 		}
@@ -158,6 +195,7 @@ public abstract class MachineBlockEntity extends BlockEntity {
 		super.loadAdditional(input);
 		this.runningUntil = input.getLongOr("running_until", 0L);
 		this.wear = input.getIntOr("wear", 0);
+		this.geared = input.getBooleanOr("geared", false);
 	}
 
 	@Override
@@ -165,6 +203,7 @@ public abstract class MachineBlockEntity extends BlockEntity {
 		super.saveAdditional(output);
 		output.putLong("running_until", this.runningUntil);
 		output.putInt("wear", this.wear);
+		output.putBoolean("geared", this.geared);
 	}
 
 	@Override

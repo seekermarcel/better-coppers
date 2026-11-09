@@ -28,7 +28,7 @@ The time a machine takes counts running ticks only: a machine that stops keeps i
 | [Golem Assembler](/items/golem_assembler) | One golem | 400 ticks (20 s) | End of the build |
 | [Belt Drive](/items/belt_drive) | Keeps belts running | Continuous | Belts move about 1.6 blocks per second |
 
-Machine speed is fixed. [Gold Gearwork](/items/gold_gearwork) makes an operator walk faster but does not make its machine run faster. A rusty operator misses some of its turns: each tick its turn succeeds with a chance equal to its [speed](/golem/running-costs) (85% when exposed, 70% when weathered). A single successful turn keeps the machine going for 10 ticks, so this hardly slows the machine; the operator's walk is slowed as usual.
+An operator with [Gold Gearwork](/items/gold_gearwork) makes its machine do 1.3 times the work, and one such operator is enough on a machine with several. A jam comes after the same amount of work, so it comes sooner. A [Belt Drive](/items/belt_drive) gets nothing from it, because belts run at one speed. A rusty operator misses some of its turns: each tick its turn succeeds with a chance equal to its [speed](/golem/running-costs) (85% when exposed, 70% when weathered). A single successful turn keeps the machine going for 10 ticks, so this hardly slows the machine; the operator's walk is slowed as usual.
 
 ## What machines share
 

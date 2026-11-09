@@ -238,7 +238,7 @@ public class GrabberArmBlockEntity extends MachineBlockEntity {
 		super.clientTick();
 		this.progressO = this.progress;
 		if (this.target != null && this.isRunning() && this.progress < SWING_TICKS) {
-			this.progress++;
+			this.progress = Math.min(SWING_TICKS, this.progress + (this.extraStep() ? 2 : 1));
 		}
 	}
 

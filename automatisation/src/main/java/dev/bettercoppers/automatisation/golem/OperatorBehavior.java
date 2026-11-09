@@ -5,6 +5,7 @@ import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.automatisation.Automatisation;
 import dev.bettercoppers.automatisation.machine.MachineBlockEntity;
 import dev.bettercoppers.automatisation.registry.AutoAttachments;
+import dev.bettercoppers.automatisation.upgrade.Upgrades;
 import dev.bettercoppers.api.TravelWatch;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -123,7 +124,7 @@ public class OperatorBehavior extends Behavior<CopperGolem> {
 		golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(pos));
 		// Rust makes the golem crank more slowly: some ticks it just does not get the crank round.
 		if (golem.getRandom().nextFloat() < BetterCoppersApi.workSpeed(golem)) {
-			machine.operate(level);
+			machine.operate(level, Upgrades.get(golem).gearwork() > 0);
 		}
 		this.crankTicks++;
 		if (this.crankTicks % REACH_ANIMATION_INTERVAL == 1) {

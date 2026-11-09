@@ -158,7 +158,7 @@ public abstract class ProcessingBlockEntity extends MachineBlockEntity {
 		super.clientTick();
 		this.progressO = this.progress;
 		if (this.active && this.isRunning() && this.progress < this.cycleTicks()) {
-			this.progress++;
+			this.progress = Math.min(this.cycleTicks(), this.progress + (this.extraStep() ? 2 : 1));
 		}
 	}
 

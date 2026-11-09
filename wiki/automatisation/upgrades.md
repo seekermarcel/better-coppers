@@ -12,12 +12,12 @@ An **upgrade** is an [Automatisation](/automatisation/) item that improves one c
 |---|---|---|---|---|
 | Iron Plating | Takes 75% of every hit | 40 damage | Hits | While below 40, adding 40 |
 | Copper Coating | No rust from work | 3000 energy | Energy spent | While below 3000, adding 3000 |
-| Gold Gearwork | Walks and works 1.3 times as fast | 2000 energy | Energy spent | While below 2000, adding 2000 |
+| Gold Gearwork | Walks and works 1.3 times as fast, and an operator's machine runs 1.3 times as fast | 2000 energy | Energy spent | While below 2000, adding 2000 |
 | Copper Satchel | Sorters and couriers carry 32 items per trip instead of 16 | Permanent | Nothing | No, one per golem |
 
 ## Fitting
 
-Sneak + right-click a copper golem with the upgrade in the main hand. One item is used up (none in Creative mode). Any golem can be fitted; no job is needed. A plain right-click fits nothing.
+Sneak + right-click a copper golem with the upgrade in the main hand. One item is used up (none in Creative mode). Any golem can be fitted with no job needed, except with Gold Gearwork, which takes a [paying job](/golem/running-costs). A plain right-click fits nothing.
 
 An upgrade that cannot be added (already at or above its full amount, or a satchel already worn) is not used up and the click does nothing.
 
@@ -35,7 +35,9 @@ While any coating is left, spending energy does not advance [rust](/golem/runnin
 
 ## Gold Gearwork
 
-While any gearwork is left, the golem's [speed](/golem/running-costs) is multiplied by 1.3. Speed affects walking and the timed work of paying jobs. A [machine](/automatisation/machines) does not run faster for it, so an operator only gets the walking benefit. Gearwork is used up by energy, 1 per point spent: 2000 s (33 minutes 20 seconds) of cranking for an operator. Sorters and couriers neither use speed nor spend energy, so it has no effect on them and does not run out.
+While any gearwork is left, the golem's [speed](/golem/running-costs) is multiplied by 1.3. Speed affects walking and the timed work of paying jobs. An operator's [machine](/automatisation/machines) also does 1.3 times the work, except a Belt Drive. Gearwork is used up by energy, 1 per point spent: 2000 s (33 minutes 20 seconds) of cranking for an operator.
+
+Sorters, couriers and golems without a job neither use speed nor spend energy, so they refuse it: the click shows a message and the item is not used up. Gearwork already fitted stays on a golem that loses its paying job, and does nothing until it has one again.
 
 Coating and gearwork are used up together when both are fitted.
 

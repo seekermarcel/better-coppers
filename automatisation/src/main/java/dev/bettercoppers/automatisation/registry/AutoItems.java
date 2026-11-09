@@ -2,6 +2,7 @@ package dev.bettercoppers.automatisation.registry;
 
 import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.automatisation.Automatisation;
+import dev.bettercoppers.automatisation.item.GoldGearworkItem;
 import dev.bettercoppers.automatisation.item.WrenchItem;
 import java.util.function.Function;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
@@ -20,7 +21,7 @@ public final class AutoItems {
 	public static final Item GOLD_GEAR = register("gold_gear", Item::new, new Item.Properties());
 	public static final Item IRON_PLATING = register("iron_plating", Item::new, new Item.Properties().stacksTo(16));
 	public static final Item COPPER_COATING = register("copper_coating", Item::new, new Item.Properties().stacksTo(16));
-	public static final Item GOLD_GEARWORK = register("gold_gearwork", Item::new, new Item.Properties().stacksTo(16));
+	public static final Item GOLD_GEARWORK = register("gold_gearwork", GoldGearworkItem::new, new Item.Properties().stacksTo(16));
 	public static final Item COPPER_SATCHEL = register("copper_satchel", Item::new, new Item.Properties().stacksTo(1));
 	public static final Item CART_EXTENSION = register("cart_extension", Item::new, new Item.Properties().stacksTo(16));
 

@@ -60,7 +60,7 @@ With the [Automatisation](/automatisation/) add-on:
 | Held in main hand | Golem | Result |
 |---|---|---|
 | <Icon id="copper_wrench" /> [Copper Wrench](/items/copper_wrench) | Not an operator | Becomes an [operator](/jobs/operator). |
-| <Icon id="iron_plating" /> [Iron Plating](/items/iron_plating), <Icon id="copper_coating" /> [Copper Coating](/items/copper_coating) or <Icon id="gold_gearwork" /> [Gold Gearwork](/items/gold_gearwork) | Below the full amount | Fits or tops it up: see [Golem upgrades](/automatisation/upgrades). |
+| <Icon id="iron_plating" /> [Iron Plating](/items/iron_plating), <Icon id="copper_coating" /> [Copper Coating](/items/copper_coating) or <Icon id="gold_gearwork" /> [Gold Gearwork](/items/gold_gearwork) | Below the full amount (Gold Gearwork also needs a [paying job](/golem/running-costs)) | Fits or tops it up: see [Golem upgrades](/automatisation/upgrades). |
 | <Icon id="copper_satchel" /> [Copper Satchel](/items/copper_satchel) | No satchel yet | Fits it |
 
 The handover of a job item keeps the golem's [home](/start/homes-and-status), eyes, trim, energy and rust. Giving a different job item ends the old job and returns what the golem carried for it. The same job with a new tool only swaps the tools. A chained cart stays chained.

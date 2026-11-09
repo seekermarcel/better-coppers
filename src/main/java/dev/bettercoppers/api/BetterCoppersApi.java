@@ -6,6 +6,7 @@ import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.home.HomeDisplay;
 import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.job.JobHandover;
+import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.runningcosts.RunningCosts;
 import java.util.ArrayList;
 import java.util.List;
@@ -169,6 +170,11 @@ public final class BetterCoppersApi {
 	/** How fast the golem moves and works, 1 being normal. */
 	public static float workSpeed(CopperGolem golem) {
 		return RunningCosts.speed(golem);
+	}
+
+	/** Whether the golem's job has running costs: not a sorter, not a courier, and not a golem without a job. */
+	public static boolean paysRunningCosts(CopperGolem golem) {
+		return Jobs.isPaying(golem);
 	}
 
 	public static void spendEnergy(CopperGolem golem, int energy) {

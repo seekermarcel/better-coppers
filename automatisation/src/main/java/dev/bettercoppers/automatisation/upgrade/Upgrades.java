@@ -28,7 +28,8 @@ import org.jspecify.annotations.Nullable;
  * <ul>
  * <li><b>Iron Plating</b>: takes three quarters of every hit, {@link #PLATING} damage in all, then it is used up.</li>
  * <li><b>Copper Coating</b>: no rusting from work for {@link #COATING} energy, about three days of steady work.</li>
- * <li><b>Gold Gearwork</b>: walks and works {@link #GEARWORK_SPEED}× as fast for {@link #GEARWORK} energy.</li>
+ * <li><b>Gold Gearwork</b>: walks and works {@link #GEARWORK_SPEED}× as fast for {@link #GEARWORK} energy, and an operator's
+ * machine runs that much faster. Only for golems with running costs: it is used up by energy.</li>
  * <li><b>Copper Satchel</b>: carries twice as much per trip (sorters and couriers), for good.</li>
  * </ul>
  * Each can be topped up to twice its amount. A Cart Extension on a copper chest minecart makes it a double chest.
@@ -154,6 +155,11 @@ public final class Upgrades {
 			fitted = upgrades.withCoating(upgrades.coating() + COATING);
 			sound = SoundEvents.HONEYCOMB_WAX_ON;
 		} else if (held.is(AutoItems.GOLD_GEARWORK) && upgrades.gearwork() < GEARWORK) {
+			// Job data is not synced: only the server can tell.
+			if (level instanceof ServerLevel && !BetterCoppersApi.paysRunningCosts(golem)) {
+				player.sendOverlayMessage(Component.translatable("message.bettercoppers_automatisation.gearwork_refused"));
+				return InteractionResult.FAIL;
+			}
 			fitted = upgrades.withGearwork(upgrades.gearwork() + GEARWORK);
 			sound = SoundEvents.CROSSBOW_LOADING_END.value();
 		} else if (held.is(AutoItems.COPPER_SATCHEL) && !upgrades.satchel()) {

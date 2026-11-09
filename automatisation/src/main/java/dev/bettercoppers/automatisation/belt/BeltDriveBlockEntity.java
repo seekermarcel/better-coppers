@@ -69,6 +69,11 @@ public class BeltDriveBlockEntity extends MachineBlockEntity {
 		}
 	}
 
+	/** Belts run at one speed, so gearwork has nothing to add here. */
+	@Override
+	protected void tickGeared(ServerLevel level) {
+	}
+
 	/** Every belt in the lines next to the drive. */
 	public static Set<BlockPos> connectedBelts(ServerLevel level, BlockPos drive) {
 		Set<BlockPos> found = new HashSet<>();

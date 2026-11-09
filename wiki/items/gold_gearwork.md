@@ -19,11 +19,11 @@ infobox:
 
 ## Usage
 
-Sneak + right-click a copper golem with it. The gearwork can be fitted while the golem has less than 2000 gearwork left, and each item adds 2000. The maximum is therefore 3999.
+Sneak + right-click a copper golem with it. The golem needs a [paying job](/golem/running-costs): sorters, couriers and golems without a job refuse it with a message, and the item is not used up. The gearwork can be fitted while the golem has less than 2000 gearwork left, and each item adds 2000. The maximum is therefore 3999.
 
 ## Behaviour
 
-Speed applies to walking and timed work of [paying jobs](/golem/running-costs). [Machines](/automatisation/machines) do not run faster, so an [operator](/jobs/operator) only walks faster. Sorters and couriers do not use speed and spend no energy, so gearwork has no effect on them and is not used up. Each point of energy spent uses up 1 gearwork. The gearwork is lost when the golem dies or turns into a statue. See [Golem upgrades](/automatisation/upgrades).
+Speed applies to walking and timed work of [paying jobs](/golem/running-costs). An [operator's](/jobs/operator) [machine](/automatisation/machines) also does 1.3 times the work, except a Belt Drive. Each point of energy spent uses up 1 gearwork. The gearwork is lost when the golem dies or turns into a statue. See [Golem upgrades](/automatisation/upgrades).
 
 ## Advancements
 

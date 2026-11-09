@@ -239,6 +239,7 @@ public class JobGameTests {
 			h.assertValueEqual(Jobs.has(golem), row.expected() != JobKind.NONE, row.name() + ": has");
 			boolean paying = row.expected() == JobKind.MINER || row.expected() == JobKind.WORKER || row.expected() == JobKind.ADDON;
 			h.assertValueEqual(Jobs.isPaying(golem), paying, row.name() + ": paying");
+			h.assertValueEqual(BetterCoppersApi.paysRunningCosts(golem), paying, row.name() + ": paying, through the api");
 			ADDON_WORKPLACES.remove(golem.getUUID());
 			golem.discard();
 		}

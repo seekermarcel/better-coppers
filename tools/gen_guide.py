@@ -674,7 +674,7 @@ Schleichen + Rechtsklick mit dem Schraubenschlüssel zeigt den Verschleiß. Halt
 3 copper sheets and a honeycomb. No rust from work for about three days.
 
 # Gold Gearwork
-2 gold gears, a copper gear and redstone. Walks and works 30% faster for a while. An operator only walks faster, because machines run at a fixed speed. Sorters and couriers get nothing from it.
+2 gold gears, a copper gear and redstone. Walks and works 30% faster for a while, and an operator's machine runs 30% faster too (belts stay as they are). Sorters, couriers and golems without a job refuse it, and you keep the item.
 
 # Copper Satchel
 Leather and a copper sheet. Sorters and couriers carry 32 items instead of 16.
@@ -692,7 +692,7 @@ Sneak + right-click a golem with an empty hand to see what it wears. Sorters, co
 3 Kupferbleche und eine Honigwabe. Etwa drei Tage lang kein Rost durch Arbeit.
 
 # Goldgetriebe
-2 Goldzahnräder, ein Kupferzahnrad und Redstone. Läuft und arbeitet eine Weile 30 % schneller. Ein Maschinist läuft nur schneller, denn Maschinen haben ein festes Tempo. Sortierern und Kurieren bringt es nichts.
+2 Goldzahnräder, ein Kupferzahnrad und Redstone. Läuft und arbeitet eine Weile 30 % schneller, und die Maschine eines Maschinisten läuft ebenfalls 30 % schneller (Förderbänder bleiben gleich schnell). Sortierer, Kuriere und Golems ohne Beruf lehnen es ab, und du behältst den Gegenstand.
 
 # Kupfertasche
 Leder und ein Kupferblech. Sortierer und Kuriere tragen 32 statt 16 Gegenstände.

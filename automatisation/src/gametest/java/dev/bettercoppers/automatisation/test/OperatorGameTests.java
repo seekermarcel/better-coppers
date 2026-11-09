@@ -8,8 +8,11 @@ import dev.bettercoppers.automatisation.registry.AutoItems;
 import dev.bettercoppers.automatisation.upgrade.Upgrades;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityTypes;
@@ -18,6 +21,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -140,6 +145,64 @@ public class OperatorGameTests {
 		give(h, player, golem, AutoItems.IRON_PLATING);
 		h.assertTrue(Upgrades.get(golem).plating() > 0, "sneak click fitted no plating");
 		h.succeed();
+	}
+
+	/** Gearwork is used up by energy, so a golem that spends none would keep it for nothing. */
+	@GameTest
+	public void gearwork_is_refused_by_a_golem_without_a_job(GameTestHelper h) {
+		floor(h);
+		Player player = h.makeMockPlayer(GameType.SURVIVAL);
+		CopperGolem golem = h.spawn(EntityTypes.COPPER_GOLEM, new BlockPos(4, 1, 4));
+		ItemStack gearwork = new ItemStack(AutoItems.GOLD_GEARWORK);
+		click(h, player, golem, true, gearwork);
+		h.assertTrue(Upgrades.get(golem).gearwork() == 0, "a golem without a job got gearwork");
+		h.assertTrue(gearwork.getCount() == 1, "the refused gearwork was used up");
+		h.succeed();
+	}
+
+	@GameTest
+	public void gearwork_is_refused_by_a_sorter(GameTestHelper h) {
+		floor(h);
+		Player player = h.makeMockPlayer(GameType.SURVIVAL);
+		CopperGolem golem = h.spawn(EntityTypes.COPPER_GOLEM, new BlockPos(4, 1, 4));
+		give(h, player, golem, Items.BUNDLE);
+		ItemStack gearwork = new ItemStack(AutoItems.GOLD_GEARWORK);
+		h.startSequence()
+			.thenExecuteAfter(PRESS, () -> {
+				click(h, player, golem, true, gearwork);
+				h.assertTrue(Upgrades.get(golem).gearwork() == 0, "a sorter got gearwork");
+				h.assertTrue(gearwork.getCount() == 1, "the refused gearwork was used up");
+			})
+			.thenSucceed();
+	}
+
+	@GameTest
+	public void gearwork_says_who_it_is_for(GameTestHelper h) {
+		List<Component> lines = new ArrayList<>();
+		ItemStack gearwork = new ItemStack(AutoItems.GOLD_GEARWORK);
+		gearwork.getItem().appendHoverText(gearwork, Item.TooltipContext.EMPTY, TooltipDisplay.DEFAULT, lines::add, TooltipFlag.NORMAL);
+		h.assertFalse(lines.isEmpty(), "no tooltip");
+		h.succeed();
+	}
+
+	@GameTest
+	public void gearwork_fits_a_farmer_and_an_operator(GameTestHelper h) {
+		floor(h);
+		Player player = h.makeMockPlayer(GameType.SURVIVAL);
+		CopperGolem farmer = h.spawn(EntityTypes.COPPER_GOLEM, new BlockPos(2, 1, 4));
+		CopperGolem operator = h.spawn(EntityTypes.COPPER_GOLEM, new BlockPos(6, 1, 4));
+		give(h, player, farmer, Items.COPPER_HOE);
+		give(h, player, operator, AutoItems.COPPER_WRENCH);
+		h.startSequence()
+			.thenExecuteAfter(PRESS, () -> {
+				ItemStack gearwork = new ItemStack(AutoItems.GOLD_GEARWORK, 2);
+				click(h, player, farmer, true, gearwork);
+				click(h, player, operator, true, gearwork);
+				h.assertTrue(Upgrades.get(farmer).gearwork() == Upgrades.GEARWORK, "the farmer got no gearwork");
+				h.assertTrue(Upgrades.get(operator).gearwork() == Upgrades.GEARWORK, "the operator got no gearwork");
+				h.assertTrue(gearwork.isEmpty(), "gearwork not used up");
+			})
+			.thenSucceed();
 	}
 
 	/** Handbook: no clock needed, and twice as fast as a Charging Pad on the fastest clock, which takes 500 ticks. */

@@ -13,6 +13,8 @@ import dev.bettercoppers.automatisation.registry.AutoAttachments;
 import dev.bettercoppers.automatisation.registry.AutoBlocks;
 import dev.bettercoppers.automatisation.registry.AutoItems;
 import dev.bettercoppers.automatisation.saw.SawBlockEntity;
+import dev.bettercoppers.automatisation.upgrade.GolemUpgrades;
+import dev.bettercoppers.automatisation.upgrade.Upgrades;
 import java.util.List;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
@@ -72,10 +74,28 @@ public class MachineGameTests {
 
 	private static void crank(GameTestHelper h, BlockPos rel) {
 		if (h.getLevel().getBlockEntity(h.absolutePos(rel)) instanceof MachineBlockEntity machine) {
-			machine.operate(h.getLevel());
+			machine.operate(h.getLevel(), false);
 		}
 	}
 
+	/** Cranks and runs the machine this many times inside one game tick, so the count is exact. */
+	private static void runTicks(GameTestHelper h, BlockPos rel, MachineBlockEntity machine, boolean geared, int ticks) {
+		BlockPos pos = h.absolutePos(rel);
+		for (int i = 0; i < ticks; i++) {
+			machine.operate(h.getLevel(), geared);
+			MachineBlockEntity.serverTick(h.getLevel(), pos, h.getLevel().getBlockState(pos), machine);
+		}
+	}
+
+	private static GolemAssemblerBlockEntity assemblerWithParts(GameTestHelper h, BlockPos rel) {
+		h.setBlock(rel, AutoBlocks.GOLEM_ASSEMBLER);
+		GolemAssemblerBlockEntity machine = h.getBlockEntity(rel, GolemAssemblerBlockEntity.class);
+		int slot = 0;
+		for (var part : GolemAssemblerBlockEntity.RECIPE.entrySet()) {
+			machine.setItem(slot++, new ItemStack(part.getKey(), part.getValue()));
+		}
+		return machine;
+	}
 	private static void drop(GameTestHelper h, BlockPos rel, ItemStack stack) {
 		Vec3 at = h.absoluteVec(Vec3.atCenterOf(rel));
 		ItemEntity item = new ItemEntity(h.getLevel(), at.x, at.y, at.z, stack);
@@ -99,6 +119,60 @@ public class MachineGameTests {
 		golem.setAttached(AutoAttachments.MACHINE, h.absolutePos(machine));
 		h.assertTrue(BetterCoppersApi.jobOf(golem) != null, "the wrench gave no job");
 		return golem;
+	}
+
+	@GameTest
+	public void geared_crank_does_a_third_more_work(GameTestHelper h) {
+		floor(h);
+		BlockPos rel = new BlockPos(3, 1, 3);
+		GolemAssemblerBlockEntity machine = assemblerWithParts(h, rel);
+		runTicks(h, rel, machine, false, 100);
+		h.assertValueEqual(machine.progress, 100, "plain crank");
+		runTicks(h, rel, machine, true, 100);
+		h.assertTrue(machine.progress >= 229 && machine.progress <= 231, "geared crank reached " + machine.progress);
+		h.succeed();
+	}
+
+	/** The client counts along for the animation, so it has to be told. */
+	@GameTest
+	public void client_learns_the_machine_is_geared(GameTestHelper h) {
+		floor(h);
+		BlockPos rel = new BlockPos(3, 1, 3);
+		GolemAssemblerBlockEntity machine = assemblerWithParts(h, rel);
+		runTicks(h, rel, machine, true, 1);
+		h.assertTrue(machine.getUpdateTag(h.getLevel().registryAccess()).getBooleanOr("geared", false), "geared not sent to the client");
+		h.succeed();
+	}
+
+	/** Belts run at one speed, so gearwork must not wear the drive out faster for nothing. */
+	@GameTest
+	public void gearwork_does_not_wear_a_belt_drive_faster(GameTestHelper h) {
+		floor(h);
+		h.setBlock(DRIVE, AutoBlocks.BELT_DRIVE);
+		BeltDriveBlockEntity machine = h.getBlockEntity(DRIVE, BeltDriveBlockEntity.class);
+		h.onEachTick(() -> {
+			// It wears on every twentieth game tick, and all of these runs happen inside one.
+			if (h.getLevel().getGameTime() % 20 == 0) {
+				runTicks(h, DRIVE, machine, true, 20);
+				h.assertValueEqual(machine.wearPercent(), 1, "wear after 20 runs");
+				h.succeed();
+			}
+		});
+	}
+
+	@GameTest(maxTicks = 400)
+	public void operator_with_gearwork_runs_its_machine_faster(GameTestHelper h) {
+		floor(h);
+		BlockPos rel = new BlockPos(3, 1, 3);
+		GolemAssemblerBlockEntity machine = assemblerWithParts(h, rel);
+		CopperGolem golem = operator(h, rel);
+		Upgrades.set(golem, GolemUpgrades.NONE.withGearwork(Upgrades.GEARWORK));
+		int[] start = new int[1];
+		h.startSequence()
+			.thenWaitUntil(() -> h.assertTrue(machine.isRunning(), "not cranked yet"))
+			.thenExecute(() -> start[0] = machine.progress)
+			.thenExecuteAfter(100, () -> h.assertTrue(machine.progress - start[0] >= 115, "got " + (machine.progress - start[0]) + " ticks of work in 100"))
+			.thenSucceed();
 	}
 
 	/** The whole point of the add-on: a golem cranks, and sheets come out. */
