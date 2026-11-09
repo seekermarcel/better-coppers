@@ -173,7 +173,7 @@ class MultilevelLayoutTest {
 	@Test
 	void aLevelIsFinishedRailsIncludedBeforeTheStairsBelowIt() {
 		List<MineLayout.Step> steps = mine(8, 2, 0, -64);
-		int firstStairDig = indexOfDig(steps, new BlockPos(1, 0, 1));
+		int firstStairDig = indexOfDig(steps, new BlockPos(1, 2, 1));
 		assertEquals(firstRailOf(steps, 0) + 8, firstStairDig, "the stairs start right after the last rail");
 		assertTrue(firstStairDig < indexOfDig(steps, new BlockPos(0, -4, 0)), "the next level comes after the stairs");
 	}
@@ -190,7 +190,7 @@ class MultilevelLayoutTest {
 	@Test
 	void aLevelsRailsMoveOnToTheStairsBelowIt() {
 		List<MineLayout.Step> steps = mine(8, 2, 0, -64);
-		assertEquals(indexOfDig(steps, new BlockPos(1, 0, 1)), steps.get(firstRailOf(steps, 0)).resumeAt());
+		assertEquals(indexOfDig(steps, new BlockPos(1, 2, 1)), steps.get(firstRailOf(steps, 0)).resumeAt());
 	}
 
 	@Test

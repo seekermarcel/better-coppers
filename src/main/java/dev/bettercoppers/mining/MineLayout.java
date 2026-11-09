@@ -50,6 +50,8 @@ public final class MineLayout {
 
 	private static final int SUPPORT_SPACING = 4;
 	private static final int STAIR_TORCH_SPACING = 8;
+	/** Clear blocks on each step: a player needs this much to jump up one. */
+	private static final int STAIR_HEIGHT = 4;
 	/** How high vanilla's bedrock floor reaches; a golem cannot dig it. */
 	private static final int BEDROCK_LAYERS = 5;
 	private static final int BRANCH_SPACING = 3;
@@ -217,7 +219,7 @@ public final class MineLayout {
 
 	/**
 	 * A carved stairway, one block down per block of {@code run}, from the open block {@code start} (where the golem
-	 * stands for the first step) until it is {@code depth} blocks lower. One wide with two clear blocks above each step
+	 * stands for the first step) until it is {@code depth} blocks lower. One wide and {@link #STAIR_HEIGHT} high on each step,
 	 * and nothing to carry but floor patches, torches optional. Any generator can append these.
 	 */
 	private void stairs(BlockPos start, Direction run, int depth) {
@@ -232,13 +234,14 @@ public final class MineLayout {
 		this.backOff = this.forward.getOpposite();
 	}
 
-	/** Opens one step of stairs, 2 high, from {@code stand}. */
+	/** Opens one step of stairs from {@code stand}, top block first. */
 	private void carveStep(BlockPos stand, BlockPos step) {
 		this.stand = stand;
 		// One step back is up as well as back, and straight back is the rock under the step behind.
 		this.backOff = Direction.UP;
-		this.add(Action.DIG, step.above());
-		this.add(Action.DIG, step);
+		for (int up = STAIR_HEIGHT - 1; up >= 0; up--) {
+			this.add(Action.DIG, step.above(up));
+		}
 		this.add(Action.FLOOR, step.below());
 	}
 

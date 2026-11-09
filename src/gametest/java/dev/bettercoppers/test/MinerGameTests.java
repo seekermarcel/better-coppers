@@ -180,7 +180,9 @@ public class MinerGameTests {
 			String where = " golem at " + h.relativePos(golem.blockPosition()) + ", progress " + progress(golem);
 			for (int i = 1; i <= STAIR_DEPTH; i++) {
 				h.assertTrue(h.getBlockState(stairStep(i)).isAir(), "step " + i + " not dug;" + where);
-				h.assertTrue(!h.getBlockState(stairStep(i).above()).isSolid(), "no headroom on step " + i + ";" + where);
+				for (int up = 1; up <= 3; up++) {
+					h.assertTrue(!h.getBlockState(stairStep(i).above(up)).isSolid(), "no headroom " + up + " above step " + i + ";" + where);
+				}
 				h.assertTrue(h.getBlockState(stairStep(i).below()).isSolid(), "no floor under step " + i + ";" + where);
 			}
 			h.assertTrue(h.getBlockState(stairStep(4).above()).is(Blocks.WALL_TORCH), "no torch on step 4;" + where);

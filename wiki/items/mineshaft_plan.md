@@ -72,9 +72,9 @@ Progress counts finished steps of the [tunnel layout](/jobs/miner#the-tunnel), i
 
 Each slice has 12 dig and floor steps. Each support adds 7 steps. Each torch adds 1 step. The table is for a Mineshaft; a [Strip Mine](/jobs/miner#strip-mine) has no support or rail steps, and each branch block adds 3 steps. A [Room and Pillar](/jobs/miner#room-and-pillar) hall has 4 steps for each column that is not a pillar, plus 1 for each torch.
 
-A [Staircase](/jobs/miner#the-staircase) has 3 steps per block of depth plus 1 per torch: 25 steps at length 8, 50 at 16, 100 at 32, 200 at 64 and 400 at 128.
+A [Staircase](/jobs/miner#the-staircase) has 5 steps per block of depth plus 1 per torch: 41 steps at length 8, 82 at 16, 164 at 32, 328 at 64 and 656 at 128.
 
-A [Multilevel Mine](/jobs/miner#multilevel-mine) has the Mineshaft's steps for each level, plus 31 for each set of stairs between levels: 419 steps for 3 levels of length 8.
+A [Multilevel Mine](/jobs/miner#multilevel-mine) has the Mineshaft's steps for each level, plus 51 for each set of stairs between levels: 459 steps for 3 levels of length 8.
 
 ## Advancements
 

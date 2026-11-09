@@ -80,7 +80,7 @@ To move a golem to another chest, link it again.
 
 The **Mineshaft** pattern is a **3×3 vanilla-style mineshaft**: plank floor over gaps, a support every 4 blocks (fence posts and a plank beam), torches on the beams, and rails laid at the end.
 
-The **Staircase** pattern is a walkable stairway one block wide, going down one block per block forward, with the plan's length as its depth. It stops above the bedrock and needs no rails, fences or planks, only filler or planks for holes in the floor, and torches if there are any.
+The **Staircase** pattern is a walkable stairway one block wide and four high, going down one block per block forward, with the plan's length as its depth. It stops above the bedrock and needs no rails, fences or planks, only filler or planks for holes in the floor, and torches if there are any.
 
 A **Strip Mine** is a 3×3 corridor with 1-wide, 2-high branches to both sides every 3 blocks; the branch length (4–32) is chosen at the table. It needs only torches, and those are optional.
 

@@ -354,7 +354,7 @@ Sneak + right-click it with a copper pickaxe first, then with the plan: without 
 In a mineshaft, without planks, fences and rails it does not dig. Keep those and torches in its chest; it fetches them when it needs them. Without torches it digs on and leaves them out.
 
 # Staircase
-A Staircase goes down one block for every block forward, one wide, with the plan's length as its depth. It stops above the bedrock. It takes no planks, fences or rails: only blocks to patch holes in the floor, and torches if you have them.
+A Staircase goes down one block for every block forward, one wide and 4 high so you can walk it too, with the plan's length as its depth. It stops above the bedrock. It takes no planks, fences or rails: only blocks to patch holes in the floor, and torches if you have them.
 
 # On the job
 It digs out ores touching what it digs and follows each vein for up to 16 ores, diamond, gold, redstone and emerald included. It plugs water and lava with filler it dug itself, such as cobblestone, stone or dirt, and walks home with up to 64 items. Link a sorter to the same chest to sort the loot.
@@ -392,7 +392,7 @@ Schleichen + Rechtsklick auf ihn, erst mit einer Kupferspitzhacke, dann mit dem 
 In einem Stollen wird ohne Bretter, Zäune und Schienen nicht gegraben. Lege sie und Fackeln in seine Truhe; er holt sie, wenn er sie braucht. Ohne Fackeln gräbt er weiter und lässt sie weg.
 
 # Treppe
-Eine Treppe führt mit jedem Block nach vorn einen Block tiefer, einen Block breit, und die Länge des Plans ist ihre Tiefe. Sie endet über dem Grundgestein. Sie braucht keine Bretter, Zäune oder Schienen: nur Blöcke, um Löcher im Boden zu flicken, und Fackeln, wenn du welche hast.
+Eine Treppe führt mit jedem Block nach vorn einen Block tiefer, einen Block breit und 4 Blöcke hoch, sodass du sie auch selbst begehen kannst, und die Länge des Plans ist ihre Tiefe. Sie endet über dem Grundgestein. Sie braucht keine Bretter, Zäune oder Schienen: nur Blöcke, um Löcher im Boden zu flicken, und Fackeln, wenn du welche hast.
 
 # Bei der Arbeit
 Er baut Erze ab, die an das grenzen, was er gräbt, und folgt jeder Ader für bis zu 16 Erze, auch bei Diamant-, Gold-, Redstone- und Smaragderz. Wasser und Lava stopft er mit selbst gegrabenem Füllmaterial wie Bruchstein, Stein oder Erde zu und geht mit bis zu 64 Gegenständen nach Hause. Ein Sortierer an derselben Truhe sortiert die Beute.

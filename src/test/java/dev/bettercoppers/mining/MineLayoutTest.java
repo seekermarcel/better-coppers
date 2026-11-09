@@ -44,12 +44,12 @@ class MineLayoutTest {
 	}
 
 	@Test
-	void stairsGoOneDownPerBlockWithTwoClearBlocksOnEachStep() {
+	void stairsGoOneDownPerBlockAndAreFourHighOnEachStep() {
 		List<MineLayout.Step> steps = stairs(8, 0, -64);
 		List<BlockPos> digs = positions(steps, MineLayout.Action.DIG);
-		assertEquals(16, digs.size());
-		assertEquals(List.of(new BlockPos(0, 0, 0), new BlockPos(0, -1, 0), new BlockPos(0, -1, -1), new BlockPos(0, -2, -1)), digs.subList(0, 4));
-		assertEquals(List.of(new BlockPos(0, -7, -7), new BlockPos(0, -8, -7)), digs.subList(14, 16));
+		assertEquals(32, digs.size());
+		assertEquals(List.of(new BlockPos(0, 2, 0), new BlockPos(0, 1, 0), new BlockPos(0, 0, 0), new BlockPos(0, -1, 0)), digs.subList(0, 4));
+		assertEquals(List.of(new BlockPos(0, -5, -7), new BlockPos(0, -6, -7), new BlockPos(0, -7, -7), new BlockPos(0, -8, -7)), digs.subList(28, 32));
 		assertEquals(new BlockPos(0, -9, -7), positions(steps, MineLayout.Action.FLOOR).getLast());
 		assertEquals(new BlockPos(0, -7, -6), steps.stream().filter(step -> step.pos().equals(new BlockPos(0, -8, -7))).findFirst().orElseThrow().stand());
 		assertEquals(new BlockPos(0, 0, 1), steps.getFirst().stand());
@@ -73,7 +73,7 @@ class MineLayoutTest {
 	void stairsStopAboveTheBedrockAtTheBottomOfTheWorld() {
 		// Entrance 12 above the bottom: 5 layers of bedrock leave 7 steps, the lowest standing at -59.
 		List<BlockPos> digs = positions(stairs(32, -52, -64), MineLayout.Action.DIG);
-		assertEquals(14, digs.size());
+		assertEquals(28, digs.size());
 		assertEquals(-59, digs.getLast().getY());
 	}
 
@@ -85,7 +85,7 @@ class MineLayoutTest {
 
 	@Test
 	void aPlanEditedOutOfRangeStaysWithinTheStaircaseLimits() {
-		assertEquals(2 * MinePlan.MAX_LENGTH, positions(stairs(100000, 300, -64), MineLayout.Action.DIG).size());
+		assertEquals(4 * MinePlan.MAX_LENGTH, positions(stairs(100000, 300, -64), MineLayout.Action.DIG).size());
 		assertEquals(List.of(), stairs(-5, 0, -64));
 		assertEquals(List.of(), stairs(0, 0, -64));
 	}

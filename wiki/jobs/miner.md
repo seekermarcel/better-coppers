@@ -51,15 +51,15 @@ The golem works one slice at a time: the middle column first, then the left and 
 
 ### The Staircase
 
-A **Staircase** is a walkable stairway going down from the entrance, one block down per block forward, the way the player looked when marking. It is 1 block wide with 2 clear blocks above each step. The Mineshaft Plan's length is its depth, so the lowest step is that many blocks below the entrance. It stops 5 layers above the bottom of the world, where bedrock begins, and is shorter if the entrance is too low.
+A **Staircase** is a walkable stairway going down from the entrance, one block down per block forward, the way the player looked when marking. It is 1 block wide and 4 blocks high on each step, so players can walk it too. The Mineshaft Plan's length is its depth, so the lowest step is that many blocks below the entrance. It stops 5 layers above the bottom of the world, where bedrock begins, and is shorter if the entrance is too low.
 
 | Part | Where | Made of |
 |---|---|---|
-| Opening | Every step, 2 high | Dug out |
+| Opening | Every step, 4 high | Dug out |
 | Floor | Under the step, where the block below is not solid | Any planks or [filler](#filler) |
 | Torch | Steps 4, 12, 20, and so on (every 8th), on the right wall at head height, seen going down | Skipped where the light level is already above 10 |
 
-The golem works from the step above, the upper block first. A Staircase needs no rails, fences or supports, so there is nothing to [check before digging](#supplies); the golem still takes floor patches and torches along when it visits its chest. Golems and chained [Copper Chest Minecarts](/items/copper_chest_minecart) walk the stairs, and every trip goes back to the one home chest.
+The golem works from the step above, the top block first. A Staircase needs no rails, fences or supports, so there is nothing to [check before digging](#supplies); the golem still takes floor patches and torches along when it visits its chest. Golems and chained [Copper Chest Minecarts](/items/copper_chest_minecart) walk the stairs, and every trip goes back to the one home chest.
 
 ### Strip Mine
 
@@ -110,7 +110,7 @@ A **Multilevel Mine** is a stack of [Mineshaft tunnels](#the-tunnel), each as lo
 | Part | Where | Made of |
 |---|---|---|
 | Levels | 2 to 8 (the Mine Pattern's setting), each a whole Mineshaft with its supports, torches and rails | As in a [Mineshaft](#the-tunnel) |
-| Stairs | One set between each pair of levels, in the two rows behind the first slice, going off to the right of the entrance seen looking along the tunnel | Dug out, 1 wide and 2 high, with no rails or supports |
+| Stairs | One set between each pair of levels, in the two rows behind the first slice, going off to the right of the entrance seen looking along the tunnel | Dug out, 1 wide and 4 high, with no rails or supports |
 | Floor | Under the stairs, where the block below is not solid | Any planks or [filler](#filler) |
 | Torch | One at the landing halfway down each set of stairs | Skipped where the light level is already above 10 |
 
