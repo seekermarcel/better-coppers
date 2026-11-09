@@ -376,7 +376,7 @@ Er behält 16 von jedem Saatgut, das er pflanzen kann. Kürbiskerne, Melonenkern
     "workers": (("Forester, Fisher, Keeper, Crafter", """Sneak + right-click a golem with one of these items to give it the job.
 
 # Forester: a copper axe
-Fells natural trees within 12 blocks, never logs you placed. It collects saplings, apples, sticks and logs and plants one sapling where the trunk stood: the first that fits, of any kind. A tree with a 2x2 trunk gets only one sapling. The axe only works on a clean golem; a rusty one it scrapes instead.
+Fells natural trees within 12 blocks, never logs you placed. It collects saplings, apples, sticks and logs and replants every stump, four for a tree with a 2x2 trunk. A stump only takes the species that grew there and stays empty until the golem has that sapling. The axe only works on a clean golem; a rusty one it scrapes instead.
 
 # Fisher: a fishing rod
 Casts its line into open water within 10 blocks and waits for the float to dip: a catch every 20 to 50 seconds, fish and junk but no treasure.
@@ -389,7 +389,7 @@ Crafts what the item frames on or next to its chest show, from the ingredients i
                 ("Förster, Fischer, Tierpfleger, Handwerker", """Schleichen + Rechtsklick mit einem dieser Gegenstände auf einen Golem gibt ihm den Beruf.
 
 # Förster: eine Kupferaxt
-Fällt natürliche Bäume im Umkreis von 12 Blöcken, nie Stämme, die du gesetzt hast. Er sammelt Setzlinge, Äpfel, Stöcke und Stämme und pflanzt einen Setzling dorthin, wo der Stamm stand: den ersten, der passt, egal welcher Art. Ein Baum mit 2x2-Stamm bekommt nur einen Setzling. Die Axt geht nur bei einem sauberen Golem; einen rostigen kratzt sie stattdessen ab.
+Fällt natürliche Bäume im Umkreis von 12 Blöcken, nie Stämme, die du gesetzt hast. Er sammelt Setzlinge, Äpfel, Stöcke und Stämme und bepflanzt jeden Stumpf neu, bei einem Baum mit 2x2-Stamm also vier. Ein Stumpf bekommt nur die Art, die dort gewachsen ist, und bleibt leer, bis der Golem diesen Setzling hat. Die Axt geht nur bei einem sauberen Golem; einen rostigen kratzt sie stattdessen ab.
 
 # Fischer: eine Angel
 Wirft die Angel in offenes Wasser im Umkreis von 10 Blöcken aus und wartet, bis der Schwimmer abtaucht: alle 20 bis 50 Sekunden ein Fang, Fisch und Plunder, aber keine Schätze.

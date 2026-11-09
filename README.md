@@ -97,7 +97,7 @@ The golem digs a **3×3 vanilla-style mineshaft**: plank floor over gaps, a supp
 
 | Tool | Job | What it does |
 |---|---|---|
-| Copper axe, on a clean golem | Forester | Fells natural trees within 12 blocks (never logs you placed), collects saplings, apples, sticks and logs, plants one sapling per trunk (the first that fits, of any kind; a 2x2 tree gets only one) |
+| Copper axe, on a clean golem | Forester | Fells natural trees within 12 blocks (never logs you placed), collects saplings, apples, sticks and logs, replants every stump (four for a 2x2 tree) with the same species only, leaving it empty until it has that sapling |
 | Fishing rod | Fisher | Casts a float into open water within 10 blocks and reels in when it dips, a catch every 20–50 seconds (fish and junk, no treasure) |
 | Brush | Animal keeper | Feeds pairs of animals with food from its chest so they breed, up to 16 per kind |
 | Crafting table | Crafter | Crafts what item frames on or next to its chest show, from ingredients in that chest |

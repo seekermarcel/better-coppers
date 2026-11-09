@@ -7,8 +7,10 @@ import dev.bettercoppers.runningcosts.RunningCosts;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -78,8 +80,10 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 			return new Task(Kind.PICK_UP, drop.blockPosition(), drop, null);
 		}
 		// Then the stumps waiting for a sapling.
-		List<BlockPos> marks = WorkerData.getOrCreate(golem).marks();
+		WorkerData data = WorkerData.getOrCreate(golem);
+		List<BlockPos> marks = data.marks();
 		marks.removeIf(stump -> !level.isLoaded(stump) || !level.getBlockState(stump).isAir());
+		data.stumpSaplings().keySet().retainAll(marks);
 		Load load = Load.of(golem);
 		for (BlockPos stump : marks) {
 			Item sapling = this.saplingFor(golem, load, stump);
@@ -183,7 +187,14 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 			return false;
 		}
 		level.destroyBlockProgress(golem.getId(), base, -1);
-		Item sapling = saplingOf(level.getBlockState(base).getBlock());
+		// Read before the logs go: a 2x2 trunk has four stumps, and neighbours in one trunk can be different species.
+		Map<BlockPos, Item> stumps = new HashMap<>();
+		for (BlockPos log : logs) {
+			Item sapling = isTreeBase(level, log) ? saplingOf(level.getBlockState(log).getBlock()) : null;
+			if (sapling != null) {
+				stumps.put(log, sapling);
+			}
+		}
 		ItemStack axe = golem.getMainHandItem();
 		logs.sort(Comparator.comparingInt((BlockPos log) -> log.getY()).reversed());
 		for (BlockPos log : logs) {
@@ -196,9 +207,13 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 			Tools.wear(golem, axe);
 			RunningCosts.spend(golem, ENERGY_PER_LOG);
 		}
-		if (sapling != null && level.getBlockState(base).isAir()) {
-			WorkerData.getOrCreate(golem).marks().add(base);
-		}
+		WorkerData data = WorkerData.getOrCreate(golem);
+		stumps.forEach((stump, sapling) -> {
+			if (level.getBlockState(stump).isAir()) {
+				data.marks().add(stump);
+				data.stumpSaplings().put(stump, sapling);
+			}
+		});
 		return true;
 	}
 
@@ -293,10 +308,11 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 		return BuiltInRegistries.ITEM.getOptional(id).orElse(null);
 	}
 
-	/** A sapling for this stump: the kind that grew there if it has one, otherwise any. */
+	/** The kind that grew on this stump and no other; any kind only if the stump was marked before kinds were saved. */
 	private @Nullable Item saplingFor(CopperGolem golem, Load load, BlockPos stump) {
-		ItemStack found = load.find(stack -> stack.is(ItemTags.SAPLINGS) && stack.getItem() instanceof BlockItem blockItem
-			&& blockItem.getBlock().defaultBlockState().canSurvive(golem.level(), stump));
+		Item grew = WorkerData.getOrCreate(golem).stumpSaplings().get(stump);
+		ItemStack found = load.find(stack -> stack.is(ItemTags.SAPLINGS) && (grew == null || stack.is(grew))
+			&& stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock().defaultBlockState().canSurvive(golem.level(), stump));
 		return found.isEmpty() ? null : found.getItem();
 	}
 
@@ -314,6 +330,12 @@ public class ForestBehavior extends JobBehavior<ForestBehavior.Task> {
 
 	@Override
 	protected void restock(ServerLevel level, CopperGolem golem, Load load, Container chest) {
+		// Stumps only take their own kind, so saplings of another kind in the load do not count.
+		for (Item wanted : new HashSet<>(WorkerData.getOrCreate(golem).stumpSaplings().values())) {
+			if (load.count(stack -> stack.is(wanted)) == 0) {
+				load.addSupplies(Inventories.takeFirst(chest, SAPLING_RESERVE, stack -> stack.is(wanted)));
+			}
+		}
 		if (load.suppliesCount(stack -> stack.is(ItemTags.SAPLINGS)) == 0) {
 			load.addSupplies(Inventories.takeFirst(chest, SAPLING_RESERVE, stack -> stack.is(ItemTags.SAPLINGS)));
 		}

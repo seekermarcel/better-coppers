@@ -5,6 +5,7 @@ import dev.bettercoppers.api.GolemUpgrade;
 import dev.bettercoppers.entity.GolemFloat;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.Load;
+import dev.bettercoppers.job.WorkerData;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -14,6 +15,8 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
@@ -86,6 +89,76 @@ public class JobWorkGameTests {
 			h.assertBlockPresent(Blocks.OAK_LOG, placed);
 			h.assertBlockPresent(Blocks.OAK_LOG, placed.above());
 		});
+	}
+
+	@GameTest(maxTicks = 2400, padding = PADDING)
+	public void forester_replants_all_four_stumps_of_a_2x2_tree(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.DARK_OAK_SAPLING, 8));
+		List<BlockPos> stumps = List.of(new BlockPos(5, 1, 5), new BlockPos(6, 1, 5), new BlockPos(5, 1, 6), new BlockPos(6, 1, 6));
+		for (BlockPos stump : stumps) {
+			h.setBlock(stump.below(), Blocks.DIRT);
+			for (int y = 0; y < 3; y++) {
+				h.setBlock(stump.above(y), Blocks.DARK_OAK_LOG);
+			}
+		}
+		h.setBlock(new BlockPos(5, 4, 5), Blocks.DARK_OAK_LEAVES.defaultBlockState().setValue(LeavesBlock.DISTANCE, 1));
+		worker(h, new BlockPos(2, 1, 2), Items.COPPER_AXE, home);
+		h.succeedWhen(() -> stumps.forEach(stump -> h.assertBlockPresent(Blocks.DARK_OAK_SAPLING, stump)));
+	}
+
+	@GameTest(maxTicks = 2400, padding = PADDING)
+	public void forester_replants_the_species_it_felled(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		GameTests.chest(h, home, COPPER_CHEST);
+		BlockPos stump = new BlockPos(5, 1, 5);
+		h.setBlock(stump.below(), Blocks.DIRT);
+		for (int y = 0; y < 3; y++) {
+			h.setBlock(stump.above(y), Blocks.BIRCH_LOG);
+		}
+		h.setBlock(stump.above(3), Blocks.BIRCH_LEAVES.defaultBlockState().setValue(LeavesBlock.DISTANCE, 1));
+		CopperGolem golem = worker(h, new BlockPos(2, 1, 2), Items.COPPER_AXE, home);
+		// Oak comes first in its supplies: the old code planted whichever sapling it found first.
+		Load load = Load.of(golem);
+		load.addSupplies(new ItemStack(Items.OAK_SAPLING, 8));
+		load.addSupplies(new ItemStack(Items.BIRCH_SAPLING, 8));
+		h.succeedWhen(() -> h.assertBlockPresent(Blocks.BIRCH_SAPLING, stump));
+	}
+
+	@GameTest(maxTicks = 2400, padding = PADDING)
+	public void forester_fetches_the_felled_species_instead_of_planting_another(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.BIRCH_SAPLING, 8));
+		BlockPos stump = new BlockPos(5, 1, 5);
+		h.setBlock(stump.below(), Blocks.DIRT);
+		for (int y = 0; y < 3; y++) {
+			h.setBlock(stump.above(y), Blocks.BIRCH_LOG);
+		}
+		h.setBlock(stump.above(3), Blocks.BIRCH_LEAVES.defaultBlockState().setValue(LeavesBlock.DISTANCE, 1));
+		CopperGolem golem = worker(h, new BlockPos(2, 1, 2), Items.COPPER_AXE, home);
+		// It carries only oak, and a birch waits in the chest: an oak on that stump can never turn into a birch.
+		Load.of(golem).addSupplies(new ItemStack(Items.OAK_SAPLING, 8));
+		h.succeedWhen(() -> h.assertBlockPresent(Blocks.BIRCH_SAPLING, stump));
+	}
+
+	@GameTest
+	public void forester_remembers_stump_species_across_saves(GameTestHelper h) {
+		BlockPos stump = new BlockPos(1, 2, 3);
+		WorkerData data = new WorkerData();
+		data.marks().add(stump);
+		data.stumpSaplings().put(stump, Items.BIRCH_SAPLING);
+		WorkerData loaded = WorkerData.CODEC.parse(NbtOps.INSTANCE, WorkerData.CODEC.encodeStart(NbtOps.INSTANCE, data).getOrThrow()).getOrThrow();
+		h.assertValueEqual(loaded.marks(), List.of(stump), "marks");
+		h.assertValueEqual(loaded.stumpSaplings().get(stump), Items.BIRCH_SAPLING, "sapling");
+		// Saved before stumps remembered their species: the mark survives and takes any sapling.
+		WorkerData old = WorkerData.CODEC.parse(NbtOps.INSTANCE, new CompoundTag()).getOrThrow();
+		h.assertTrue(old.stumpSaplings().isEmpty(), "old save has species");
+		h.succeed();
 	}
 
 	@GameTest(maxTicks = 1200, padding = PADDING)

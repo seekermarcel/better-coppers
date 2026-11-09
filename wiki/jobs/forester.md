@@ -40,9 +40,9 @@ Chopping takes 30 ticks plus 8 ticks per log, longer with rust. A 5 log tree tak
 
 ### Replanting
 
-After felling, the golem remembers the base block as a stump, if the log has a matching sapling. It plants the first sapling it carries that can grow there, of any kind. Planting takes 20 ticks. Only the one block it chopped from is replanted, so a 2x2 tree gets one sapling back.
+After felling, the golem remembers every log of the trunk that stood on soil as a stump, if the log has a matching sapling, so a 2x2 tree gets four saplings back. Each stump only takes the species that grew there. Without that sapling it stays empty, and the golem carries on with other work until one turns up. Planting takes 20 ticks.
 
-Saplings stay with the golem up to 8 of each kind when it unloads. When it has none at all, it takes up to 8 from the first stack of saplings in the chest.
+Saplings stay with the golem up to 8 of each kind when it unloads. At the chest it takes up to 8 of each species a stump is waiting for and it does not carry. When it has no saplings at all, it also takes up to 8 from the first stack of saplings in the chest.
 
 ### Bringing it home
 
