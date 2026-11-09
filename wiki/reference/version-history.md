@@ -8,7 +8,38 @@ The **version history** lists the released versions of Better Coppers and its Au
 
 | Version | Date | Minecraft | Fabric Loader | Java |
 |---|---|---|---|---|
+| v0.2.0 | 2026-11-09 | 26.3 | 0.20.1 or newer | 25 or newer |
 | v0.1.0 | 2026-11-08 | 26.3 | 0.20.1 or newer | 25 or newer |
+
+## v0.2.0
+
+Worlds from v0.1.0 load as they are. As before, the add-on needs the base mod of exactly the same version.
+
+### Better Coppers
+
+New:
+
+- The [beekeeper](/jobs/beekeeper) job: shears make a golem take honey from smoked hives.
+- [Animal keepers](/jobs/animal-keeper) shear sheep and milk cows, goats and mooshrooms, and get stew from mooshrooms, if their home chest holds shears, empty buckets or bowls.
+- Four new Mine Patterns for the [miner](/jobs/miner), chosen at the [Survey Table](/items/survey_table): Staircase, Strip Mine, Room and Pillar, and Multilevel Mine.
+- The [Quota Slip](/items/quota_slip) keeps a set amount of an item in a chest.
+- [Farmers](/jobs/farmer) also harvest cocoa, sweet berries, glow berries, torchflowers, cactus and mushrooms, and take spent chorus plants and plant a new flower.
+
+Changed:
+
+- A golem whose home chest is full is [backed up](/golem/tools#full-or-missing-chest): it stops working, waits at home and goes back to work by itself once there is room. Its status message says why.
+- A miner with no filler at water or lava gives up the rest of that Mine Section and carries on with the rails. The plan's tooltip and the status line show where it stopped.
+
+Fixed:
+
+- Farmers plant pumpkin seeds, melon seeds and pitcher pods.
+- Foresters replant every stump with the species that grew there.
+- Miners dig diamond, gold, redstone and emerald ore.
+
+### Automatisation
+
+- [Gold Gearwork](/items/gold_gearwork) makes an operator's machine do 1.3 times the work. Belt drives stay as they are.
+- Sorters, couriers and golems without a job refuse Gold Gearwork, and the player keeps the item.
 
 ## v0.1.0
 
