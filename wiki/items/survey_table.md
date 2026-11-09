@@ -45,7 +45,7 @@ Right-clicking a Survey Table opens its screen. The screen looks like a [stonecu
 | Longest | 128 blocks, or 64 for Room and Pillar, shown with "max" |
 | Step | 8 blocks per click |
 
-The length resets to 32 when the screen is opened. There are 16 possible lengths, or 8 for Room and Pillar. Clicking the Mine Pattern button moves on to the next Mine Pattern: Mineshaft, Staircase, Strip Mine or Room and Pillar, cutting the length to that Mine Pattern's longest. A Mine Pattern with a setting besides length adds a second row of **-** and **+** buttons for it. Strip Mine has one: its branch length, 4 to 32 blocks in steps of 4, starting at 16. [Room and Pillar](/jobs/miner#room-and-pillar) has one too: its hall width, 9 or 17, starting at 9. The result is a blank Mineshaft Plan with no entrance marked. Paper left in the slot returns to the player when the screen closes.
+The length resets to 32 when the screen is opened. There are 16 possible lengths, or 8 for Room and Pillar. Clicking the Mine Pattern button moves on to the next Mine Pattern: Mineshaft, Staircase, Strip Mine, Room and Pillar or Multilevel Mine, cutting the length to that Mine Pattern's longest. A Mine Pattern with a setting besides length adds a second row of **-** and **+** buttons for it. Strip Mine has one: its branch length, 4 to 32 blocks in steps of 4, starting at 16. [Room and Pillar](/jobs/miner#room-and-pillar) has one too: its hall width, 9 or 17, starting at 9. [Multilevel Mine](/jobs/miner#multilevel-mine) has one as well: its number of levels, 2 to 8, starting at 3. The result is a blank Mineshaft Plan with no entrance marked. Paper left in the slot returns to the player when the screen closes.
 
 ## Advancements
 

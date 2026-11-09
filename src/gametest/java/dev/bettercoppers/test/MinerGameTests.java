@@ -27,8 +27,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Unit;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -405,6 +407,115 @@ public class MinerGameTests {
 			// It went home for the torches, so this is a real restock.
 			h.assertValueEqual(chest.countItem(Items.OAK_FENCE), 16, "fences left in the chest");
 			h.assertValueEqual(chest.countItem(Items.RAIL), 16, "rails left in the chest");
+		});
+	}
+
+	/** Keeps the chunks up to {@code far} loaded: entities freeze at the border of the ones a test keeps loaded by itself. */
+	private static void forceChunks(GameTestHelper h, BlockPos far) {
+		BlockPos near = h.absolutePos(BlockPos.ZERO);
+		BlockPos end = h.absolutePos(far);
+		for (int cx = Math.min(near.getX(), end.getX()) >> 4; cx <= Math.max(near.getX(), end.getX()) >> 4; cx++) {
+			for (int cz = Math.min(near.getZ(), end.getZ()) >> 4; cz <= Math.max(near.getZ(), end.getZ()) >> 4; cz++) {
+				h.getLevel().setChunkForced(cx, cz, true);
+			}
+		}
+	}
+
+	/**
+	 * Rock from z 1 to the entrance at {@code entranceZ}, heading north with its top level at y 8, and open ground south of
+	 * it up to {@code entranceZ + 5}. The two levels stand 6 apart, so the lower one is at y 2.
+	 */
+	private static void multilevelRock(GameTestHelper h, int entranceZ) {
+		ServerLevel level = h.getLevel();
+		level.clockManager().setTotalTicks(level.dimensionType().defaultClock().orElseThrow(), 1000L);
+		forceChunks(h, new BlockPos(10, 0, entranceZ + 5));
+		fill(h, new BlockPos(0, 0, 0), new BlockPos(10, 11, entranceZ), Blocks.STONE);
+		fill(h, new BlockPos(0, 0, entranceZ + 1), new BlockPos(10, 7, entranceZ + 5), Blocks.STONE);
+		fill(h, new BlockPos(0, 8, entranceZ + 1), new BlockPos(10, 11, entranceZ + 5), Blocks.AIR);
+	}
+
+	/**
+	 * The tunnels are packed ice, which is quick to dig and drops nothing, so the only trips are for supplies: the rails
+	 * of each level are fetched from the chest at the top. The coal is the last thing dug, at the far end of the lower
+	 * level, so finding it in the chest means a load came all the way up the stairs.
+	 */
+	@GameTest(maxTicks = 12000, padding = 48)
+	public void miner_digs_two_levels_joined_by_stairs_and_carries_the_load_home(GameTestHelper h) {
+		multilevelRock(h, 9);
+		for (int y : new int[] {2, 8}) {
+			fill(h, new BlockPos(3, y, 2), new BlockPos(5, y + 2, 9), Blocks.PACKED_ICE);
+		}
+		h.setBlock(new BlockPos(4, 4, 2), Blocks.COAL_ORE);
+		BlockPos home = new BlockPos(1, 8, 12);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.RAIL, 20));
+		chest.setItem(1, new ItemStack(Items.OAK_PLANKS, 32));
+		chest.setItem(2, new ItemStack(Items.OAK_FENCE, 16));
+		chest.setItem(3, new ItemStack(Items.TORCH, 16));
+		MinePlan plan = MinePlan.blank(MinePattern.MULTILEVEL_MINE, 8, 2).marked(h.absolutePos(new BlockPos(4, 8, 9)), Direction.NORTH);
+		CopperGolem golem = miner(h, new BlockPos(4, 8, 12), plan, home);
+		golem.getMainHandItem().set(DataComponents.UNBREAKABLE, Unit.INSTANCE);
+		List<MineLayout.Step> steps = MineLayout.build(plan, h.getLevel().getMinY());
+		h.succeedWhen(() -> {
+			String where = " golem at " + h.relativePos(golem.blockPosition()) + ", progress " + progress(golem);
+			h.assertValueEqual(progress(golem), steps.size(), "steps done");
+			h.assertTrue(MinerData.get(golem).plan().givenUp().isEmpty(), "gave up at " + MinerData.get(golem).plan().givenUp());
+			for (int z = 2; z <= 9; z++) {
+				for (int y : new int[] {2, 8}) {
+					h.assertTrue(h.getBlockState(new BlockPos(4, y, z)).is(Blocks.RAIL), "no rail at y " + y + ", z " + z + ";" + where);
+				}
+			}
+			for (MineLayout.Step step : steps) {
+				boolean onStairs = h.relativePos(step.pos()).getZ() > 9;
+				if (onStairs && step.action() == MineLayout.Action.DIG) {
+					h.assertTrue(!h.getLevel().getBlockState(step.pos()).isSolid(), "stairs not dug at " + h.relativePos(step.pos()) + ";" + where);
+				}
+			}
+			h.assertTrue(h.getBlockState(new BlockPos(3, 2, 7)).is(Blocks.OAK_FENCE), "no support on the lower level;" + where);
+			h.assertTrue(h.getBlockState(new BlockPos(4, 4, 6)).is(Blocks.WALL_TORCH), "no torch on the lower level;" + where);
+			for (int y = 5; y <= 7; y++) {
+				h.assertTrue(h.getBlockState(new BlockPos(4, y, 5)).is(Blocks.STONE), "rock between the levels is gone at y " + y);
+			}
+			h.assertTrue(chest.countItem(Items.COAL) >= 1, "the load is not home;" + where);
+			h.assertTrue(Load.of(golem).hasNothingToBringHome(), "still carrying its load;" + where);
+			h.assertValueEqual(chest.countItem(Items.RAIL), 4, "rails left: 8 fetched for each level");
+		});
+	}
+
+	/**
+	 * A finished 32 long mine and a golem with a load at the far end of the lower level, an empty cart on the rails beside
+	 * it. Home is over 24 blocks away, so it should ride the level's rails back and then walk up the stairs.
+	 */
+	@GameTest(maxTicks = 3600, padding = 48)
+	public void miner_rides_the_rails_of_a_lower_level_then_walks_up_the_stairs(GameTestHelper h) {
+		multilevelRock(h, 33);
+		BlockPos home = new BlockPos(1, 8, 36);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		MinePlan marked = MinePlan.blank(MinePattern.MULTILEVEL_MINE, 32, 2).marked(h.absolutePos(new BlockPos(4, 8, 33)), Direction.NORTH);
+		List<MineLayout.Step> steps = MineLayout.build(marked, h.getLevel().getMinY());
+		for (MineLayout.Step step : steps) {
+			switch (step.action()) {
+				case DIG -> h.getLevel().setBlockAndUpdate(step.pos(), Blocks.AIR.defaultBlockState());
+				case FENCE -> h.getLevel().setBlockAndUpdate(step.pos(), Blocks.OAK_FENCE.defaultBlockState());
+				case BEAM -> h.getLevel().setBlockAndUpdate(step.pos(), Blocks.OAK_PLANKS.defaultBlockState());
+				case RAIL -> h.getLevel().setBlockAndUpdate(step.pos(), Blocks.RAIL.defaultBlockState());
+				case FLOOR, TORCH -> {
+				}
+			}
+		}
+		BlockPos cartAt = new BlockPos(4, 2, 8);
+		Minecart cart = h.spawn(EntityTypes.MINECART, cartAt);
+		CopperGolem golem = miner(h, new BlockPos(3, 2, 8), marked.withProgress(steps.size()), home);
+		Load.of(golem).stash(new ItemStack(Items.COAL, 8));
+		boolean[] rode = {false};
+		double startZ = cart.getZ();
+		double[] furthest = {startZ};
+		h.succeedWhen(() -> {
+			rode[0] |= golem.getVehicle() == cart;
+			furthest[0] = Math.max(furthest[0], cart.getZ());
+			h.assertTrue(rode[0], "never boarded; golem at " + h.relativePos(golem.blockPosition()));
+			h.assertTrue(furthest[0] - startZ >= 8.0, "the cart did not take it towards the stairs: " + (furthest[0] - startZ));
+			h.assertValueEqual(chest.countItem(Items.COAL), 8, "coal in the chest at the top");
 		});
 	}
 

@@ -74,6 +74,8 @@ Each slice has 12 dig and floor steps. Each support adds 7 steps. Each torch add
 
 A [Staircase](/jobs/miner#the-staircase) has 3 steps per block of depth plus 1 per torch: 25 steps at length 8, 50 at 16, 100 at 32, 200 at 64 and 400 at 128.
 
+A [Multilevel Mine](/jobs/miner#multilevel-mine) has the Mineshaft's steps for each level, plus 31 for each set of stairs between levels: 419 steps for 3 levels of length 8.
+
 ## Advancements
 
 | Advancement | How | ID |
@@ -93,9 +95,9 @@ The item component has these fields:
 
 | Field | Type | Meaning |
 |---|---|---|
-| `pattern` | String | `mineshaft`, `staircase`, `strip_mine` or `room_and_pillar` |
+| `pattern` | String | `mineshaft`, `staircase`, `strip_mine`, `room_and_pillar` or `multilevel_mine` |
 | `length` | Integer, 8 to 128 | Length of the tunnel, corridor or hall, or depth of a Staircase, in blocks. A Room and Pillar hall stops at 64 |
-| `setting` | Integer, default 0 | The value of the Mine Pattern's setting, 0 if it has none. A Strip Mine's branch length; out of range it digs the nearest allowed length. A Room and Pillar hall's width, 9 or 17; 17 or more digs 17, anything less 9 |
+| `setting` | Integer, default 0 | The value of the Mine Pattern's setting, 0 if it has none. A Strip Mine's branch length; out of range it digs the nearest allowed length. A Room and Pillar hall's width, 9 or 17; 17 or more digs 17, anything less 9. A Multilevel Mine's number of levels, 2 to 8; out of range it digs the nearest allowed number |
 | `entrance` | Block position, optional | Set by marking |
 | `heading` | Direction, optional | Set by marking |
 | `progress` | Integer, default 0 | Finished steps |

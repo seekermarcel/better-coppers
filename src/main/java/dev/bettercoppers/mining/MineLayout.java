@@ -59,8 +59,13 @@ public final class MineLayout {
 	private static final int PILLAR_SPACING = 4;
 	/** Stands in for the end of the list until a hall's last step is known. */
 	private static final int REST_OF_HALL = -2;
+	private static final int LEVEL_SPACING = 6;
+	/** Depth of each of the two flights between levels; together they drop one {@link #LEVEL_SPACING}. */
+	private static final int FLIGHT_DEPTH = LEVEL_SPACING / 2;
+	/** Stands in for the end of the list on the stairs between levels. */
+	private static final int LOWER_LEVELS = -3;
 
-	private final BlockPos entrance;
+	private BlockPos entrance;
 	private final Direction forward;
 	private final Direction right;
 	private final List<Step> steps = new ArrayList<>();
@@ -84,6 +89,7 @@ public final class MineLayout {
 			case STAIRCASE -> layout.staircase(plan.length(), minY);
 			case STRIP_MINE -> layout.stripMine(plan.length(), plan.setting());
 			case ROOM_AND_PILLAR -> layout.roomAndPillar(plan);
+			case MULTILEVEL_MINE -> layout.multilevelMine(plan, minY);
 		};
 	}
 
@@ -139,13 +145,14 @@ public final class MineLayout {
 	 * of two fence posts carrying a plank beam, with a torch hung on every other beam. Rails come last.
 	 */
 	private List<Step> mineshaft(int length) {
+		int first = this.steps.size();
 		for (int i = 0; i < length; i++) {
 			this.standBehind(i);
 			this.slice(i);
 		}
 		// A hazard gives up the rest of the tunnel, and the rails then still go down in the part already dug.
 		int railsStart = this.steps.size();
-		this.steps.replaceAll(step -> step.resumingAt(railsStart));
+		this.steps.subList(first, railsStart).replaceAll(step -> step.resumingAt(railsStart));
 		this.resumeAt = railsStart + length;
 		// Mobs cannot step onto rails (that is what keeps them inside vanilla mineshafts), so the rails go down last,
 		// from the far end back to the entrance, each laid from the slice behind it.
@@ -154,6 +161,49 @@ public final class MineLayout {
 			this.add(Action.RAIL, this.cell(i, 0, 0));
 		}
 		return this.steps;
+	}
+
+	/**
+	 * Mineshafts stacked straight down from the entrance, each finished, rails included, before the next. Levels that would
+	 * reach the bedrock are dropped. A hazard in a tunnel gives up the rest of that level only, because the stairs start
+	 * behind its first slice; a hazard on the stairs gives up everything below them.
+	 */
+	private List<Step> multilevelMine(MinePlan plan, int minY) {
+		// A plan edited by command can ask for anything.
+		int length = Math.clamp(plan.length(), MinePlan.MIN_LENGTH, plan.pattern().maxLength());
+		MinePattern.Setting setting = plan.pattern().setting();
+		int planned = Math.clamp(plan.setting(), setting.min(), setting.max());
+		int levels = Math.min(planned, Math.floorDiv(this.entrance.getY() - minY - BEDROCK_LAYERS, LEVEL_SPACING) + 1);
+		for (int level = 0; level < levels; level++) {
+			if (level > 0) {
+				this.stairsToNextLevel();
+			}
+			this.mineshaft(length);
+		}
+		int end = this.steps.size();
+		this.steps.replaceAll(step -> step.resumeAt() == LOWER_LEVELS ? step.resumingAt(end) : step);
+		return this.steps;
+	}
+
+	/**
+	 * Two flights, there and back, in the two rows behind the first slice, so they need no tunnel to be dug and leave its
+	 * floor whole. The flights are a block out of step, with a flat corner between them: the pathfinder cuts corners
+	 * upwards without seeing a wall at head height, and side by side they would trap a golem coming up. Moves the
+	 * entrance down to the next level, whose first slice is then worked from where they end.
+	 */
+	private void stairsToNextLevel() {
+		this.resumeAt = LOWER_LEVELS;
+		this.stairs(this.cell(-1, 0, 0), this.right, FLIGHT_DEPTH);
+		BlockPos corner = this.cell(-1, FLIGHT_DEPTH + 1, -FLIGHT_DEPTH);
+		BlockPos landing = this.cell(-2, FLIGHT_DEPTH + 1, -FLIGHT_DEPTH);
+		this.carveStep(this.cell(-1, FLIGHT_DEPTH, -FLIGHT_DEPTH), corner);
+		this.carveStep(corner, landing);
+		this.add(Action.TORCH, landing.above(), this.right.getOpposite());
+		this.stairs(landing, this.right.getOpposite(), FLIGHT_DEPTH);
+		this.entrance = this.entrance.below(LEVEL_SPACING);
+		this.carveStep(this.cell(-2, 1, 0), this.cell(-2, 0, 0));
+		this.carveStep(this.cell(-2, 0, 0), this.cell(-1, 0, 0));
+		this.backOff = this.forward.getOpposite();
 	}
 
 	/** Stops above the bedrock; a hazard gives up the rest of the stairs, and there is nothing after them. */
@@ -172,19 +222,24 @@ public final class MineLayout {
 	 */
 	private void stairs(BlockPos start, Direction run, int depth) {
 		this.needs = Needs.NONE;
-		// One step back is up as well as back, and straight back is the rock under the step behind.
-		this.backOff = Direction.UP;
 		for (int i = 1; i <= depth; i++) {
-			this.stand = start.relative(run, i - 1).below(i - 1);
 			BlockPos step = start.relative(run, i).below(i);
-			this.add(Action.DIG, step.above());
-			this.add(Action.DIG, step);
-			this.add(Action.FLOOR, step.below());
+			this.carveStep(start.relative(run, i - 1).below(i - 1), step);
 			if (i % STAIR_TORCH_SPACING == STAIR_TORCH_SPACING / 2) {
 				this.add(Action.TORCH, step.above(), run.getCounterClockWise());
 			}
 		}
 		this.backOff = this.forward.getOpposite();
+	}
+
+	/** Opens one step of stairs, 2 high, from {@code stand}. */
+	private void carveStep(BlockPos stand, BlockPos step) {
+		this.stand = stand;
+		// One step back is up as well as back, and straight back is the rock under the step behind.
+		this.backOff = Direction.UP;
+		this.add(Action.DIG, step.above());
+		this.add(Action.DIG, step);
+		this.add(Action.FLOOR, step.below());
 	}
 
 	/**

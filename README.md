@@ -17,7 +17,7 @@ Everything is meant to feel vanilla: golems are slow, sometimes shake their head
 | Give the golem… | It becomes a… | What it does |
 |---|---|---|
 | a **bundle** | Sorter | Empties its copper chest and puts every item where it belongs |
-| a **copper pickaxe** + **mineshaft plan** | Miner | Digs a vanilla-style mineshaft, a staircase or a strip mine, follows ores, brings the loot home |
+| a **copper pickaxe** + **mineshaft plan** | Miner | Digs a vanilla-style mineshaft, a staircase, a strip mine, a Room and Pillar hall or a Multilevel Mine, follows ores, brings the loot home |
 | a **copper hoe** | Farmer | Harvests and replants the fields around its chest |
 | a **copper axe** | Forester | Fells natural trees and replants them |
 | a **fishing rod** | Fisher | Casts its line from the shore and brings the catch home |
@@ -86,10 +86,12 @@ A **Strip Mine** is a 3×3 corridor with 1-wide, 2-high branches to both sides e
 
 **Room and Pillar** is a Mine Pattern for a wide 3-high hall instead: 9 or 17 wide, starting right at the entrance, with 1×1 rock pillars left in every fourth row. It takes no rails, fences or planks, and torches on every other row of pillars are optional.
 
+A **Multilevel Mine** stacks Mineshafts of the plan's length straight down, 6 blocks apart: 2 to 8 levels, chosen at the table. Levels that would reach the bedrock are left out. Carved stairs join them just behind the entrance, turning off to the right, so keep that ground free. Each level takes rails, fences and planks like a Mineshaft and is finished, rails included, before the next; every trip goes to the one chest at the top.
+
 - **No supplies, no digging.** In a Mineshaft it must carry the rails, fences and planks for what it digs. It fetches them from its chest, or waits there until you restock. Torches come from the chest too, but without them it digs on and leaves them out.
 - **Ores:** it digs out ores touching what it digs and follows each vein for up to 16 ores, diamond, gold, redstone and emerald included.
 - **Diamonds:** when it finds diamonds, it digs out the whole vein and hurries home with its antenna blinking.
-- **Safety:** it plugs water and lava with filler it dug itself (cobblestone, stone, dirt and the like) and clears gravel and sand that falls in. Out of filler, it gives up the rest of the tunnel, lays its rails in the part it dug, and the plan shows where it stopped; a Staircase simply ends there, a Strip Mine loses only that branch, or in its corridor the rest of the mine, and a Room and Pillar hall loses only the outer part of that half-row, or from its centre column the rest of the hall.
+- **Safety:** it plugs water and lava with filler it dug itself (cobblestone, stone, dirt and the like) and clears gravel and sand that falls in. Out of filler, it gives up the rest of the tunnel, lays its rails in the part it dug, and the plan shows where it stopped; a Staircase simply ends there, a Strip Mine loses only that branch, or in its corridor the rest of the mine, and a Room and Pillar hall loses only the outer part of that half-row, or from its centre column the rest of the hall. In a Multilevel Mine a tunnel loses only the rest of that level, and the stairs everything below them.
 - **Slow and clumsy:** it digs two to three times slower than a player and skips blocks it can't reach.
 - **Loot:** it carries 64 items (more with a cart), then walks home. Link a sorter to the same chest and it sorts the loot, leaving the mining supplies alone.
 - **Getting things back:** end its job to get the pickaxe and the plan back. The plan keeps its progress. It takes the pickaxe first, then the plan.

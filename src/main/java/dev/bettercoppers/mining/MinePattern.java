@@ -19,7 +19,9 @@ public enum MinePattern implements StringRepresentable {
 	/** A corridor with long, narrow branches to both sides, to expose as much ore as possible. */
 	STRIP_MINE("strip_mine", MinePlan.MAX_LENGTH, new Setting("branch_length", 4, 32, 4, 16)),
 	/** A wide 3-high hall with rock pillars left standing, and optional torches. */
-	ROOM_AND_PILLAR("room_and_pillar", 64, new Setting("hall_width", 9, 17, 8, 9));
+	ROOM_AND_PILLAR("room_and_pillar", 64, new Setting("hall_width", 9, 17, 8, 9)),
+	/** Mineshafts stacked straight down, joined by carved stairs at the entrance end. */
+	MULTILEVEL_MINE("multilevel_mine", MinePlan.MAX_LENGTH, new Setting("levels", 2, 8, 1, 3));
 
 	public static final Codec<MinePattern> CODEC = StringRepresentable.fromEnum(MinePattern::values);
 	public static final StreamCodec<ByteBuf, MinePattern> STREAM_CODEC = ByteBufCodecs.idMapper(i -> values()[i], MinePattern::ordinal);

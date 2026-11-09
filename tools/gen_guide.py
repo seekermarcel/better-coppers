@@ -337,10 +337,10 @@ Rechtsklicke die Lore mit einer Eisen- oder Kupferkette, damit sie dir folgt, da
 Ein Sortierer lädt alles, was mit dem ersten Gegenstand verwandt ist: Stein bringt auch Steinstufen, -treppen und -ziegel mit, aber keine Eichenstämme. Dann liefert er alles in einem Gang aus.
 
 Andere Berufe füllen erst die Lore, dann ihren Beutel.""")),
-    "miner": (("Miner", """Miners dig a vanilla-style 3x3 mineshaft with plank floors, supports, torches and rails, a Staircase straight down, a Strip Mine, or a wide Room and Pillar hall.
+    "miner": (("Miner", """Miners dig a vanilla-style 3x3 mineshaft with plank floors, supports, torches and rails, a Staircase straight down, a Strip Mine, a wide Room and Pillar hall, or a Multilevel Mine of stacked tunnels.
 
 # The plan
-Craft a Survey Table: 2 paper over 2 copper ingots over 2 planks. Put paper in, choose a Mine Pattern (Mineshaft, Staircase, Strip Mine or Room and Pillar) and a length (8 to 128, up to 64 for Room and Pillar) and take out the mineshaft plan.
+Craft a Survey Table: 2 paper over 2 copper ingots over 2 planks. Put paper in, choose a Mine Pattern (Mineshaft, Staircase, Strip Mine, Room and Pillar or Multilevel Mine) and a length (8 to 128, up to 64 for Room and Pillar) and take out the mineshaft plan.
 
 Use the plan on the ground where the mine should start. The tunnel heads the way you look.
 
@@ -368,12 +368,17 @@ A wide hall, 3 high, 9 or 17 wide (the setting at the Survey Table), that starts
 
 Out of filler at water or lava, it gives up the outer part of that half-row and digs on. In the centre column it gives up the rest of the hall.
 
+# Multilevel Mine
+Mineshafts of the plan's length stacked straight down, 6 blocks apart: 2 to 8 levels (the setting at the Survey Table). Levels that would reach the bedrock are left out. Carved stairs join them just behind the entrance, turning off to the right, so keep that ground free. Each level takes planks, fences and rails like a mineshaft, and is finished, rails included, before the next. Every trip goes to the one chest at the top.
+
+Out of filler at water or lava in a tunnel, it gives up the rest of that level, lays its rails in the part it dug and goes on to the next level. On the stairs it gives up everything below.
+
 # Diamonds!
 When it finds diamonds, it digs out the whole vein and then hurries home with its antenna blinking, to show you."""),
-              ("Bergmann", """Bergleute graben einen 3x3-Stollen wie in Vanilla, mit Bretterboden, Stützen, Fackeln und Schienen, eine Treppe gerade nach unten, einen Streifenabbau oder eine breite Halle im Kammerpfeilerbau.
+              ("Bergmann", """Bergleute graben einen 3x3-Stollen wie in Vanilla, mit Bretterboden, Stützen, Fackeln und Schienen, eine Treppe gerade nach unten, einen Streifenabbau, eine breite Halle im Kammerpfeilerbau oder eine Mehrebenenmine aus übereinanderliegenden Stollen.
 
 # Der Plan
-Stelle einen Vermessungstisch her: 2 Papier über 2 Kupferbarren über 2 Bretter. Lege Papier hinein, wähle eine Minenform (Minenschacht, Treppe, Streifenabbau oder Kammerpfeilerbau) und eine Länge (8 bis 128, beim Kammerpfeilerbau bis 64) und nimm den Stollenplan heraus.
+Stelle einen Vermessungstisch her: 2 Papier über 2 Kupferbarren über 2 Bretter. Lege Papier hinein, wähle eine Minenform (Minenschacht, Treppe, Streifenabbau, Kammerpfeilerbau oder Mehrebenenmine) und eine Länge (8 bis 128, beim Kammerpfeilerbau bis 64) und nimm den Stollenplan heraus.
 
 Benutze den Plan auf dem Boden, wo der Stollen beginnen soll. Er führt in deine Blickrichtung.
 
@@ -400,6 +405,11 @@ Beendest du seinen Beruf, bekommst du Spitzhacke und Plan zurück. Der Plan merk
 Eine breite Halle, 3 hoch und 9 oder 17 breit (einstellbar am Vermessungstisch), die direkt am Eingang beginnt. In jeder vierten Reihe bleiben Felspfeiler stehen, und jede zweite Pfeilerreihe bekommt Fackeln. Schienen, Zäune und Bretter braucht er dafür nicht, Fackeln sind freiwillig.
 
 Ohne Füllmaterial an Wasser oder Lava gibt er den äußeren Teil dieser halben Reihe auf und gräbt weiter. In der mittleren Spalte gibt er den Rest der Halle auf.
+
+# Mehrebenenmine
+Stollen in der Länge des Plans, gerade übereinander und 6 Blöcke voneinander entfernt: 2 bis 8 Ebenen (einstellbar am Vermessungstisch). Ebenen, die bis zum Grundgestein reichen würden, entfallen. Gegrabene Treppen verbinden sie direkt hinter dem Eingang und biegen nach rechts ab, also halte diesen Boden frei. Jede Ebene braucht Bretter, Zäune und Schienen wie ein Stollen und wird samt Schienen fertiggestellt, bevor die nächste beginnt. Jeder Weg führt zu der einen Truhe oben.
+
+Ohne Füllmaterial an Wasser oder Lava gibt er in einem Stollen den Rest dieser Ebene auf, legt im gegrabenen Teil seine Schienen und macht auf der nächsten Ebene weiter. Auf der Treppe gibt er alles darunter auf.
 
 # Diamanten!
 Findet er Diamanten, baut er die ganze Ader ab und eilt dann mit blinkender Antenne nach Hause, um sie dir zu zeigen.""")),
