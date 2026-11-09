@@ -33,6 +33,8 @@ A job is derived from what the golem holds and which data it has, with no stored
 
 The `Job` enum holds only the five jobs that share `JobBehavior`. Miner, sorter and courier have their own code, and add-on jobs are `GolemJob`s.
 
+Only paying jobs ask `RunningCosts.canWork`. Sorters and couriers skip it on purpose, so they keep working when waxed or oxidized: rust never affects these free jobs, a waxed jobless golem still sorts like vanilla, and wax is what protects a golem from turning into a statue.
+
 `ChargingSpot` is an API hook for add-on charging blocks such as the Charging Station. The Charging Pad block does not use it.
 
 ## A golem with only a home

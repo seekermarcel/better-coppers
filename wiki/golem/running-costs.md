@@ -61,6 +61,8 @@ Rust is a golem's vanilla weathering stage. It advances in two ways:
 
 The percentage scales walking speed and how long each piece of work takes. With [Gold Gearwork](/items/gold_gearwork) from the add-on, it is multiplied by 1.3 for its duration. An oxidized golem still walks errands at 50% speed.
 
+This table is for paying jobs. A sorter or courier does its job at full speed at every stage, waxed or not.
+
 A golem that does not work also gains no rust from work. An oxidized golem can [turn into a statue](https://minecraft.wiki/w/Copper_Golem) as in vanilla, dropping what it carries.
 
 ### Waxing
