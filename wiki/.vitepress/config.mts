@@ -39,6 +39,7 @@ export default defineConfig({
 				{ text: 'Forester', link: '/jobs/forester' },
 				{ text: 'Fisher', link: '/jobs/fisher' },
 				{ text: 'Animal keeper', link: '/jobs/animal-keeper' },
+				{ text: 'Beekeeper', link: '/jobs/beekeeper' },
 				{ text: 'Crafter', link: '/jobs/crafter' },
 				{ text: 'Courier', link: '/jobs/courier' },
 				{ text: 'Operator', link: '/jobs/operator' },

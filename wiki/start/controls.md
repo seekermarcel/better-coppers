@@ -53,6 +53,7 @@ All of these use the main hand. An item that is handed over is used up from the 
 | Trim material | Golem with a template | Applies or changes the trim. Without a template, nothing. |
 | <Icon id="shears" /> Shears | Has a flower | Vanilla: takes the flower off |
 | <Icon id="shears" /> Shears | No flower, has a trim | Takes the trim off and gives the template back |
+| <Icon id="shears" /> Shears | No flower, no trim | Becomes a [beekeeper](/jobs/beekeeper), or swaps the shears. |
 | Honeycomb, lead, name tag and other items | Any | The same as a plain click |
 
 With the [Automatisation](/automatisation/) add-on:

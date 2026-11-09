@@ -12,7 +12,7 @@ import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.level.block.WeatheringCopper;
 
 /**
- * The running costs of a working golem (miner, farmer, forester, fisher, animal keeper, crafter). Golems that
+ * The running costs of a working golem (miner, farmer, forester, fisher, animal keeper, beekeeper, crafter). Golems that
  * only sort, with the mod's bundle or like vanilla, cost nothing.
  * <ul>
  * <li><b>Energy:</b> every bit of work uses some. At night, or when empty, the golem recharges standing on a

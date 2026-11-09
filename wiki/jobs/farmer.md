@@ -83,7 +83,7 @@ Ripe crops, nether wart, pitcher crops, torchflowers, mushrooms and sugar cane b
 | Advancement | How | ID |
 |---|---|---|
 | Green Fingers | Give a golem a copper hoe | `bettercoppers:guide/farmer` |
-| Full Employment | Give golems all eight jobs | `bettercoppers:guide/full_employment` |
+| Full Employment | Give golems all nine jobs | `bettercoppers:guide/full_employment` |
 
 ## Data values
 

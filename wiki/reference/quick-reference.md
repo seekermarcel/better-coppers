@@ -18,6 +18,7 @@ Each job item is handed over with sneak + right-click. A golem has one job at a 
 | <Icon id="copper_axe" /> Copper axe, on a golem with no rust and no wax | [Forester](/jobs/forester) | Home | Yes |
 | <Icon id="fishing_rod" /> Fishing rod | [Fisher](/jobs/fisher) | Home | Yes |
 | <Icon id="brush" /> Brush | [Animal keeper](/jobs/animal-keeper) | Home | Yes |
+| <Icon id="shears" /> Shears, on a golem with no flower and no trim | [Beekeeper](/jobs/beekeeper) | Home | Yes |
 | <Icon id="crafting_table" /> Crafting table | [Crafter](/jobs/crafter) | Home | Yes |
 | <Icon id="chest" /> A route between two containers (no item) | [Courier](/jobs/courier) | Route | None |
 | <Icon id="copper_wrench" /> [Copper Wrench](/items/copper_wrench) (add-on) | [Operator](/jobs/operator) | Workplace (a machine) | Yes |
@@ -36,7 +37,7 @@ Golems only take copper tools. A sneak + right-click with any other pickaxe, hoe
 | Sneak + right-click with seeds, on a farmer | Adds them to its supplies |
 | Sneak + right-click with an iron, gold or diamond block | Gives [eyes](/golem/eyes); couriers refuse them |
 | Sneak + right-click with a smithing template, then a trim material | Puts on an [armour trim](/golem/trims) |
-| Sneak + right-click with shears | Takes the trim off |
+| Sneak + right-click with shears | Takes the trim off; with no trim, gives the [beekeeper](/jobs/beekeeper) job |
 | Sneak + right-click with an [upgrade](/automatisation/upgrades) (add-on) | Fits the upgrade |
 | Sneak + right-click with an empty hand | Shows the status, makes the golem glow and starts a link |
 | The same again within 5 seconds, on a golem with a job | Ends the job |
@@ -86,6 +87,7 @@ Radii are measured in blocks. [Eyes](/golem/eyes) multiply them; heights are not
 | Forester | Forest around the home | 6 up or down | 12 | 18 | 24 | 36 |
 | Fisher | Water around the home | 4 down, 2 up | 10 | 15 | 20 | 30 |
 | Animal keeper | Animals around the home | 4 up or down | 10 | 15 | 20 | 30 |
+| Beekeeper | Hives around the home | 4 up or down | 10 | 15 | 20 | 30 |
 | Miner | Ore blocks followed per vein (a count, not blocks of distance) | n/a | 16 | 24 | 32 | 48 |
 | Operator | Chests holding spare parts, around the machine | n/a | 8 | 12 | 16 | 24 |
 
@@ -118,6 +120,7 @@ See [Running costs](/golem/running-costs). Sorters and couriers have none.
 | Energy per block dug by a miner / block placed | 2 / 1 |
 | Energy per catch (fisher) | 15 |
 | Energy per feed (animal keeper) | 10 |
+| Energy per harvest (beekeeper) | 10 |
 | Energy per craft (crafter) | 15 |
 | Energy per second of cranking (operator) | 1 |
 | Energy spent per rust stage | 3000 |

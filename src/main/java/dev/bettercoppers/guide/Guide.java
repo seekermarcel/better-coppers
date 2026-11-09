@@ -54,7 +54,7 @@ public final class Guide {
 	/** A golem got a job: the job's own step, plus its tick on "Full Employment". */
 	public static void job(Player player, String job) {
 		switch (job) {
-			case "forester", "fisher", "keeper", "crafter" -> award(player, step("odd_jobs"), job);
+			case "forester", "fisher", "keeper", "beekeeper", "crafter" -> award(player, step("odd_jobs"), job);
 			default -> award(player, job);
 		}
 		award(player, step("full_employment"), job);

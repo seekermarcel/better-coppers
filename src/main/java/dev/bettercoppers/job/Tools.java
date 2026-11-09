@@ -20,7 +20,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Job tools. Golems only work with copper tools (and the fishing rod, brush and crafting table, which have no copper
+ * Job tools. Golems only work with copper tools (and the fishing rod, shears, brush and crafting table, which have no copper
  * version). When a tool breaks, the golem remembers which one it was: it keeps its job and fetches a new one from its
  * home chest or a container nearby ({@link ToolFetchBehavior}).
  */

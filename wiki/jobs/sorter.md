@@ -82,6 +82,7 @@ A sorter leaves what another golem sharing its chest needs to keep working. This
 | Forester | All copper axes, 8 of every sapling |
 | Fisher | All fishing rods |
 | Animal keeper | All brushes, 16 of every animal food |
+| Beekeeper | All shears, 16 glass bottles |
 | Crafter | All crafting tables |
 
 Amounts count per item type across the whole chest. A sorter only takes what is above them. If several golems share the chest, the largest amount counts. A second sorter, a courier or an operator adds nothing.
@@ -122,7 +123,7 @@ None. A sorter uses no energy, its work does not rust it, and it wears no tool. 
 |---|---|---|
 | Tidy Up | Give a golem a bundle | `bettercoppers:guide/sorter` |
 | Heavy Load | Hand a Copper Chest Minecart to a golem | `bettercoppers:guide/cart` |
-| Full Employment | Give golems all eight jobs | `bettercoppers:guide/full_employment` |
+| Full Employment | Give golems all nine jobs | `bettercoppers:guide/full_employment` |
 
 ## Data values
 

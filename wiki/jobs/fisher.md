@@ -60,8 +60,8 @@ A full charge of 1000 energy is about 66 catches. Fishers stop at night. See [Ru
 
 | Advancement | How | ID |
 |---|---|---|
-| Odd Jobs | Give a golem a copper axe, a fishing rod, a brush or a crafting table | `bettercoppers:guide/odd_jobs` |
-| Full Employment | Give golems all eight jobs | `bettercoppers:guide/full_employment` |
+| Odd Jobs | Give a golem a copper axe, a fishing rod, shears, a brush or a crafting table | `bettercoppers:guide/odd_jobs` |
+| Full Employment | Give golems all nine jobs | `bettercoppers:guide/full_employment` |
 
 ## Data values
 

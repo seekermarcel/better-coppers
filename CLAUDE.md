@@ -1,6 +1,6 @@
 # Better Coppers
 
-Fabric mod for Minecraft 26.3 (Java 25) that gives copper golems jobs: sorting, mining, farming, forestry, fishing, animal keeping, crafting, couriering. Also minecart/boat riding, monsters hunting golems, iron golem guards and repairs, armour trims. License LGPL-3.0.
+Fabric mod for Minecraft 26.3 (Java 25) that gives copper golems jobs: sorting, mining, farming, forestry, fishing, animal keeping, beekeeping, crafting, couriering. Also minecart/boat riding, monsters hunting golems, iron golem guards and repairs, armour trims. License LGPL-3.0.
 
 ## Commands
 Everything runs in the flake dev shell:
@@ -12,7 +12,7 @@ Everything runs in the flake dev shell:
 ## Package map (`src/main/java/dev/bettercoppers/`)
 - `api`: BetterCoppersApi, TravelWatch, hooks for add-ons (jobs, behaviours, link targets, upgrades, charging spots, handbook)
 - `golem`: GolemBrain (registers behaviours), Golems, Inventories, ItemFamilies, Sorter, SortingDestinations, SortItemsBehavior, WorkingStock, ChestVisit, Errands, RideBehavior, CartChaining, Eyes, HomeStroll
-- `job`: Jobs (what a golem's job is and where it belongs), Load (what it carries), Job enum, JobHandover (starting and ending jobs), JobBehavior, WorkerData, WorkerInteractions, Tools, ToolFetchBehavior, Farm/Forest/Fish/Keeper/CraftBehavior
+- `job`: Jobs (what a golem's job is and where it belongs), Load (what it carries), Job enum, JobHandover (starting and ending jobs), JobBehavior, WorkerData, WorkerInteractions, Tools, ToolFetchBehavior, Farm/Forest/Fish/Keeper/Beekeeper/CraftBehavior
 - `guide`: Golem Handbook, guide advancements
 - `mining`: miner job, mine layout and plan
 - `courier`: routes and chunk tickets

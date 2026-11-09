@@ -14,6 +14,7 @@ title: Better Coppers Wiki
 	<a href="./jobs/forester"><span class="slot"><img src="/icons/copper_axe.png" alt="" width="48" height="48"></span><br>Forester</a>
 	<a href="./jobs/fisher"><span class="slot"><img src="/icons/fishing_rod.png" alt="" width="48" height="48"></span><br>Fisher</a>
 	<a href="./jobs/animal-keeper"><span class="slot"><img src="/icons/brush.png" alt="" width="48" height="48"></span><br>Animal keeper</a>
+	<a href="./jobs/beekeeper"><span class="slot"><img src="/icons/shears.png" alt="" width="48" height="48"></span><br>Beekeeper</a>
 	<a href="./jobs/crafter"><span class="slot"><img src="/icons/crafting_table.png" alt="" width="48" height="48"></span><br>Crafter</a>
 	<a href="./jobs/courier"><span class="slot"><img src="/icons/copper_chest.png" alt="" width="48" height="48"></span><br>Courier</a>
 	<a href="./jobs/operator"><span class="slot"><img src="/icons/copper_wrench.png" alt="" width="48" height="48"></span><br>Operator</a>

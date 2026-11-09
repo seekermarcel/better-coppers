@@ -100,7 +100,7 @@ None. A courier uses no energy, its work does not rust it, and it wears no tool.
 |---|---|---|
 | Special Delivery | Set up a courier route | `bettercoppers:guide/courier` |
 | Long Haul | Set up a route of 500 blocks or more | `bettercoppers:guide/long_haul` |
-| Full Employment | Give golems all eight jobs | `bettercoppers:guide/full_employment` |
+| Full Employment | Give golems all nine jobs | `bettercoppers:guide/full_employment` |
 
 ## Data values
 

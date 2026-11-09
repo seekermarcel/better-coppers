@@ -2,7 +2,7 @@
 
 Put each file in `wiki/public/media/` under the name given here. Screenshots are PNG, clips short MP4s under about 10 MB (longer ones go on YouTube). Each one replaces the `<!-- MEDIA: ... -->` comment of the same name in its page. In the same pass, the shaped blocks get `image: /media/<file>` in their infobox, because their icons are only approximate cubes.
 
-41 items: 27 screenshots, 14 clips.
+42 items: 27 screenshots, 15 clips.
 
 ## automatisation/index
 
@@ -103,6 +103,11 @@ Put each file in `wiki/public/media/` under the name given here. Screenshots are
 ## jobs/animal-keeper
 
 - [ ] `jobs-keeper-feeding.mp4` (clip): An animal keeper with a brush feeding two cows in a pen, hearts appearing, and a calf being born
+
+
+## jobs/beekeeper
+
+- [ ] `jobs-beekeeper-harvest.mp4` (clip): A beekeeper with shears standing at a beehive over a lit campfire, the hive emptying and the golem walking home to its copper chest
 
 ## jobs/courier
 

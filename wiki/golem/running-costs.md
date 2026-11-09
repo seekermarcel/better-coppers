@@ -20,6 +20,7 @@ A golem has a maximum of **1000** energy and starts full. The status message sho
 | [Forester](/jobs/forester) | Planting a sapling | 2 |
 | [Fisher](/jobs/fisher) | Each catch | 15 |
 | [Animal keeper](/jobs/animal-keeper) | Feeding an animal | 10 |
+| [Beekeeper](/jobs/beekeeper) | Harvesting a hive | 10 |
 | [Crafter](/jobs/crafter) | Each craft | 15 |
 | [Operator](/jobs/operator) | Every 1 second (20 ticks) of cranking | 1 |
 

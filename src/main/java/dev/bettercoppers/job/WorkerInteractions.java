@@ -10,14 +10,15 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Sneak + right-click hands a copper golem its job tool: a hoe (farmer), an axe (forester), a fishing rod (fisher), a
- * brush (animal keeper) or a crafting table (crafter). An axe only becomes a tool for a clean golem; on a rusty or waxed
- * one it scrapes, as in vanilla. Seeds handed to a farmer go into its supplies.
+ * Sneak + right-click hands a copper golem its job tool: a hoe (farmer), an axe (forester), a fishing rod (fisher),
+ * shears (beekeeper), a brush (animal keeper) or a crafting table (crafter). An axe only becomes a tool for a clean golem; on a rusty or waxed
+ * one it scrapes, as in vanilla. Shears on a golem with a flower stay vanilla, and {@code GolemTrims} sees a trim first. Seeds handed to a farmer go into its supplies.
  */
 public final class WorkerInteractions {
 	private WorkerInteractions() {
@@ -37,7 +38,8 @@ public final class WorkerInteractions {
 			return InteractionResult.SUCCESS;
 		}
 		Job job = Job.forTool(held);
-		if (job == null || Tools.scrapes(golem, held)) {
+		boolean snipsFlower = held.is(Items.SHEARS) && !golem.getItemBySlot(CopperGolem.EQUIPMENT_SLOT_ANTENNA).isEmpty();
+		if (job == null || snipsFlower || Tools.scrapes(golem, held)) {
 			return InteractionResult.PASS;
 		}
 		if (!level.isClientSide()) {

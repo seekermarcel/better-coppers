@@ -22,6 +22,7 @@ Everything is meant to feel vanilla: golems are slow, sometimes shake their head
 | a **copper axe** | Forester | Fells natural trees and replants them |
 | a **fishing rod** | Fisher | Casts its line from the shore and brings the catch home |
 | a **brush** | Animal keeper | Feeds animals so they breed |
+| **shears** | Beekeeper | Takes honey from smoked hives and brings it home |
 | a **crafting table** | Crafter | Crafts whatever the item frames on its chest show |
 | a **route** (two chests) | Courier | Carries everything from one chest to another, however far apart |
 
@@ -96,13 +97,14 @@ The golem digs a **3×3 vanilla-style mineshaft**: plank floor over gaps, a supp
 - It takes a chorus plant whole once no flower on it lives, then plants a new flower.
 - It keeps 16 of every seed it can plant and never tills new land. You build the field. A stem needs a free block next to it for its fruit, so leave those spots as plain dirt.
 
-### Forester, fisher, animal keeper, crafter
+### Forester, fisher, animal keeper, beekeeper, crafter
 
 | Tool | Job | What it does |
 |---|---|---|
 | Copper axe, on a clean golem | Forester | Fells natural trees within 12 blocks (never logs you placed), collects saplings, apples, sticks and logs, replants every stump (four for a 2x2 tree) with the same species only, leaving it empty until it has that sapling |
 | Fishing rod | Fisher | Casts a float into open water within 10 blocks and reels in when it dips, a catch every 20–50 seconds (fish and junk, no treasure) |
 | Brush | Animal keeper | Feeds pairs of animals with food from its chest so they breed, up to 16 per kind |
+| Shears, on a golem with no flower or trim | Beekeeper | Takes honey from full, smoked hives within 10 blocks: a honey bottle while it has glass bottles from its chest, otherwise 3 honeycomb. Needs a lit campfire below each hive |
 | Crafting table | Crafter | Crafts what item frames on or next to its chest show, from ingredients in that chest |
 
 ### Courier
@@ -147,7 +149,7 @@ So keep some iron in your chests, and build an iron golem for every work site.
 
 ## Tools and eyes
 
-**Copper tools only.** Golems work with copper pickaxes, axes and hoes. Other pickaxes, axes and hoes are refused (any axe still scrapes a rusty golem). Fishing rods, brushes and crafting tables have no copper version and work as before.
+**Copper tools only.** Golems work with copper pickaxes, axes and hoes. Other pickaxes, axes and hoes are refused (any axe still scrapes a rusty golem). Fishing rods, shears, brushes and crafting tables have no copper version and work as before.
 
 **Broken tools.** When a tool breaks, the golem keeps its job. It brings home what it carries, then looks for the same tool in its home chest and then in every chest and barrel within 16 blocks of home, and takes it. With none anywhere it shakes its head and looks again every half minute. To end its job instead, sneak + right-click it twice with an empty hand, within 5 seconds.
 
@@ -168,7 +170,7 @@ It also widens animal pens, how far a miner follows a vein and where an add-on o
 Sneak + right-click a golem with an **armour trim smithing template**, then with a **trim material** (iron, gold, copper, emerald, amethyst…). The trim shows in the material's colour, exactly like on armour, and all 18 vanilla patterns are supported.
 - The material is used up. The template stays with the golem.
 - A new template or material changes the trim.
-- **Sneak + right-click with shears** takes the trim off and gives the template back. A flower comes off first.
+- **Sneak + right-click with shears** takes the trim off and gives the template back. A flower comes off first. With neither, the golem becomes a beekeeper.
 
 Trims are only for looks.
 
@@ -198,7 +200,7 @@ Sorters and couriers are free. Every other job costs something:
 | Right-click golem (empty hand) | With a job: shows its status and cancels linking. Without: hands over what it holds, as in vanilla |
 | Sneak + right-click golem with an iron, gold or diamond block | Eye upgrade: bigger work radius |
 | Sneak + right-click golem with template, then material | Gives it an armour trim |
-| Sneak + right-click golem with shears | Removes the trim |
+| Sneak + right-click golem with shears | Removes the trim; with no trim, gives the beekeeper job |
 | Right-click cart with an iron or copper chain, then a golem with an empty hand | Hands the cart over |
 | Sneak (just hold it) | Shows lines from golems to their homes |
 

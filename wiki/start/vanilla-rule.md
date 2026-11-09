@@ -12,7 +12,7 @@ title: The vanilla rule
 |---|---|
 | **Untouched golem** | A golem no player has acted on. Every untouched golem is jobless. |
 | **Jobless golem** | A golem with no [job](/jobs/). It sorts like vanilla, even if it has a home. |
-| **Golem with a job** | Sorter, miner, farmer, forester, fisher, animal keeper, crafter, courier or operator. |
+| **Golem with a job** | Sorter, miner, farmer, forester, fisher, animal keeper, beekeeper, crafter, courier or operator. |
 
 A golem with only a home, with no job item and no route, is jobless but not untouched.
 

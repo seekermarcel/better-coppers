@@ -8,6 +8,7 @@ import dev.bettercoppers.job.CraftBehavior;
 import dev.bettercoppers.job.FarmBehavior;
 import dev.bettercoppers.job.FishBehavior;
 import dev.bettercoppers.job.ForestBehavior;
+import dev.bettercoppers.job.BeekeeperBehavior;
 import dev.bettercoppers.job.KeeperBehavior;
 import dev.bettercoppers.job.ToolFetchBehavior;
 import dev.bettercoppers.mining.MineBehavior;
@@ -33,6 +34,7 @@ public final class GolemBrain {
 			Pair.of(0, new ForestBehavior()),
 			Pair.of(0, new FishBehavior()),
 			Pair.of(0, new KeeperBehavior()),
+			Pair.of(0, new BeekeeperBehavior()),
 			Pair.of(0, new CraftBehavior()),
 			Pair.of(0, new ToolFetchBehavior())
 		);

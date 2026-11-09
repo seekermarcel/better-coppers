@@ -5,7 +5,7 @@ The language of a mod in which copper golems take on jobs for the player. Docs, 
 ## Golems
 
 **Job**:
-Any work a player assigned to a golem: sorter, miner, farmer, forester, fisher, animal keeper, crafter, courier, or an add-on job such as operator. Only a player can change a golem's job.
+Any work a player assigned to a golem: sorter, miner, farmer, forester, fisher, animal keeper, beekeeper, crafter, courier, or an add-on job such as operator. Only a player can change a golem's job.
 _Avoid_: Occupation, role
 
 **Jobless golem**:

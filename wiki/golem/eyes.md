@@ -28,6 +28,7 @@ The golem's status message shows the eyes as a percentage.
 | [Forester](/jobs/forester) forest | 12 | 18 | 24 | 36 |
 | [Fisher](/jobs/fisher) water | 10 | 15 | 20 | 30 |
 | [Animal keeper](/jobs/animal-keeper) animals | 10 | 15 | 20 | 30 |
+| [Beekeeper](/jobs/beekeeper) hives | 10 | 15 | 20 | 30 |
 | [Sorter](/jobs/sorter) containers | 32 | 48 | 64 | 96 |
 | [Miner](/jobs/miner) vein budget (ore blocks per vein) | 16 | 24 | 32 | 48 |
 | [Operator](/jobs/operator) spare parts (add-on) | 8 | 12 | 16 | 24 |

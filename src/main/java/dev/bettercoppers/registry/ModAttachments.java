@@ -24,7 +24,7 @@ public final class ModAttachments {
 		BetterCoppers.id("miner"), builder -> builder.persistent(MinerData.CODEC).initializer(MinerData::new)
 	);
 
-	/** The forester's marks; having this says a player made the golem a farmer, forester, fisher, animal keeper or crafter. */
+	/** The forester's marks; having this says a player made the golem a farmer, forester, fisher, animal keeper, beekeeper or crafter. */
 	public static final AttachmentType<WorkerData> WORKER = AttachmentRegistry.create(
 		BetterCoppers.id("worker"), builder -> builder.persistent(WorkerData.CODEC).initializer(WorkerData::new)
 	);

@@ -11,6 +11,7 @@ public enum Job {
 	FORESTER("forester", stack -> stack.is(Items.COPPER_AXE)),
 	FISHER("fisher", stack -> stack.is(Items.FISHING_ROD)),
 	KEEPER("keeper", stack -> stack.is(Items.BRUSH)),
+	BEEKEEPER("beekeeper", stack -> stack.is(Items.SHEARS)),
 	CRAFTER("crafter", stack -> stack.is(Items.CRAFTING_TABLE)),
 	FARMER("farmer", stack -> stack.is(Items.COPPER_HOE));
 

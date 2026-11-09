@@ -15,7 +15,7 @@ import net.minecraft.world.item.Item;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Says a player made this golem a farmer, forester, fisher, animal keeper or crafter, and holds a few remembered
+ * Says a player made this golem a farmer, forester, fisher, animal keeper, beekeeper or crafter, and holds a few remembered
  * places (the forester's tree stumps waiting for a sapling, and which sapling each one wants). Stored on the golem as
  * a Fabric attachment; what it carries is its {@link Load}.
  */

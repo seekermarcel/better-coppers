@@ -80,7 +80,7 @@ A chained [Copper Chest Minecart](/items/copper_chest_minecart) stays where it i
 
 | Addition | Page |
 |---|---|
-| Jobs: sorter, miner, farmer, forester, fisher, animal keeper, crafter, courier, operator | [Jobs](/jobs/) |
+| Jobs: sorter, miner, farmer, forester, fisher, animal keeper, beekeeper, crafter, courier, operator | [Jobs](/jobs/) |
 | A home and a status message | [Homes and status](/start/homes-and-status) |
 | Energy, rust, tool wear and charging, for paying jobs | [Running costs](/golem/running-costs) |
 | Copper-only tools and the search for a replacement | [Tools](/golem/tools) |
@@ -123,7 +123,7 @@ An attachment that is absent means the golem does not have that thing.
 |---|---|---|
 | `bettercoppers:home` | Int array `[x, y, z]` | Home copper chest |
 | `bettercoppers:route` | Compound: `from`, `to`, each `[x, y, z]` | Courier route |
-| `bettercoppers:worker` | Compound: optional `marks`, a list of `[x, y, z]` | Marks a farmer, forester, fisher, animal keeper or crafter. `marks` are a forester's stumps waiting for a sapling. |
+| `bettercoppers:worker` | Compound: optional `marks`, a list of `[x, y, z]` | Marks a farmer, forester, fisher, animal keeper, beekeeper or crafter. `marks` are a forester's stumps waiting for a sapling. |
 | `bettercoppers:miner` | Compound: optional `plan` | Marks a miner. `plan` has `pattern` (`mineshaft`), `length` (8 to 128), optional `entrance` `[x, y, z]`, optional `heading` (a horizontal direction such as `north`) and `progress`. |
 | `bettercoppers:load` | Compound: optional `pouch`, `supplies`, item stack lists | What it carries for a paying job |
 | `bettercoppers:running_costs` | Compound: `energy` 0 to 1000 (default 1000), `rust_progress` (default 0), `recharging` boolean | Energy and progress towards the next rust stage, which resets at 3000 |
@@ -154,7 +154,7 @@ There is no job field. The job comes from what the golem holds and its attachmen
 | 1 | Courier | `route` |
 | 2 | Operator (add-on) | `operator` and a Copper Wrench in the main hand |
 | 3 | Miner | `miner`, and a copper pickaxe in the main hand or as `lost_tool` |
-| 4 | Farmer, forester, fisher, animal keeper, crafter | `worker`, and the job's tool in the main hand or as `lost_tool` |
+| 4 | Farmer, forester, fisher, animal keeper, beekeeper, crafter | `worker`, and the job's tool in the main hand or as `lost_tool` |
 | 5 | Sorter | A bundle in the off hand |
 
 So a mapmaker summoning a golem with a job must set both the equipment and the attachment. A tool alone does not give a job, except the bundle, which needs nothing else.

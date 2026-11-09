@@ -10,6 +10,9 @@
     "keeper": {
       "trigger": "minecraft:impossible"
     },
+    "beekeeper": {
+      "trigger": "minecraft:impossible"
+    },
     "crafter": {
       "trigger": "minecraft:impossible"
     }
@@ -31,6 +34,7 @@
       "forester",
       "fisher",
       "keeper",
+      "beekeeper",
       "crafter"
     ]
   ]

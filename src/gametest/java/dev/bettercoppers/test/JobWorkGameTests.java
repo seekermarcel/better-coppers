@@ -4,8 +4,10 @@ import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.api.GolemUpgrade;
 import dev.bettercoppers.entity.GolemFloat;
 import dev.bettercoppers.home.Homes;
+import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.job.Load;
 import dev.bettercoppers.job.WorkerData;
+import dev.bettercoppers.registry.ModAttachments;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,11 +31,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.BeehiveBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LeavesBlock;
 
-/** The real work of the forester, fisher, animal keeper and crafter, from the job item to what lands in the home chest. */
+/** The real work of the forester, fisher, animal keeper, beekeeper and crafter, from the job item to what lands in the home chest. */
 public class JobWorkGameTests {
 	private static final Block COPPER_CHEST = Blocks.COPPER_CHEST.weathering().unaffected();
 	/** Far enough that no golem of another test reaches this test's chests, trees or animals. */
@@ -228,6 +231,61 @@ public class JobWorkGameTests {
 			h.assertValueEqual(chest.countItem(Items.WHEAT), 0, "wheat left in the chest");
 			h.assertValueEqual(Load.of(golem).suppliesCount(stack -> stack.is(Items.WHEAT)), 2, "wheat left in the supplies");
 		});
+	}
+
+	private static void fullHive(GameTestHelper h, BlockPos pos) {
+		h.setBlock(pos, Blocks.BEEHIVE.defaultBlockState().setValue(BeehiveBlock.HONEY_LEVEL, BeehiveBlock.MAX_HONEY_LEVELS));
+	}
+
+	private static int honey(GameTestHelper h, BlockPos pos) {
+		return h.getBlockState(pos).getValue(BeehiveBlock.HONEY_LEVEL);
+	}
+
+	@GameTest(maxTicks = 2400, padding = PADDING)
+	public void beekeeper_bottles_then_shears_smoked_hives_only(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.GLASS_BOTTLE));
+		BlockPos first = new BlockPos(5, 2, 3);
+		BlockPos second = new BlockPos(3, 2, 5);
+		BlockPos unsmoked = new BlockPos(6, 1, 6);
+		h.setBlock(first.below(), Blocks.CAMPFIRE);
+		h.setBlock(second.below(), Blocks.CAMPFIRE);
+		fullHive(h, first);
+		fullHive(h, second);
+		fullHive(h, unsmoked);
+		worker(h, new BlockPos(2, 1, 2), Items.SHEARS, home);
+		// One bottle for one hive, comb from the other, and the hive without smoke stays full.
+		h.succeedWhen(() -> {
+			h.assertValueEqual(chest.countItem(Items.HONEY_BOTTLE), 1, "honey bottles in the chest");
+			h.assertValueEqual(chest.countItem(Items.HONEYCOMB), 3, "honeycomb in the chest");
+			h.assertValueEqual(honey(h, first) + honey(h, second), 0, "honey left in the smoked hives");
+			h.assertValueEqual(honey(h, unsmoked), BeehiveBlock.MAX_HONEY_LEVELS, "honey in the hive without smoke");
+		});
+	}
+
+	/** Sneak + shears takes the flower off, then the trim, and only then gives the job. */
+	@GameTest
+	public void shears_give_the_job_only_after_flower_and_trim(GameTestHelper h) {
+		JobGameTests.scene(h);
+		CopperGolem golem = GameTests.golem(h, new BlockPos(2, 1, 2));
+		golem.setItemSlot(CopperGolem.EQUIPMENT_SLOT_ANTENNA, new ItemStack(Items.POPPY));
+		golem.setAttached(ModAttachments.TRIM_TEMPLATE, new ItemStack(Items.COAST_ARMOR_TRIM_SMITHING_TEMPLATE));
+		Player player = h.makeMockPlayer(GameType.SURVIVAL);
+		player.setShiftKeyDown(true);
+		player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.SHEARS));
+		Runnable click = () -> UseEntityCallback.EVENT.invoker().interact(player, h.getLevel(), InteractionHand.MAIN_HAND, golem, null);
+		click.run();
+		h.assertFalse(golem.getMainHandItem().is(Items.SHEARS), "job given past a flower");
+		h.assertTrue(golem.getAttached(ModAttachments.TRIM_TEMPLATE) != null, "trim taken off past a flower");
+		golem.setItemSlot(CopperGolem.EQUIPMENT_SLOT_ANTENNA, ItemStack.EMPTY); // What vanilla's shearing does after the callback passes.
+		click.run();
+		h.assertFalse(golem.getMainHandItem().is(Items.SHEARS), "job given past a trim");
+		h.assertTrue(golem.getAttached(ModAttachments.TRIM_TEMPLATE) == null, "trim still on");
+		click.run();
+		h.assertTrue(golem.getMainHandItem().is(Items.SHEARS) && Jobs.of(golem) == Jobs.JobKind.WORKER, "no beekeeper");
+		h.succeed();
 	}
 
 	@GameTest(maxTicks = 1200, padding = PADDING)

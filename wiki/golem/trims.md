@@ -31,7 +31,7 @@ Sneak + right-click with a different template or material. A new template replac
 
 Sneak + right-click with [shears](https://minecraft.wiki/w/Shears). The trim is removed and the template is given back; the shears lose 1 durability. The material is lost.
 
-If the golem wears a flower on its antenna, the flower comes off first, as in vanilla. A plain click with shears is also vanilla and does not touch the trim.
+If the golem wears a flower on its antenna, the flower comes off first, as in vanilla. A plain click with shears is also vanilla and does not touch the trim. With neither a flower nor a trim, sneak + right-click with shears makes the golem a [beekeeper](/jobs/beekeeper).
 
 ## Keeping and losing
 

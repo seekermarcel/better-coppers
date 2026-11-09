@@ -1,6 +1,7 @@
 package dev.bettercoppers.golem;
 
 import dev.bettercoppers.home.Homes;
+import dev.bettercoppers.job.BeekeeperBehavior;
 import dev.bettercoppers.job.FarmBehavior;
 import dev.bettercoppers.job.ForestBehavior;
 import dev.bettercoppers.job.Job;
@@ -95,6 +96,7 @@ public final class WorkingStock {
 				case FARMER -> FarmBehavior.isSeed(stack) ? Golems.SEED_RESERVE : 0;
 				case FORESTER -> stack.is(ItemTags.SAPLINGS) ? ForestBehavior.SAPLING_RESERVE : 0;
 				case KEEPER -> ANIMAL_FOOD.stream().anyMatch(stack::is) ? KeeperBehavior.FOOD_RESERVE : 0;
+				case BEEKEEPER -> stack.is(Items.GLASS_BOTTLE) ? BeekeeperBehavior.BOTTLE_RESERVE : 0;
 				default -> 0;
 			};
 		};

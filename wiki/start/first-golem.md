@@ -28,6 +28,7 @@ Hold the job item and **sneak + right-click** the golem. For a sorter, the job i
 | [Forester](/jobs/forester) | <Icon id="copper_axe" /> Copper axe | A home, trees |
 | [Fisher](/jobs/fisher) | <Icon id="fishing_rod" /> Fishing rod | A home, open water |
 | [Animal keeper](/jobs/animal-keeper) | <Icon id="brush" /> Brush | A home, animals, food |
+| [Beekeeper](/jobs/beekeeper) | <Icon id="shears" /> Shears | A home, full hives over a lit campfire |
 | [Crafter](/jobs/crafter) | <Icon id="crafting_table" /> Crafting table | A home, item frames, ingredients |
 | [Courier](/jobs/courier) | None: a route between two containers | A route instead of a home |
 | [Operator](/jobs/operator) (add-on) | <Icon id="copper_wrench" /> [Copper Wrench](/items/copper_wrench) | A machine |

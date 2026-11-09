@@ -4,7 +4,7 @@ title: Jobs
 
 # Jobs
 
-A **job** is work a player assigns to a [copper golem](/golem/copper-golem). Better Coppers adds eight jobs, and the [Automatisation add-on](/automatisation/) adds a ninth, the operator. Only a player can give or change a job. A golem without a job sorts exactly like in [vanilla](https://minecraft.wiki/w/Copper_Golem), even if it has a [home](/start/homes-and-status) (see [The vanilla rule](/start/vanilla-rule)).
+A **job** is work a player assigns to a [copper golem](/golem/copper-golem). Better Coppers adds nine jobs, and the [Automatisation add-on](/automatisation/) adds a tenth, the operator. Only a player can give or change a job. A golem without a job sorts exactly like in [vanilla](https://minecraft.wiki/w/Copper_Golem), even if it has a [home](/start/homes-and-status) (see [The vanilla rule](/start/vanilla-rule)).
 
 ## All jobs
 
@@ -16,6 +16,7 @@ A **job** is work a player assigns to a [copper golem](/golem/copper-golem). Bet
 | [Forester](/jobs/forester) | <Icon id="copper_axe" /> Copper axe | Home | Yes | 12 blocks around the home, 6 up and down | Better Coppers |
 | [Fisher](/jobs/fisher) | <Icon id="fishing_rod" /> Fishing rod | Home | Yes | 10 blocks around the home, 4 down and 2 up | Better Coppers |
 | [Animal keeper](/jobs/animal-keeper) | <Icon id="brush" /> Brush | Home | Yes | 10 blocks around the home, 4 up and down | Better Coppers |
+| [Beekeeper](/jobs/beekeeper) | <Icon id="shears" /> Shears | Home | Yes | 10 blocks around the home, 4 up and down | Better Coppers |
 | [Crafter](/jobs/crafter) | <Icon id="crafting_table" /> Crafting table | Home | Yes | Item frames within 2 blocks of the home | Better Coppers |
 | [Courier](/jobs/courier) | <Icon id="chest" /> None: a route between two chests | Route, no home | No | Anywhere in the same dimension | Better Coppers |
 | [Operator](/jobs/operator) | <Icon id="copper_wrench" /> [Copper Wrench](/items/copper_wrench) | A machine as its workplace, no home | Yes | One machine, spare parts within 8 blocks of it | Automatisation add-on |
@@ -41,7 +42,7 @@ Sneak + right-click the golem twice with an empty hand, within 5 seconds. The pl
 
 ## What the paying jobs share
 
-The farmer, forester, fisher, animal keeper and crafter follow one routine. The miner works the same way, with the differences on [its page](/jobs/miner).
+The farmer, forester, fisher, animal keeper, beekeeper and crafter follow one routine. The miner works the same way, with the differences on [its page](/jobs/miner).
 
 | Thing | Value |
 |---|---|
@@ -71,9 +72,10 @@ Every paying job looks for a new tool when its tool breaks, except that an opera
 | Forester | 12 | 18 | 24 | 36 |
 | Fisher | 10 | 15 | 20 | 30 |
 | Animal keeper | 10 | 15 | 20 | 30 |
+| Beekeeper | 10 | 15 | 20 | 30 |
 | Miner (ores per vein) | 16 | 24 | 32 | 48 |
 | Operator (spare parts) | 8 | 12 | 16 | 24 |
 
 ## Advancements
 
-Each job step of the Better Coppers [guide](/reference/advancements) is earned by giving a golem that job. Giving golems all eight base jobs earns *Full Employment*.
+Each job step of the Better Coppers [guide](/reference/advancements) is earned by giving a golem that job. Giving golems all nine base jobs earns *Full Employment*.

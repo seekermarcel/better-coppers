@@ -19,6 +19,7 @@ import dev.bettercoppers.job.ForestBehavior;
 import dev.bettercoppers.job.Job;
 import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.job.Jobs.JobKind;
+import dev.bettercoppers.job.BeekeeperBehavior;
 import dev.bettercoppers.job.KeeperBehavior;
 import dev.bettercoppers.job.Load;
 import dev.bettercoppers.job.ToolFetchBehavior;
@@ -292,6 +293,7 @@ public class JobGameTests {
 			"forest", ForestBehavior::new,
 			"fish", FishBehavior::new,
 			"keep", KeeperBehavior::new,
+			"bee", BeekeeperBehavior::new,
 			"craft", CraftBehavior::new,
 			"farm", FarmBehavior::new,
 			"sort", SortItemsBehavior::new,
@@ -1160,6 +1162,16 @@ public class JobGameTests {
 		chest.setItem(0, new ItemStack(Items.WHEAT, Golems.SEED_RESERVE));
 		chest.setItem(1, new ItemStack(Items.COBBLESTONE, 4));
 		stockStays(h, home, home, new ItemStack(Items.BRUSH), Items.WHEAT);
+	}
+
+	@GameTest(maxTicks = 2400, padding = SORTER_PADDING)
+	public void beekeeper_keeps_bottles_in_a_shared_chest(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.GLASS_BOTTLE, BeekeeperBehavior.BOTTLE_RESERVE));
+		chest.setItem(1, new ItemStack(Items.COBBLESTONE, 4));
+		stockStays(h, home, home, new ItemStack(Items.SHEARS), Items.GLASS_BOTTLE);
 	}
 
 	/** A sorter takes only the seeds above the reserve, from a stack of this size, in hand and cart alike. */

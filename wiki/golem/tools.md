@@ -15,12 +15,13 @@ A golem's **job tool** is the [job item](/jobs/) in its hand that defines its [j
 | Copper axe | [Forester](/jobs/forester) |
 | Fishing rod | [Fisher](/jobs/fisher) |
 | Brush | [Animal keeper](/jobs/animal-keeper) |
+| Shears | [Beekeeper](/jobs/beekeeper) |
 | Crafting table | [Crafter](/jobs/crafter) |
 | [Copper Wrench](/items/copper_wrench) | [Operator](/jobs/operator) (add-on) |
 
 Any other pickaxe, axe or hoe is refused when given with sneak + right-click: the golem plays its "no" sound and the player reads "Copper golems only work with copper tools." The exception is an axe used on a rusty or waxed golem, which [scrapes](/golem/running-costs#scraping) it instead.
 
-Fishing rods, brushes and crafting tables have no copper version and work as they are.
+Fishing rods, shears, brushes and crafting tables have no copper version and work as they are.
 
 ## Tool wear
 
@@ -33,6 +34,7 @@ Each use costs 1 point of [durability](https://minecraft.wiki/w/Item_durability)
 | Forester | Felling a log |
 | Fisher | Each catch |
 | Animal keeper | Feeding an animal |
+| Beekeeper | Shearing honeycomb from a hive (filling a bottle costs nothing) |
 | Crafter | Never |
 | Operator | Never |
 
@@ -48,7 +50,7 @@ A golem that wants a replacement must:
 - be able to [work](/golem/running-costs) (daytime, energy, not oxidized or waxed),
 - have nothing left to bring home, so the load goes home first.
 
-Only miners, farmers, foresters, fishers and animal keepers fetch replacements. Sorters, couriers, crafters and operators have nothing that breaks.
+Only miners, farmers, foresters, fishers, animal keepers and beekeepers fetch replacements. Sorters, couriers, crafters and operators have nothing that breaks.
 
 ### Fetching a replacement
 

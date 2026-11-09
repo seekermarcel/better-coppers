@@ -143,7 +143,7 @@ When the pickaxe breaks, the golem keeps its job, brings its load home and looks
 | Surveyor | Have a Mineshaft Plan | `bettercoppers:guide/survey` |
 | Down the Shaft | Give a golem a copper pickaxe and a Mineshaft Plan | `bettercoppers:guide/miner` |
 | Shiny! | A miner digs diamond ore within 48 blocks of the player | `bettercoppers:guide/diamonds` |
-| Full Employment | Give golems all eight jobs | `bettercoppers:guide/full_employment` |
+| Full Employment | Give golems all nine jobs | `bettercoppers:guide/full_employment` |
 
 ## Data values
 

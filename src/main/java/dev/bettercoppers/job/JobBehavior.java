@@ -25,7 +25,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 /**
- * What the farmer, forester, fisher, animal keeper and crafter have in common: a home copper chest, a pouch that is brought
+ * What the farmer, forester, fisher, animal keeper, beekeeper and crafter have in common: a home copper chest, a pouch that is brought
  * home when full (or when there is nothing else to do), supplies restocked there, clumsy pauses, and the running costs
  * of {@link RunningCosts}. Subclasses only decide what to do next and how to do it.
  *
