@@ -369,7 +369,8 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 	private void deliver(CopperGolem golem, Container destination, long now) {
 		ItemStack hand = golem.getMainHandItem();
 		ItemStack delivered = hand.copyWithCount(1);
-		ItemStack left = Inventories.insert(destination, hand);
+		Quota quota = this.targetSpot == null ? Quota.NONE : this.targetSpot.frames().quota();
+		ItemStack left = quota.insert(destination, hand);
 		this.setHandItem(golem, left);
 		this.deliveryPrepared = false;
 
@@ -379,7 +380,7 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 			for (int slot = 0; slot < cart.getContainerSize(); slot++) {
 				ItemStack stack = cart.getItem(slot);
 				if (!stack.isEmpty() && this.targetSpot != null && SortingDestinations.belongs(stack, delivered, this.targetSpot, this.tier)) {
-					cart.setItem(slot, Inventories.insert(destination, stack));
+					cart.setItem(slot, quota.insert(destination, stack));
 				}
 			}
 			cart.setChanged();

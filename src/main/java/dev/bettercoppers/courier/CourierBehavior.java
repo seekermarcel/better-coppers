@@ -8,10 +8,14 @@ import dev.bettercoppers.golem.ChestVisit;
 import dev.bettercoppers.golem.FrameFilter;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
+import dev.bettercoppers.golem.Quota;
 import dev.bettercoppers.api.TravelWatch;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.golem.Errands;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -24,6 +28,7 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.util.LandRandomPos;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.animal.golem.CopperGolemState;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -32,6 +37,7 @@ import org.jspecify.annotations.Nullable;
  * A courier walks to the first chest of its route, takes what it can carry (16 items, or a whole cart load with a
  * chained cart), walks to the second chest however far away it is, and puts everything in. While it travels it keeps
  * its chunks loaded. Stuck somewhere, it shakes its head, wanders off a few blocks and tries again; it never gives up.
+ * A destination with a quota changes the round: the courier waits there until something is missing and fetches only that.
  */
 public class CourierBehavior extends Behavior<CopperGolem> {
 	private static final int WAIT_TICKS = 200;
@@ -45,6 +51,8 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 	private @Nullable Vec3 detour;
 	private int detourTicks;
 	private int waitTicks;
+	/** Bringing back what the destination's quota would not take. Not saved: after a restart it just tries the destination again. */
+	private boolean returning;
 
 	public CourierBehavior() {
 		super(ImmutableMap.of(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS, MemoryStatus.VALUE_ABSENT, MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT));
@@ -84,8 +92,15 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 			return;
 		}
 		boolean carrying = isCarrying(golem);
-		BlockPos target = carrying ? route.to() : route.from();
-		if (carrying || golem.position().distanceTo(Vec3.atCenterOf(target)) > NEAR) {
+		if (!carrying) {
+			this.returning = false;
+		}
+		Map<Item, Integer> shortage = Couriers.shortage(golem);
+		boolean idleAtDestination = !carrying && shortage != null && shortage.isEmpty();
+		BlockPos target = carrying && !this.returning || idleAtDestination ? route.to() : route.from();
+		// Fetching for a quota it must reach the far chest, even with no player near. Idle at the destination it loads nothing.
+		boolean fetching = !carrying && shortage != null && !shortage.isEmpty();
+		if (carrying || fetching || golem.position().distanceTo(Vec3.atCenterOf(target)) > NEAR) {
 			if (level.getGameTime() % 10 == 0) {
 				Couriers.keepLoaded(level, golem);
 			}
@@ -119,57 +134,108 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 			return;
 		}
 		this.travel.reset();
-		Predicate<ItemStack> wanted = carrying ? stack -> true : wantedAt(level, target);
+		FrameFilter frames = FrameFilter.at(level, target);
+		if (idleAtDestination) {
+			this.checkQuota(golem, container, frames);
+			return;
+		}
+		Predicate<ItemStack> wanted = carrying ? stack -> true : stack -> mayTake(frames, container, shortage, stack) > 0;
 		this.interactionTicks = ChestVisit.tick(golem, container, target, this.interactionTicks, carrying ? CopperGolemState.DROPPING_ITEM : Inventories.contains(container, wanted) ? CopperGolemState.GETTING_ITEM : CopperGolemState.GETTING_NO_ITEM);
 		if (this.interactionTicks < Golems.INTERACTION_TICKS) {
 			return;
 		}
-		if (carrying) {
-			unload(golem, container);
+		if (carrying && this.returning) {
+			unload(golem, stack -> Inventories.insert(container, stack));
+		} else if (carrying) {
+			Quota quota = frames.quota();
+			unload(golem, stack -> quota.isEmpty() || frames.allows(stack) ? quota.insert(container, stack) : stack);
+			Couriers.setShortage(golem, quota.isEmpty() ? null : quota.shortageIn(container));
 		} else {
-			load(golem, container, wanted);
+			load(golem, container, frames, shortage);
 		}
 		container.setChanged();
 		this.endInteraction(level, golem);
 		if (carrying && isCarrying(golem)) {
-			// The far chest is full: wait there and try again.
-			this.waitAWhile(golem, CopperGolemState.DROPPING_NO_ITEM);
+			if (this.returning || frames.quota().isEmpty()) {
+				// The chest is full: wait there and try again.
+				this.waitAWhile(golem, CopperGolemState.DROPPING_NO_ITEM);
+			} else {
+				// More than the quota takes: holding on to it would block the items that are running out.
+				this.returning = true;
+			}
 		} else if (!carrying && !isCarrying(golem)) {
-			// Nothing to fetch yet.
+			if (shortage != null) {
+				// Nothing here that was missing: go back and see what is missing now.
+				Couriers.setShortage(golem, Map.of());
+			} else {
+				this.waitAWhile(golem, CopperGolemState.IDLE);
+			}
+		}
+	}
+
+	/** At the destination with nothing to deliver: leaves once its quota lacks something, and waits there otherwise. */
+	private void checkQuota(CopperGolem golem, Container container, FrameFilter frames) {
+		Map<Item, Integer> shortage = frames.quota().isEmpty() ? null : frames.quota().shortageIn(container);
+		Couriers.setShortage(golem, shortage);
+		if (shortage != null && shortage.isEmpty()) {
 			this.waitAWhile(golem, CopperGolemState.IDLE);
 		}
 	}
 
-	/** Item frames on the pickup chest limit what is taken from it. Without any, everything is. */
-	private static Predicate<ItemStack> wantedAt(ServerLevel level, BlockPos pickup) {
-		FrameFilter frames = FrameFilter.at(level, pickup);
-		return stack -> frames.isEmpty() || frames.allows(stack);
+	/**
+	 * How many of this stack's item may be taken from the pickup chest right now. Its frames limit what is taken, its
+	 * quota stays, and with a known shortage only that is fetched.
+	 */
+	private static int mayTake(FrameFilter frames, Container from, @Nullable Map<Item, Integer> wants, ItemStack stack) {
+		if (!frames.isEmpty() && !frames.allows(stack)) {
+			return 0;
+		}
+		int surplus = from.countItem(stack.getItem()) - frames.quota().of(stack.getItem());
+		return wants == null ? surplus : Math.min(surplus, wants.getOrDefault(stack.getItem(), 0));
 	}
 
-	private static void load(CopperGolem golem, Container from, Predicate<ItemStack> wanted) {
-		ItemStack hand = Inventories.takeFirst(from, BetterCoppersApi.carryLimit(golem, Golems.HAND_LIMIT), wanted);
+	private static void load(CopperGolem golem, Container from, FrameFilter frames, @Nullable Map<Item, Integer> shortage) {
+		Map<Item, Integer> wants = shortage == null ? null : new HashMap<>(shortage);
+		ItemStack hand = ItemStack.EMPTY;
+		for (int slot = 0; slot < from.getContainerSize() && hand.isEmpty(); slot++) {
+			ItemStack stack = from.getItem(slot);
+			int amount = stack.isEmpty() ? 0 : Math.min(Math.min(stack.getCount(), BetterCoppersApi.carryLimit(golem, Golems.HAND_LIMIT)), mayTake(frames, from, wants, stack));
+			if (amount > 0) {
+				hand = from.removeItem(slot, amount);
+				took(wants, hand.getItem(), amount);
+			}
+		}
 		golem.setItemSlot(EquipmentSlot.MAINHAND, hand);
 		golem.setGuaranteedDrop(EquipmentSlot.MAINHAND);
 		CopperChestMinecart cart = CartChaining.findCart(golem);
 		if (cart != null) {
 			for (int slot = 0; slot < from.getContainerSize() && Inventories.hasEmptySlot(cart); slot++) {
 				ItemStack stack = from.getItem(slot);
-				if (!stack.isEmpty() && wanted.test(stack)) {
-					from.setItem(slot, Inventories.insert(cart, stack));
+				int amount = stack.isEmpty() ? 0 : Math.min(stack.getCount(), mayTake(frames, from, wants, stack));
+				if (amount > 0) {
+					int moved = amount - Inventories.insert(cart, stack.copyWithCount(amount)).getCount();
+					took(wants, stack.getItem(), moved);
+					from.removeItem(slot, moved);
 				}
 			}
 			cart.setChanged();
 		}
 	}
 
-	private static void unload(CopperGolem golem, Container to) {
-		golem.setItemSlot(EquipmentSlot.MAINHAND, Inventories.insert(to, golem.getMainHandItem()));
+	private static void took(@Nullable Map<Item, Integer> wants, Item item, int amount) {
+		if (wants != null) {
+			wants.merge(item, -amount, Integer::sum);
+		}
+	}
+
+	private static void unload(CopperGolem golem, UnaryOperator<ItemStack> put) {
+		golem.setItemSlot(EquipmentSlot.MAINHAND, put.apply(golem.getMainHandItem()));
 		CopperChestMinecart cart = CartChaining.findCart(golem);
 		if (cart != null) {
 			for (int slot = 0; slot < cart.getContainerSize(); slot++) {
 				ItemStack stack = cart.getItem(slot);
 				if (!stack.isEmpty()) {
-					cart.setItem(slot, Inventories.insert(to, stack));
+					cart.setItem(slot, put.apply(stack));
 				}
 			}
 			cart.setChanged();

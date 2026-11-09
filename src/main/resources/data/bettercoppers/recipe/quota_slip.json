@@ -1,0 +1,6 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": ["minecraft:paper", "minecraft:copper_ingot"],
+  "result": { "id": "bettercoppers:quota_slip" }
+}

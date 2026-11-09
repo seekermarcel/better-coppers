@@ -39,7 +39,8 @@ final class SortingDestinations {
 
 		boolean accepts(Spot spot, ItemStack item) {
 			if (this == FRAMED) {
-				return spot.kind() != Kind.SOURCE && spot.frames().allows(item) && Inventories.hasRoom(spot.container(), item);
+				return spot.kind() != Kind.SOURCE && spot.frames().allows(item) && Inventories.hasRoom(spot.container(), item)
+					&& spot.frames().quota().room(spot.container(), item) > 0;
 			}
 			if (!spot.frames().isEmpty()) {
 				return false;

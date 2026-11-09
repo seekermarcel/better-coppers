@@ -65,6 +65,8 @@ A **reserved chest** is a chest or barrel with item frames on it. It takes only 
 
 To reserve a container for furnaces or bundles themselves, put one in a bundle and frame the bundle.
 
+A [Quota Slip](/items/quota_slip) in a frame sets how much of each listed item the container should hold. The sorter delivers only up to that amount and sends the rest to the next destination. On its home chest, it leaves that amount behind. If working stock also applies, the larger amount stays. A sorter never fetches items to fill a quota: that takes a [courier](/jobs/courier#refilling-a-chest).
+
 ### Decoys
 
 A **decoy** is a chest a sorter looks into before making its delivery, for character. It opens 0 to 3 of them per trip, shakes its head and carries on. It picks them at random from the 6 containers closest to the real destination that do not hold the item. A decoy is never the destination or its other half. With a chained cart, the trip's decoys are spread over its deliveries.

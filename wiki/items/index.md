@@ -14,6 +14,7 @@ title: Items and blocks
 | <Icon id="copper_chest_minecart" /> | [Copper Chest Minecart](/items/copper_chest_minecart) | Item | A cart a golem tows on a chain to carry more |
 | <Icon id="golem_handbook" /> | [Golem Handbook](/items/golem_handbook) | Item | The book that explains the mod |
 | <Icon id="mineshaft_plan" /> | [Mineshaft Plan](/items/mineshaft_plan) | Item | Holds a mine's entrance, direction, length and progress |
+| <Icon id="quota_slip" /> | [Quota Slip](/items/quota_slip) | Item | Lists how much of each item a chest should hold |
 | <Icon id="survey_table" /> | [Survey Table](/items/survey_table) | Block | Makes Mineshaft Plans |
 
 ## Automatisation

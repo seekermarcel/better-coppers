@@ -59,6 +59,7 @@ export default defineConfig({
 				item('copper_chest_minecart', 'Copper Chest Minecart'),
 				item('golem_handbook', 'Golem Handbook'),
 				item('mineshaft_plan', 'Mineshaft Plan'),
+				item('quota_slip', 'Quota Slip'),
 				item('survey_table', 'Survey Table'),
 			] },
 			{ text: 'Automatisation add-on', collapsed: true, items: [

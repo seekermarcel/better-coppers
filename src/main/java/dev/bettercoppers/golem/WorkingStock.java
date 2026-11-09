@@ -28,7 +28,8 @@ import net.minecraft.world.phys.AABB;
 
 /**
  * What a sorter leaves in a home chest it shares with another golem, so that golem's job can carry on: its tool and
- * supplies. A reserve means the item is sortable only while the chest holds more than that many of it.
+ * supplies. A reserve means the item is sortable only while the chest holds more than that many of it. A quota on the
+ * chest counts as one more reserve.
  */
 public final class WorkingStock {
 	/** The larger of the miner and farmer lookups this replaces. */
@@ -62,6 +63,8 @@ public final class WorkingStock {
 	public static ToIntFunction<ItemStack> surplusIn(ServerLevel level, BlockPos chest, Container container) {
 		Set<BlockPos> halves = Homes.sameContainer(level, chest);
 		List<Reserve> reserves = new ArrayList<>();
+		Quota quota = FrameFilter.at(level, chest).quota();
+		reserves.add(stack -> quota.of(stack.getItem()));
 		for (CopperGolem golem : level.getEntitiesOfClass(CopperGolem.class, new AABB(chest).inflate(SEARCH_RADIUS))) {
 			BlockPos home = Homes.get(golem);
 			if (home == null || !halves.contains(home)) {

@@ -14,6 +14,7 @@ import net.minecraft.server.level.TicketType;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -52,6 +53,7 @@ public final class Couriers {
 
 	/** Makes the golem a courier on this route. A courier has no home; linking a home again ends the route. */
 	public static void setRoute(CopperGolem golem, @Nullable CourierRoute route) {
+		setShortage(golem, null);
 		if (route == null) {
 			golem.removeAttached(ModAttachments.ROUTE);
 			PENDING.remove(golem.getUUID());
@@ -59,6 +61,18 @@ public final class Couriers {
 			golem.setAttached(ModAttachments.ROUTE, route);
 			Homes.set(golem, null);
 		}
+	}
+
+	/**
+	 * What the destination's quota lacked when the courier last stood there. Null if it had no quota, empty if nothing
+	 * was missing. Remembered because the destination's chunk may not be loaded when the courier is at the pickup.
+	 */
+	public static @Nullable Map<Item, Integer> shortage(CopperGolem golem) {
+		return golem.getAttached(ModAttachments.SHORTAGE);
+	}
+
+	public static void setShortage(CopperGolem golem, @Nullable Map<Item, Integer> shortage) {
+		golem.setAttached(ModAttachments.SHORTAGE, shortage);
 	}
 
 	/** Gives the route to the golem now if it is loaded, or as soon as it loads. */

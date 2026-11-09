@@ -262,6 +262,15 @@ One frame can stand for many items:
 
 To reserve a chest for furnaces or bundles themselves, put one in a bundle and frame that. An empty bundle lets nothing in.
 
+# Quota Slips
+A Quota Slip (paper and a copper ingot) says how much of each item a chest should hold. Hang it in a frame on the chest: golems then bring no more than that, and leave that much in it. It also counts as a frame showing those items.
+
+To fill in a slip, either:
+- sneak + right-click a chest or barrel that holds exactly what you want. An empty one clears the slip.
+- right-click to open it, and click items from your inventory onto the grid. They stay yours. Left and right click add or remove one, shift + click 16. A slot holds up to one stack: for more, use another slot.
+
+A sorter does not fetch anything. To refill a chest, send a courier to it.
+
 # Working stock
 A sorter shares its chest with another golem and leaves what that golem needs to do its job:
 - spare tools of its job,
@@ -290,6 +299,15 @@ Ein Rahmen kann für viele Gegenstände stehen:
 - Ein Bündel: alles, was im Bündel liegt. Von jedem Gegenstand reicht einer.
 
 Soll eine Truhe Öfen oder Bündel selbst aufnehmen, leg eins davon in ein Bündel und häng dieses in den Rahmen. Ein leeres Bündel lässt nichts hinein.
+
+# Mengenzettel
+Ein Mengenzettel (Papier und ein Kupferbarren) legt fest, wie viel von jedem Gegenstand in einer Truhe liegen soll. Häng ihn in einen Rahmen an der Truhe: Golems bringen dann nicht mehr als das und lassen so viel darin liegen. Er zählt außerdem wie ein Rahmen, der diese Gegenstände zeigt.
+
+So füllst du einen Zettel aus:
+- Schleichen + Rechtsklick auf eine Truhe oder ein Fass, das genau das enthält, was du willst. Ein leerer Behälter löscht den Zettel.
+- Rechtsklick öffnet ihn. Klick Gegenstände aus deinem Inventar auf das Raster, sie bleiben dein. Links- und Rechtsklick geben einen dazu oder nehmen einen weg, mit Umschalt 16. Ein Feld fasst höchstens einen Stapel: Für mehr nimm ein weiteres Feld.
+
+Ein Sortierer holt nichts. Um eine Truhe aufzufüllen, schick einen Kurier zu ihr.
 
 # Arbeitsvorrat
 Teilt sich ein Sortierer die Truhe mit einem anderen Golem, lässt er liegen, was dieser für seine Arbeit braucht:
@@ -413,7 +431,12 @@ Stellt her, was die Rahmen an oder neben seiner Truhe zeigen, aus den Zutaten in
 
 It takes 16 items per trip, or a cart load with a chained cart. On the road it keeps the chunks around it loaded, so the route keeps working while you are far away. If the destination is full, it waits.
 
-Hang item frames on the pickup chest and it takes only what they show, with the same rules as for a sorter. Frames on the destination change nothing.
+Hang item frames on the pickup chest and it takes only what they show, with the same rules as for a sorter. Other frames on the destination change nothing.
+
+# Refilling a chest
+Hang a Quota Slip on the destination and the courier keeps that chest filled. It waits there until something on the slip is running short, then fetches exactly that. What no longer fits goes back to the pickup chest. A Quota Slip on the pickup chest makes it leave that much behind.
+
+This courier no longer empties the pickup chest, so a golem that has that chest as its home can end up with a full chest and stop.
 
 A golem with a job takes no route, except a courier: give it a new route and it keeps what it carries and delivers it on the new route. Other jobs have to be ended first. Linking it to a home copper chest ends the route."""),
                 ("Kurier", """Ein Kurier trägt alles von einer Truhe zu einer anderen, egal wie weit sie auseinander stehen.
@@ -424,7 +447,12 @@ A golem with a job takes no route, except a courier: give it a new route and it 
 
 Er nimmt 16 Gegenstände pro Gang mit, mit angeketteter Lore eine ganze Ladung. Unterwegs hält er die Chunks um sich geladen, damit die Route auch funktioniert, wenn du weit weg bist. Ist das Ziel voll, wartet er.
 
-Häng Rahmen an die Abholtruhe, dann nimmt er nur, was sie zeigen, nach denselben Regeln wie beim Sortierer. Rahmen am Ziel ändern nichts.
+Häng Rahmen an die Abholtruhe, dann nimmt er nur, was sie zeigen, nach denselben Regeln wie beim Sortierer. Andere Rahmen am Ziel ändern nichts.
+
+# Eine Truhe auffüllen
+Häng einen Mengenzettel an das Ziel, dann hält der Kurier diese Truhe gefüllt. Er wartet dort, bis etwas auf dem Zettel knapp wird, und holt dann genau das. Was nicht mehr passt, bringt er zur Abholtruhe zurück. Ein Mengenzettel an der Abholtruhe lässt ihn so viel dort liegen.
+
+Dieser Kurier leert die Abholtruhe nicht mehr. Ein Golem, dessen Heimattruhe sie ist, kann also irgendwann eine volle Truhe haben und aufhören zu arbeiten.
 
 Ein Golem mit Beruf nimmt keine Route an, außer ein Kurier: Gib ihm eine neue Route, dann behält er, was er trägt, und liefert es auf der neuen Route aus. Andere Berufe musst du erst beenden. Verbindest du ihn mit einer Kupfertruhe als Zuhause, endet die Route.""")),
     "travel": (("Minecarts and Boats", """A golem heading somewhere more than 24 blocks away looks around for a ride.
@@ -731,6 +759,9 @@ MESSAGES = [
     ("status.bettercoppers.chest_full", "home chest full", "Heimattruhe voll"),
     ("status.bettercoppers.eyes", "eyes %s%%", "Augen %s %%"),
     ("entity.bettercoppers.golem_float", "Golem Float", "Golem-Schwimmer"),
+    ("item.bettercoppers.quota_slip", "Quota Slip", "Mengenzettel"),
+    ("message.bettercoppers.quota_recorded", "The slip now lists what this chest holds.", "Der Zettel listet jetzt, was diese Truhe enthält."),
+    ("message.bettercoppers.quota_cleared", "The slip is blank again.", "Der Zettel ist wieder leer."),
 ]
 
 

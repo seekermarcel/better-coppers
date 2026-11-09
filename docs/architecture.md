@@ -47,6 +47,8 @@ Per-golem state lives in Fabric attachments (`ModAttachments`), and most of it i
 
 Behaviours keep per-golem fields, so every golem needs its own instance. The API takes factories for this reason.
 
+A courier cannot see a far destination's Quota Slip from the pickup: item frames are entities, and that chunk may not be loaded. So it reads the quota while it stands at the destination and saves what is missing in `SHORTAGE`. Null there means no quota and today's round, empty means nothing is missing and it stays.
+
 There are no save migrations because no version has been released. That ends with the first release: from then on, changing a saved format needs a migration.
 
 ## Generated files

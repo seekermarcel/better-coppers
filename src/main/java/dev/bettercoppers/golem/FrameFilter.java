@@ -1,6 +1,7 @@
 package dev.bettercoppers.golem;
 
 import dev.bettercoppers.home.Homes;
+import dev.bettercoppers.item.QuotaSlipItem;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiPredicate;
@@ -23,10 +24,13 @@ import org.jspecify.annotations.Nullable;
  */
 public final class FrameFilter {
 	private final List<ItemStack> shown;
+	private final Quota quota;
 	private final BiPredicate<RecipeType<? extends AbstractCookingRecipe>, ItemStack> cooks;
 
 	FrameFilter(List<ItemStack> shown, BiPredicate<RecipeType<? extends AbstractCookingRecipe>, ItemStack> cooks) {
-		this.shown = shown;
+		// A slip counts through its quota, so a blank one reserves nothing, like an empty frame.
+		this.shown = shown.stream().filter(frame -> !(frame.getItem() instanceof QuotaSlipItem)).toList();
+		this.quota = Quota.of(shown);
 		this.cooks = cooks;
 	}
 
@@ -51,11 +55,16 @@ public final class FrameFilter {
 	}
 
 	public boolean isEmpty() {
-		return this.shown.isEmpty();
+		return this.shown.isEmpty() && this.quota.isEmpty();
 	}
 
 	public boolean allows(ItemStack item) {
-		return this.shown.stream().anyMatch(frame -> this.matches(frame, item));
+		return this.quota.of(item.getItem()) > 0 || this.shown.stream().anyMatch(frame -> this.matches(frame, item));
+	}
+
+	/** The amounts set by any Quota Slips among the frames. */
+	public Quota quota() {
+		return this.quota;
 	}
 
 	private boolean matches(ItemStack frame, ItemStack item) {

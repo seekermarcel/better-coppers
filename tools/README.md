@@ -7,6 +7,7 @@ Single-file Java programs (run with `java`, no build step). Most read vanilla te
 - `SurveyGen` builds the Survey Table textures.
 - `PadGen` builds the Charging Pad textures.
 - `HandbookGen` builds the Golem Handbook item texture.
+- `QuotaSlipGen` builds the Quota Slip item texture.
 - `GolemEyesGen` builds the eye and antenna overlay textures.
 - `AutoTexGen` builds the Automatisation add-on's textures.
 

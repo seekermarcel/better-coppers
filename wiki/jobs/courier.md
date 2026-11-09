@@ -41,7 +41,23 @@ The courier walks to the pickup chest, takes what it can carry, walks to the des
 
 ### Frames on the pickup chest
 
-Item frames on the pickup chest limit what is taken, with the same rules as for a [reserved chest](/jobs/sorter#reserved-chests). Without any, everything is. Frames on the destination change nothing.
+Item frames on the pickup chest limit what is taken, with the same rules as for a [reserved chest](/jobs/sorter#reserved-chests). Without any, everything is. Other frames on the destination change nothing.
+
+### Refilling a chest
+
+A [Quota Slip](/items/quota_slip) on the destination changes the courier's round. It takes effect once the courier has been at the destination.
+
+| Stage | Detail |
+|---|---|
+| Waiting | Stands at the destination and looks again every 10 seconds, until something on the slip is below its amount. It loads no chunks while it waits |
+| Fetching | Walks to the pickup chest and takes only what was missing |
+| Delivery | Puts in only what the slip allows |
+| More than fits | Takes the rest back to the pickup chest, and waits there if that is full |
+| Nothing to fetch | Walks back to the destination and looks again |
+
+A Quota Slip on the pickup chest makes the courier leave that amount behind, so two couriers running in opposite directions cannot pass the same items back and forth.
+
+A courier on such a route no longer empties the pickup chest. If that chest is another golem's home, that golem can end up [backed up](/golem/running-costs).
 
 ### Towing a cart
 
@@ -49,7 +65,7 @@ With a chained [Copper Chest Minecart](/items/copper_chest_minecart), the courie
 
 ### Chunk loading
 
-A courier keeps its chunks loaded while it carries anything, or while it is more than 12 blocks from the pickup chest. Standing at the pickup with nothing to carry, it does not load chunks.
+A courier keeps its chunks loaded while it carries anything, while it is fetching for a quota, or while it is more than 12 blocks from the pickup chest. Standing at the pickup with nothing to carry, it does not load chunks.
 
 | Property | Value |
 |---|---|

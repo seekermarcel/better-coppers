@@ -5,6 +5,7 @@ import dev.bettercoppers.api.BetterCoppersApi;
 import dev.bettercoppers.guide.GolemHandbookItem;
 import dev.bettercoppers.item.CopperChestMinecartItem;
 import dev.bettercoppers.item.MineshaftPlanItem;
+import dev.bettercoppers.item.QuotaSlipItem;
 import dev.bettercoppers.mining.MinePattern;
 import dev.bettercoppers.mining.MinePlan;
 import java.util.function.Function;
@@ -22,6 +23,7 @@ public final class ModItems {
 		"copper_chest_minecart", p -> new CopperChestMinecartItem(ModEntities.COPPER_CHEST_MINECART, p), new Item.Properties().stacksTo(1)
 	);
 	public static final Item MINESHAFT_PLAN = register("mineshaft_plan", MineshaftPlanItem::new, new Item.Properties().stacksTo(1));
+	public static final Item QUOTA_SLIP = register("quota_slip", QuotaSlipItem::new, new Item.Properties().stacksTo(1));
 	public static final Item GOLEM_HANDBOOK = register("golem_handbook", GolemHandbookItem::new, new Item.Properties().stacksTo(1));
 
 	private ModItems() {
@@ -40,6 +42,7 @@ public final class ModItems {
 				output.accept(GOLEM_HANDBOOK);
 				output.accept(ModBlocks.SURVEY_TABLE);
 				output.accept(blankPlan());
+				output.accept(QUOTA_SLIP);
 				output.accept(ModBlocks.CHARGING_PAD);
 				output.accept(COPPER_CHEST_MINECART);
 			})

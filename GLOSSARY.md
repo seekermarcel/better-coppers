@@ -56,6 +56,13 @@ A chest or barrel with item frames on it, which only takes the items its frames 
 What a sorter leaves in a shared home chest so the other golem's job can carry on, including spare job tools.
 _Avoid_: Reserve
 
+**Quota**:
+How much of an item a chest should hold. Golems deliver only up to it, couriers refill up to it, and golems take only what is above it.
+_Avoid_: Stock-keeping, stock level
+
+**Quota Slip**:
+The item that lists the quotas of a chest, by hanging in an item frame on it.
+
 **Decoy**:
 A chest a sorter looks into before making its delivery.
 

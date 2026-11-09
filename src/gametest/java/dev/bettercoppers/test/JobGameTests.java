@@ -5,10 +5,13 @@ import dev.bettercoppers.api.GolemJob;
 import dev.bettercoppers.courier.CourierRoute;
 import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.entity.CopperChestMinecart;
+import dev.bettercoppers.golem.FrameFilter;
 import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.HomeStroll;
+import dev.bettercoppers.golem.Quota;
 import dev.bettercoppers.golem.SortItemsBehavior;
 import dev.bettercoppers.home.Homes;
+import dev.bettercoppers.item.QuotaSlipItem;
 import dev.bettercoppers.job.CraftBehavior;
 import dev.bettercoppers.job.FarmBehavior;
 import dev.bettercoppers.job.FishBehavior;
@@ -21,6 +24,7 @@ import dev.bettercoppers.job.Load;
 import dev.bettercoppers.job.ToolFetchBehavior;
 import dev.bettercoppers.job.Tools;
 import dev.bettercoppers.job.WorkerData;
+import dev.bettercoppers.menu.QuotaSlipMenu;
 import dev.bettercoppers.mining.MineBehavior;
 import dev.bettercoppers.mining.MineLayout;
 import dev.bettercoppers.mining.MinePattern;
@@ -55,10 +59,12 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.BundleContents;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -916,6 +922,178 @@ public class JobGameTests {
 			h.assertTrue(count(destination, Items.COBBLESTONE) == 0, "took an item the frame does not show");
 			h.assertTrue(count(pickup, Items.COBBLESTONE) == 4, "cobblestone left the pickup chest");
 		});
+	}
+
+	private static ItemStack slipOf(ItemStack... lines) {
+		ItemStack slip = new ItemStack(ModItems.QUOTA_SLIP);
+		slip.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(List.of(lines)));
+		return slip;
+	}
+
+	@GameTest(maxTicks = 1200, padding = SORTER_PADDING)
+	public void sorter_stops_at_a_quota_and_sends_the_rest_on(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(1, 1, 4);
+		GameTests.chest(h, home, COPPER_CHEST).setItem(0, new ItemStack(Items.COBBLESTONE, 32));
+		BlockPos kept = new BlockPos(7, 1, 3);
+		Container reserved = GameTests.chest(h, kept, Blocks.CHEST);
+		hangFrame(h, kept, slipOf(new ItemStack(Items.COBBLESTONE, 10)));
+		Container overflow = GameTests.chest(h, new BlockPos(7, 1, 6), Blocks.CHEST);
+		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
+		GameTests.energize(golem);
+		give(h, golem, new ItemStack(Items.BUNDLE));
+		Homes.set(golem, h.absolutePos(home));
+		h.succeedWhen(() -> {
+			h.assertValueEqual(count(reserved, Items.COBBLESTONE), 10, "quota chest");
+			h.assertValueEqual(count(overflow, Items.COBBLESTONE), 22, "next chest");
+		});
+	}
+
+	@GameTest(maxTicks = 1200, padding = SORTER_PADDING)
+	public void sorter_leaves_a_quota_in_its_home_chest(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(1, 1, 4);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.COBBLESTONE, 20));
+		hangFrame(h, home, slipOf(new ItemStack(Items.COBBLESTONE, 8)));
+		Container destination = GameTests.chest(h, new BlockPos(7, 1, 4), Blocks.CHEST);
+		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
+		GameTests.energize(golem);
+		give(h, golem, new ItemStack(Items.BUNDLE));
+		Homes.set(golem, h.absolutePos(home));
+		h.succeedWhen(() -> {
+			h.assertValueEqual(count(destination, Items.COBBLESTONE), 12, "delivered");
+			h.assertValueEqual(count(chest, Items.COBBLESTONE), 8, "left at home");
+		});
+	}
+
+	@GameTest(maxTicks = 2400, padding = SORTER_PADDING)
+	public void courier_fetches_only_what_a_quota_lacks(GameTestHelper h) {
+		scene(h);
+		BlockPos from = new BlockPos(1, 1, 4);
+		BlockPos to = new BlockPos(7, 1, 4);
+		Container pickup = GameTests.chest(h, from, Blocks.CHEST);
+		pickup.setItem(0, new ItemStack(Items.IRON_INGOT, 16));
+		pickup.setItem(1, new ItemStack(Items.COAL, 64));
+		pickup.setItem(2, new ItemStack(Items.COBBLESTONE, 32));
+		Container destination = GameTests.chest(h, to, Blocks.CHEST);
+		destination.setItem(0, new ItemStack(Items.COAL, 4));
+		hangFrame(h, to, slipOf(new ItemStack(Items.COAL, 20), new ItemStack(Items.COBBLESTONE, 5)));
+		CopperGolem golem = GameTests.golem(h, new BlockPos(6, 1, 4));
+		Couriers.setRoute(golem, new CourierRoute(h.absolutePos(from), h.absolutePos(to)));
+		Couriers.setShortage(golem, Map.of());
+		h.succeedWhen(() -> {
+			h.assertValueEqual(count(destination, Items.COAL), 20, "coal");
+			h.assertValueEqual(count(destination, Items.COBBLESTONE), 5, "cobblestone");
+			h.assertValueEqual(count(destination, Items.IRON_INGOT), 0, "iron has no quota");
+			h.assertValueEqual(count(pickup, Items.COAL), 48, "coal left at the pickup");
+		});
+	}
+
+	/** Stands in for a destination whose chunk is not loaded: all the courier has is what it remembers. */
+	@GameTest(maxTicks = 1200, padding = SORTER_PADDING)
+	public void courier_takes_exactly_the_remembered_shortage(GameTestHelper h) {
+		scene(h);
+		BlockPos from = new BlockPos(1, 1, 4);
+		BlockPos to = new BlockPos(7, 1, 4);
+		Container pickup = GameTests.chest(h, from, Blocks.CHEST);
+		pickup.setItem(0, new ItemStack(Items.COBBLESTONE, 16));
+		pickup.setItem(1, new ItemStack(Items.COAL, 64));
+		GameTests.chest(h, to, Blocks.CHEST);
+		CopperGolem golem = GameTests.golem(h, new BlockPos(2, 1, 4));
+		Couriers.setRoute(golem, new CourierRoute(h.absolutePos(from), h.absolutePos(to)));
+		Couriers.setShortage(golem, Map.of(Items.COAL, 5));
+		h.succeedWhen(() -> {
+			h.assertValueEqual(count(pickup, Items.COAL), 59, "coal left");
+			h.assertValueEqual(count(pickup, Items.COBBLESTONE), 16, "cobblestone was not missing");
+		});
+	}
+
+	@GameTest(maxTicks = 2400, padding = SORTER_PADDING)
+	public void courier_takes_back_what_a_quota_refuses(GameTestHelper h) {
+		scene(h);
+		BlockPos from = new BlockPos(1, 1, 4);
+		BlockPos to = new BlockPos(7, 1, 4);
+		Container pickup = GameTests.chest(h, from, Blocks.CHEST);
+		Container destination = GameTests.chest(h, to, Blocks.CHEST);
+		destination.setItem(0, new ItemStack(Items.COAL, 4));
+		hangFrame(h, to, slipOf(new ItemStack(Items.COAL, 4)));
+		CopperGolem golem = GameTests.golem(h, new BlockPos(6, 1, 4));
+		golem.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.COAL, 16));
+		Couriers.setRoute(golem, new CourierRoute(h.absolutePos(from), h.absolutePos(to)));
+		h.succeedWhen(() -> {
+			h.assertValueEqual(count(pickup, Items.COAL), 16, "brought back");
+			h.assertValueEqual(count(destination, Items.COAL), 4, "destination");
+		});
+	}
+
+	@GameTest(maxTicks = 2400, padding = SORTER_PADDING)
+	public void couriers_running_both_ways_do_not_pass_items_back_and_forth(GameTestHelper h) {
+		scene(h);
+		BlockPos a = new BlockPos(1, 1, 4);
+		BlockPos b = new BlockPos(7, 1, 4);
+		Container first = GameTests.chest(h, a, Blocks.CHEST);
+		first.setItem(0, new ItemStack(Items.COAL, 16));
+		Container second = GameTests.chest(h, b, Blocks.CHEST);
+		hangFrame(h, a, slipOf(new ItemStack(Items.COAL, 8)));
+		hangFrame(h, b, slipOf(new ItemStack(Items.COAL, 8)));
+		Couriers.setRoute(GameTests.golem(h, new BlockPos(4, 1, 3)), new CourierRoute(h.absolutePos(a), h.absolutePos(b)));
+		Couriers.setRoute(GameTests.golem(h, new BlockPos(4, 1, 5)), new CourierRoute(h.absolutePos(b), h.absolutePos(a)));
+		h.runAfterDelay(1800, () -> {
+			h.assertValueEqual(count(first, Items.COAL), 8, "first chest");
+			h.assertValueEqual(count(second, Items.COAL), 8, "second chest");
+			h.succeed();
+		});
+	}
+
+	@GameTest
+	public void quota_slip_records_a_chest_and_adds_up_its_lines(GameTestHelper h) {
+		BlockPos pos = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, pos, Blocks.CHEST);
+		chest.setItem(0, new ItemStack(Items.OAK_LOG, 64));
+		chest.setItem(5, new ItemStack(Items.OAK_LOG, 64));
+		chest.setItem(9, new ItemStack(Items.EGG, 3));
+		ItemStack slip = new ItemStack(ModItems.QUOTA_SLIP);
+		QuotaSlipItem.record(slip, chest);
+		hangFrame(h, pos, slip);
+		Quota quota = FrameFilter.at(h.getLevel(), h.absolutePos(pos)).quota();
+		h.assertValueEqual(quota.of(Items.OAK_LOG), 128, "logs over two lines");
+		h.assertValueEqual(quota.of(Items.EGG), 3, "eggs");
+
+		QuotaSlipItem.record(slip, GameTests.chest(h, new BlockPos(3, 1, 1), Blocks.CHEST));
+		h.assertTrue(QuotaSlipItem.listed(slip).isEmpty(), "an empty chest clears the slip");
+		BlockPos blank = new BlockPos(5, 1, 1);
+		GameTests.chest(h, blank, Blocks.CHEST);
+		hangFrame(h, blank, slip);
+		h.assertTrue(FrameFilter.at(h.getLevel(), h.absolutePos(blank)).isEmpty(), "a blank slip reserved the chest");
+		h.succeed();
+	}
+
+	@GameTest
+	public void quota_slip_grid_stops_at_the_stack_size_and_keeps_samples(GameTestHelper h) {
+		Player player = h.makeMockPlayer(GameType.SURVIVAL);
+		ItemStack slip = new ItemStack(ModItems.QUOTA_SLIP);
+		player.setItemInHand(InteractionHand.MAIN_HAND, slip);
+		QuotaSlipMenu menu = new QuotaSlipMenu(1, player.getInventory(), slip);
+		ItemStack sample = new ItemStack(Items.EGG, 16);
+		menu.setCarried(sample);
+		menu.clicked(0, 0, ContainerInput.PICKUP, player);
+		h.assertTrue(menu.getCarried() == sample && sample.getCount() == 16, "the sample was used up");
+		menu.setCarried(ItemStack.EMPTY);
+		menu.clicked(0, 0, ContainerInput.PICKUP, player);
+		h.assertValueEqual(menu.getContainer().getItem(0).getCount(), 16, "past the egg stack size");
+		menu.clicked(0, 1, ContainerInput.PICKUP, player);
+		h.assertValueEqual(menu.getContainer().getItem(0).getCount(), 15, "right click");
+		menu.setCarried(new ItemStack(Items.WATER_BUCKET));
+		menu.clicked(1, 0, ContainerInput.PICKUP, player);
+		menu.setCarried(ItemStack.EMPTY);
+		menu.clicked(1, 0, ContainerInput.QUICK_MOVE, player);
+		h.assertValueEqual(menu.getContainer().getItem(1).getCount(), 1, "past the water bucket stack size");
+		menu.clicked(1, 1, ContainerInput.QUICK_MOVE, player);
+		h.assertTrue(menu.getContainer().getItem(1).isEmpty(), "line not removed at zero");
+		menu.removed(player);
+		h.assertValueEqual(QuotaSlipItem.listed(slip), Map.of(Items.EGG, 15), "saved lines");
+		h.succeed();
 	}
 
 	/** Hangs an item frame showing {@code shown} on the west side of the container at {@code pos}. */

@@ -7,6 +7,7 @@ import dev.bettercoppers.job.Load;
 import dev.bettercoppers.job.WorkerData;
 import dev.bettercoppers.mining.MinerData;
 import dev.bettercoppers.runningcosts.GolemRunningCosts;
+import java.util.Map;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
@@ -46,6 +47,11 @@ public final class ModAttachments {
 	/** The two containers a courier carries items between, linked by the player. */
 	public static final AttachmentType<CourierRoute> ROUTE = AttachmentRegistry.create(
 		BetterCoppers.id("route"), builder -> builder.persistent(CourierRoute.CODEC)
+	);
+
+	/** What a courier's destination was missing of its quota, see {@code Couriers.shortage}. */
+	public static final AttachmentType<Map<Item, Integer>> SHORTAGE = AttachmentRegistry.create(
+		BetterCoppers.id("shortage"), builder -> builder.persistent(Codec.unboundedMap(BuiltInRegistries.ITEM.byNameCodec(), Codec.INT))
 	);
 
 	/** The armour trim a golem wears; every client needs it to draw the golem. */

@@ -113,6 +113,8 @@ A courier carries everything from one chest to another, **however far apart they
 
 The courier takes 16 items at a time, or a whole cart load with a chained cart. While travelling it keeps the chunks around itself loaded, like a thrown ender pearl, so the route keeps working when you're far away. When it gets stuck, it shakes its head, wanders off a few blocks and tries again. If the destination is full, it waits there. Linking a home copper chest ends the route.
 
+**Keeping a chest stocked:** a **Quota Slip** (paper + copper ingot) lists how much of each item a chest should hold. Sneak + right-click a chest to record what it holds, or right-click to edit the list, then hang the slip in an item frame on the chest. Golems bring no more than the list and leave that much in it, and a courier whose destination has a slip fetches only what is missing.
+
 ---
 
 ## Getting around
