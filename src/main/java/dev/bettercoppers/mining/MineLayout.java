@@ -56,6 +56,9 @@ public final class MineLayout {
 	private static final int STRIP_TORCH_SPACING = 9;
 	/** Marks a Strip Mine's corridor steps until the index past the last step is known. */
 	private static final int CORRIDOR = -1;
+	private static final int PILLAR_SPACING = 4;
+	/** Stands in for the end of the list until a hall's last step is known. */
+	private static final int REST_OF_HALL = -2;
 
 	private final BlockPos entrance;
 	private final Direction forward;
@@ -80,6 +83,7 @@ public final class MineLayout {
 			case MINESHAFT -> layout.mineshaft(plan.length());
 			case STAIRCASE -> layout.staircase(plan.length(), minY);
 			case STRIP_MINE -> layout.stripMine(plan.length(), plan.setting());
+			case ROOM_AND_PILLAR -> layout.roomAndPillar(plan);
 		};
 	}
 
@@ -181,6 +185,56 @@ public final class MineLayout {
 			}
 		}
 		this.backOff = this.forward.getOpposite();
+	}
+
+	/**
+	 * A 3-high hall from the entrance on, row by row, each row from its centre out to one side and then the other, with
+	 * 1x1 rock pillars left standing. Each half-row is its own Mine Section; the centre column carries the whole hall.
+	 */
+	private List<Step> roomAndPillar(MinePlan plan) {
+		// A plan edited by command can hold any setting or length, so build only sizes the pattern knows.
+		MinePattern.Setting width = plan.pattern().setting();
+		int length = Math.clamp(plan.length(), MinePlan.MIN_LENGTH, plan.pattern().maxLength());
+		int halfWidth = (plan.setting() >= width.max() ? width.max() : width.min()) / 2;
+		this.resumeAt = REST_OF_HALL;
+		for (int row = 0; row < length; row++) {
+			this.standBehind(row);
+			this.column(row, 0);
+			for (int direction : new int[] {1, -1}) {
+				this.halfRow(row, direction, halfWidth);
+			}
+		}
+		int end = this.steps.size();
+		this.steps.replaceAll(step -> step.resumeAt() == REST_OF_HALL ? step.resumingAt(end) : step);
+		return this.steps;
+	}
+
+	/** The golem stands in the part of the row just dug, or in the row behind where a pillar is in the way. */
+	private void halfRow(int row, int direction, int halfWidth) {
+		int first = this.steps.size();
+		for (int distance = 1; distance <= halfWidth; distance++) {
+			int side = distance * direction;
+			this.stand = isPillar(row, side - direction) ? this.cell(row - 1, side, 0) : this.cell(row, side - direction, 0);
+			if (!isPillar(row, side)) {
+				this.column(row, side);
+			} else if (row % (PILLAR_SPACING * 2) == 2) {
+				this.add(Action.TORCH, this.cell(row - 1, side, 1), this.forward.getOpposite());
+			}
+		}
+		int next = this.steps.size();
+		this.steps.subList(first, next).replaceAll(step -> step.resumingAt(next));
+	}
+
+	private static boolean isPillar(int row, int side) {
+		return row % PILLAR_SPACING == 2 && (Math.abs(side) == 2 || Math.abs(side) == 6);
+	}
+
+	/** One column of a hall, top down, and the floor under it. */
+	private void column(int row, int side) {
+		for (int up = 2; up >= 0; up--) {
+			this.add(Action.DIG, this.cell(row, side, up));
+		}
+		this.add(Action.FLOOR, this.cell(row, side, -1));
 	}
 
 	/** Slices that get two fence posts and a plank beam. */

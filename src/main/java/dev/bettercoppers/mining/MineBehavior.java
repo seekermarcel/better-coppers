@@ -360,8 +360,9 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			case FENCE -> state.is(BlockTags.WOODEN_FENCES) || !state.canBeReplaced();
 			case BEAM -> state.is(BlockTags.PLANKS) || !state.canBeReplaced();
 			case RAIL -> state.is(BlockTags.RAILS) || !state.canBeReplaced() || !Blocks.RAIL.defaultBlockState().canSurvive(level, pos);
-			// Already bright (daylight or another torch) means no torch needed.
-			case TORCH -> !state.canBeReplaced() || level.getMaxLocalRawBrightness(pos) >= 10;
+			// Already bright (daylight or a closer torch) means no torch needed. A torch 4 blocks off gives exactly 10, and
+			// the pillars of a hall stand that far apart: each of them still gets its own.
+			case TORCH -> !state.canBeReplaced() || level.getMaxLocalRawBrightness(pos) > 10;
 		};
 	}
 

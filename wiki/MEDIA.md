@@ -133,6 +133,7 @@ Put each file in `wiki/public/media/` under the name given here. Screenshots are
 
 - [ ] `jobs-miner-setup.png` (screenshot): A marked entrance on the surface with a copper chest next to it holding rails, fences, planks and torches, and a copper golem holding a copper pickaxe
 - [ ] `jobs-miner-shaft.png` (screenshot): A finished 3x3 mineshaft from inside, with plank beams on fence posts, torches on the beams and rails down the middle
+- [ ] `jobs-miner-hall.png` (screenshot): A finished Room and Pillar hall from inside, 9 wide, with rock pillars and torches on the pillars facing the entrance
 
 ## jobs/operator
 

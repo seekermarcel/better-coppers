@@ -70,7 +70,7 @@ Progress counts finished steps of the [tunnel layout](/jobs/miner#the-tunnel), i
 | 64 | 768 | 120 | 64 | 952 |
 | 128 | 1536 | 240 | 128 | 1904 |
 
-Each slice has 12 dig and floor steps. Each support adds 7 steps. Each torch adds 1 step. The table is for a Mineshaft; a [Strip Mine](/jobs/miner#strip-mine) has no support or rail steps, and each branch block adds 3 steps.
+Each slice has 12 dig and floor steps. Each support adds 7 steps. Each torch adds 1 step. The table is for a Mineshaft; a [Strip Mine](/jobs/miner#strip-mine) has no support or rail steps, and each branch block adds 3 steps. A [Room and Pillar](/jobs/miner#room-and-pillar) hall has 4 steps for each column that is not a pillar, plus 1 for each torch.
 
 A [Staircase](/jobs/miner#the-staircase) has 3 steps per block of depth plus 1 per torch: 25 steps at length 8, 50 at 16, 100 at 32, 200 at 64 and 400 at 128.
 
@@ -93,9 +93,9 @@ The item component has these fields:
 
 | Field | Type | Meaning |
 |---|---|---|
-| `pattern` | String | `mineshaft`, `staircase` or `strip_mine` |
-| `length` | Integer, 8 to 128 | Length of the tunnel or corridor, or depth of a Staircase, in blocks |
-| `setting` | Integer, default 0 | The value of the Mine Pattern's setting, 0 if it has none. A Strip Mine's branch length; out of range it digs the nearest allowed length |
+| `pattern` | String | `mineshaft`, `staircase`, `strip_mine` or `room_and_pillar` |
+| `length` | Integer, 8 to 128 | Length of the tunnel, corridor or hall, or depth of a Staircase, in blocks. A Room and Pillar hall stops at 64 |
+| `setting` | Integer, default 0 | The value of the Mine Pattern's setting, 0 if it has none. A Strip Mine's branch length; out of range it digs the nearest allowed length. A Room and Pillar hall's width, 9 or 17; 17 or more digs 17, anything less 9 |
 | `entrance` | Block position, optional | Set by marking |
 | `heading` | Direction, optional | Set by marking |
 | `progress` | Integer, default 0 | Finished steps |

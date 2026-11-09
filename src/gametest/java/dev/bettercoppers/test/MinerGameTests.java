@@ -19,10 +19,12 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Unit;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
@@ -74,15 +76,19 @@ public class MinerGameTests {
 			chest.setItem(2, new ItemStack(Items.OAK_FENCE, 16));
 			chest.setItem(3, new ItemStack(Items.TORCH, 16));
 		}
+		MinePlan plan = MinePlan.blank(MinePattern.MINESHAFT, 8).marked(h.absolutePos(ENTRANCE), Direction.NORTH);
+		return new Scene(miner(h, start, plan, HOME), chest, plan);
+	}
+
+	private static CopperGolem miner(GameTestHelper h, BlockPos start, MinePlan plan, BlockPos home) {
 		CopperGolem golem = GameTests.golem(h, start);
 		GameTests.energize(golem);
-		MinePlan plan = MinePlan.blank(MinePattern.MINESHAFT, 8).marked(h.absolutePos(ENTRANCE), Direction.NORTH);
 		ItemStack planStack = new ItemStack(ModItems.MINESHAFT_PLAN);
 		planStack.set(ModComponents.MINE_PLAN, plan);
 		give(h, golem, new ItemStack(Items.COPPER_PICKAXE));
 		give(h, golem, planStack);
-		Homes.set(golem, h.absolutePos(HOME));
-		return new Scene(golem, chest, plan);
+		Homes.set(golem, h.absolutePos(home));
+		return golem;
 	}
 
 	private static void give(GameTestHelper h, CopperGolem golem, ItemStack stack) {
@@ -250,6 +256,28 @@ public class MinerGameTests {
 		});
 	}
 
+	@GameTest
+	public void survey_table_offers_a_hall_of_either_width_up_to_its_length(GameTestHelper h) {
+		Player player = h.makeMockPlayer(GameType.SURVIVAL);
+		SurveyTableMenu menu = new SurveyTableMenu(1, player.getInventory());
+		menu.getSlot(0).set(new ItemStack(Items.PAPER));
+		for (int i = 0; i < 20; i++) {
+			menu.clickMenuButton(player, SurveyTableMenu.BUTTON_LONGER);
+		}
+		while (menu.getPattern() != MinePattern.ROOM_AND_PILLAR) {
+			menu.clickMenuButton(player, SurveyTableMenu.BUTTON_NEXT_PATTERN);
+		}
+		h.assertValueEqual(menu.getLength(), 64, "length cut to the hall's maximum");
+		h.assertValueEqual(menu.getSetting(), 9, "hall width to start with");
+		menu.clickMenuButton(player, SurveyTableMenu.BUTTON_MORE);
+		h.assertValueEqual(menu.getSetting(), 17, "the wider hall");
+		menu.clickMenuButton(player, SurveyTableMenu.BUTTON_MORE);
+		h.assertValueEqual(menu.getSetting(), 17, "there is nothing wider");
+		MinePlan plan = menu.getSlot(1).getItem().get(ModComponents.MINE_PLAN);
+		h.assertTrue(plan != null && plan.pattern() == MinePattern.ROOM_AND_PILLAR && plan.setting() == 17, Component.literal("the result is the hall shown"));
+		h.succeed();
+	}
+
 	private static boolean hasKey(Component component, String key) {
 		return component.getContents() instanceof TranslatableContents contents && contents.getKey().equals(key)
 			|| component.getSiblings().stream().anyMatch(sibling -> hasKey(sibling, key));
@@ -324,6 +352,60 @@ public class MinerGameTests {
 	public void miner_with_supplies_makes_progress(GameTestHelper h) {
 		Scene s = scene(h, true, new BlockPos(7, 1, 7));
 		h.succeedWhen(() -> h.assertTrue(progress(s.golem()) > 0, "no progress yet"));
+	}
+
+	private static void fill(GameTestHelper h, BlockPos from, BlockPos to, Block block) {
+		BlockPos.betweenClosed(from, to).forEach(pos -> h.setBlock(pos, block));
+	}
+
+	/**
+	 * Sealed in stone so no daylight makes the torches unneeded. The hall is packed ice, which is quick to dig and drops
+	 * nothing, so the test does not wait for trips home. It is wider than the test area, hence the padding.
+	 */
+	@GameTest(maxTicks = 12000, padding = 48)
+	public void miner_digs_a_room_and_pillar_hall_to_the_end(GameTestHelper h) {
+		ServerLevel level = h.getLevel();
+		level.clockManager().setTotalTicks(level.dimensionType().defaultClock().orElseThrow(), 1000L);
+		// It runs past the test's own structure, and entities freeze at the border of the chunks a test keeps loaded.
+		BlockPos near = h.absolutePos(BlockPos.ZERO);
+		BlockPos far = h.absolutePos(new BlockPos(10, 0, 12));
+		for (int cx = near.getX() >> 4; cx <= far.getX() >> 4; cx++) {
+			for (int cz = near.getZ() >> 4; cz <= far.getZ() >> 4; cz++) {
+				level.setChunkForced(cx, cz, true);
+			}
+		}
+		fill(h, new BlockPos(0, 0, 0), new BlockPos(10, 4, 12), Blocks.STONE);
+		fill(h, new BlockPos(1, 1, 1), new BlockPos(9, 3, 8), Blocks.PACKED_ICE);
+		fill(h, new BlockPos(3, 1, 9), new BlockPos(7, 2, 11), Blocks.AIR);
+		BlockPos home = new BlockPos(3, 1, 10);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.TORCH, 16));
+		chest.setItem(1, new ItemStack(Items.OAK_FENCE, 16));
+		chest.setItem(2, new ItemStack(Items.RAIL, 16));
+		MinePlan plan = MinePlan.blank(MinePattern.ROOM_AND_PILLAR, 8, 9).marked(h.absolutePos(new BlockPos(5, 1, 8)), Direction.NORTH);
+		CopperGolem golem = miner(h, new BlockPos(5, 1, 10), plan, home);
+		// The hall is more digs than a copper pickaxe lasts; fetching a new one is not what this test is about.
+		golem.getMainHandItem().set(DataComponents.UNBREAKABLE, Unit.INSTANCE);
+		int allSteps = MineLayout.build(plan, level.getMinY()).size();
+		h.succeedWhen(() -> {
+			h.assertValueEqual(progress(golem), allSteps, "steps done");
+			for (int z = 1; z <= 8; z++) {
+				for (int x = 1; x <= 9; x++) {
+					boolean pillar = (z == 2 || z == 6) && (x == 3 || x == 7);
+					for (int y = 1; y <= 3; y++) {
+						BlockPos pos = new BlockPos(x, y, z);
+						// Torches stay in the row in front of a pillar.
+						h.assertTrue(pillar ? h.getBlockState(pos).is(Blocks.PACKED_ICE) : !h.getBlockState(pos).isSolid(), "wrong at " + pos);
+					}
+				}
+			}
+			for (int x : new int[] {3, 7}) {
+				h.assertTrue(h.getBlockState(new BlockPos(x, 2, 7)).is(Blocks.WALL_TORCH), "no torch on the pillar at x " + x);
+			}
+			// It went home for the torches, so this is a real restock.
+			h.assertValueEqual(chest.countItem(Items.OAK_FENCE), 16, "fences left in the chest");
+			h.assertValueEqual(chest.countItem(Items.RAIL), 16, "rails left in the chest");
+		});
 	}
 
 	@GameTest(maxTicks = 3600)

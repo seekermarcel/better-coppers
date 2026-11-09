@@ -42,7 +42,7 @@ The tunnel is 3 blocks wide and 3 blocks high. The marked entrance is the middle
 | Opening | Every slice, 3 wide and 3 high | Dug out |
 | Floor | Under the slice, where the block below is not solid | Any planks or [filler](#filler) |
 | Support | Slices 2, 6, 10, and so on (every 4th) | 2 fence posts on each side, 2 high, and a 3 wide plank beam on top |
-| Torch | Slices 3, 11, 19, and so on (every 8th) | Hung on the previous beam. Skipped where the light level is already 10 or more |
+| Torch | Slices 3, 11, 19, and so on (every 8th) | Hung on the previous beam. Skipped where the light level is already above 10 |
 | Rail | Every slice, middle column | Laid last, from the far end back to the entrance |
 
 The golem works one slice at a time: the middle column first, then the left and right columns, each from the top down. It then lays the floor, the support and the torch. It stands in the middle of the slice behind the one it works on. If there is no floor to stand on, as at a ledge or the edge of a cave, it lays one first from one block further back.
@@ -57,7 +57,7 @@ A **Staircase** is a walkable stairway going down from the entrance, one block d
 |---|---|---|
 | Opening | Every step, 2 high | Dug out |
 | Floor | Under the step, where the block below is not solid | Any planks or [filler](#filler) |
-| Torch | Steps 4, 12, 20, and so on (every 8th), on the right wall at head height, seen going down | Skipped where the light level is already 10 or more |
+| Torch | Steps 4, 12, 20, and so on (every 8th), on the right wall at head height, seen going down | Skipped where the light level is already above 10 |
 
 The golem works from the step above, the upper block first. A Staircase needs no rails, fences or supports, so there is nothing to [check before digging](#supplies); the golem still takes floor patches and torches along when it visits its chest. Golems and chained [Copper Chest Minecarts](/items/copper_chest_minecart) walk the stairs, and every trip goes back to the one home chest.
 
@@ -70,9 +70,38 @@ A **Strip Mine** exposes as much ore as possible. It has a corridor as long as t
 | Corridor | Every slice, 3 wide and 3 high | Dug out |
 | Branch | Both sides of slices 2, 5, 8, and so on, 1 wide and 2 high, leaving 2 blocks of rock between branches. As long as the Mineshaft Plan's branch length, 4 to 32 blocks | Dug out |
 | Floor | Under the corridor and branches, where the block below is not solid | Any planks or [filler](#filler) |
-| Torch | Slices 3, 12, 21, and so on, on the right wall, and every 9th block of a branch starting at the 4th | Skipped where the light level is already 10 or more |
+| Torch | Slices 3, 12, 21, and so on, on the right wall, and every 9th block of a branch starting at the 4th | Skipped where the light level is already above 10 |
 
 The golem digs a stretch of 3 slices of corridor, then that stretch's right branch, then its left branch, then the next stretch. There are no rails or supports, and a miner on a Strip Mine leaves fences in the chest. Torches are optional: without any it digs on in the dark.
+
+### Room and Pillar
+
+The **Room and Pillar** Mine Pattern digs a wide hall, 3 blocks high, instead of a tunnel. It starts right at the marked entrance, which is the middle of row 0, with no connecting corridor. To get a small door, mark the Mineshaft Plan from inside a short tunnel. Seen from above, with the golem digging upward and `#` a pillar:
+
+```
+row 7   .........
+row 6   ..#...#..
+row 5   .........
+row 4   .........
+row 3   .........
+row 2   ..#...#..
+row 1   .........
+row 0   .........
+            ^ entrance, centre column
+```
+
+| Part | Where | Made of |
+|---|---|---|
+| Hall | 9 or 17 wide (the Mine Pattern's setting), 8 to 64 long, 3 high | Dug out |
+| Floor | Under each column, where the block below is not solid | Any planks or [filler](#filler) |
+| Pillar | Rows 2, 6, 10, and so on, at 2 and, in a 17 wide hall, 6 blocks each side of the centre. 1×1, floor to ceiling | Rock left standing. Where a cave already removed it there is no pillar |
+| Torch | On the entrance side of the pillars in rows 2, 10, 18, and so on. Up to 16 in a 9 wide hall, 32 in a 17 wide one | Skipped where the light level is already above 10 |
+
+The golem finishes each row before the next: the centre column, then outward to one side, then the other, each column from the top down. It stands in the part of the row just dug, or in the row behind where a pillar is in the way.
+
+A hall needs no [supplies](#supplies) except torches, which are optional, and planks or filler for floors. A miner on a hall leaves rails and fences in the chest. A plan edited by command to a length or hall width it cannot have makes the nearest hall it can: at most 64 long, and 17 wide if the width is 17 or more, otherwise 9.
+
+<!-- MEDIA: jobs-miner-hall.png | screenshot | A finished Room and Pillar hall from inside, 9 wide, with rock pillars and torches on the pillars facing the entrance -->
 
 ### Supplies
 
@@ -118,7 +147,7 @@ A miner can harvest diamond, gold, redstone and emerald ore with its copper pick
 | Situation | What the golem does |
 |---|---|
 | Water or lava in the block, or touching it | Plugs it with filler, 15 ticks each, then digs on. Skips fluids the golem itself stands in |
-| No filler at a fluid | Gives up the current Mine Section, which in a mineshaft is the rest of the tunnel and in a Staircase the rest of the stairs. In a Strip Mine it is the rest of one branch, or in the corridor the rest of the corridor and its later branches. It does not go home for filler: it carries on at once and, in a mineshaft, lays rails in the part already dug. The Mineshaft Plan's tooltip and the golem's status show the block where it gave up (only the latest). Marking the Mineshaft Plan again is the retry: finished steps skip themselves |
+| No filler at a fluid | Gives up the current Mine Section, which in a mineshaft is the rest of the tunnel and in a Staircase the rest of the stairs. In a Strip Mine it is the rest of one branch, or in the corridor the rest of the corridor and its later branches. In a Room and Pillar hall it is the outer part of that half-row, or the rest of the hall if it is in the centre column; the other half and later rows are still dug. If that leaves the row just in front of a pillar undug, the golem cannot get past that pillar in the next row and gives up the blocks there, one by one, after 15 seconds each. It does not go home for filler: it carries on at once and, in a mineshaft, lays rails in the part already dug. The Mineshaft Plan's tooltip and the golem's status show the block where it gave up (only the latest). Marking the Mineshaft Plan again is the retry: finished steps skip themselves |
 | No filler at a fluid beside a chased ore or fallen block | Skips only that block. The Mineshaft Plan is untouched |
 | Gravel or sand fell into its last 32 digs | Clears it before anything else |
 | Walking without getting closer | Every 5 seconds, digs out the nearest block that fell into the finished tunnel |

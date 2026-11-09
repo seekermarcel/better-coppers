@@ -337,10 +337,10 @@ Rechtsklicke die Lore mit einer Eisen- oder Kupferkette, damit sie dir folgt, da
 Ein Sortierer lädt alles, was mit dem ersten Gegenstand verwandt ist: Stein bringt auch Steinstufen, -treppen und -ziegel mit, aber keine Eichenstämme. Dann liefert er alles in einem Gang aus.
 
 Andere Berufe füllen erst die Lore, dann ihren Beutel.""")),
-    "miner": (("Miner", """Miners dig a vanilla-style 3x3 mineshaft with plank floors, supports, torches and rails, a Staircase straight down, or a Strip Mine.
+    "miner": (("Miner", """Miners dig a vanilla-style 3x3 mineshaft with plank floors, supports, torches and rails, a Staircase straight down, a Strip Mine, or a wide Room and Pillar hall.
 
 # The plan
-Craft a Survey Table: 2 paper over 2 copper ingots over 2 planks. Put paper in, choose a Mine Pattern and a length (8 to 128) and take out the mineshaft plan.
+Craft a Survey Table: 2 paper over 2 copper ingots over 2 planks. Put paper in, choose a Mine Pattern (Mineshaft, Staircase, Strip Mine or Room and Pillar) and a length (8 to 128, up to 64 for Room and Pillar) and take out the mineshaft plan.
 
 Use the plan on the ground where the mine should start. The tunnel heads the way you look.
 
@@ -363,12 +363,17 @@ Out of filler at water or lava, it gives up that part of the mine: the rest of a
 
 Ending its job gives you the pickaxe and plan back. The plan keeps its progress.
 
+# Room and Pillar
+A wide hall, 3 high, 9 or 17 wide (the setting at the Survey Table), that starts right at the entrance. Every fourth row keeps pillars of rock standing, and every other row of pillars gets torches. It takes no rails, fences or planks; torches are optional.
+
+Out of filler at water or lava, it gives up the outer part of that half-row and digs on. In the centre column it gives up the rest of the hall.
+
 # Diamonds!
 When it finds diamonds, it digs out the whole vein and then hurries home with its antenna blinking, to show you."""),
-              ("Bergmann", """Bergleute graben einen 3x3-Stollen wie in Vanilla, mit Bretterboden, Stützen, Fackeln und Schienen, eine Treppe gerade nach unten oder einen Streifenabbau.
+              ("Bergmann", """Bergleute graben einen 3x3-Stollen wie in Vanilla, mit Bretterboden, Stützen, Fackeln und Schienen, eine Treppe gerade nach unten, einen Streifenabbau oder eine breite Halle im Kammerpfeilerbau.
 
 # Der Plan
-Stelle einen Vermessungstisch her: 2 Papier über 2 Kupferbarren über 2 Bretter. Lege Papier hinein, wähle eine Minenform und eine Länge (8 bis 128) und nimm den Stollenplan heraus.
+Stelle einen Vermessungstisch her: 2 Papier über 2 Kupferbarren über 2 Bretter. Lege Papier hinein, wähle eine Minenform (Minenschacht, Treppe, Streifenabbau oder Kammerpfeilerbau) und eine Länge (8 bis 128, beim Kammerpfeilerbau bis 64) und nimm den Stollenplan heraus.
 
 Benutze den Plan auf dem Boden, wo der Stollen beginnen soll. Er führt in deine Blickrichtung.
 
@@ -390,6 +395,11 @@ Er baut Erze ab, die an das grenzen, was er gräbt, und folgt jeder Ader für bi
 Ohne Füllmaterial an Wasser oder Lava gibt er diesen Teil der Mine auf: den Rest eines Stollens (im gegrabenen Teil legt er noch seine Schienen), den Rest einer Treppe, einen Seitenstollen eines Streifenabbaus oder den Rest seines Hauptgangs. Plan und Status zeigen, wo er aufgegeben hat. Markiere den Plan erneut an derselben Stelle, damit dieser Teil gegraben wird: Fertige Schritte überspringt er.
 
 Beendest du seinen Beruf, bekommst du Spitzhacke und Plan zurück. Der Plan merkt sich den Fortschritt.
+
+# Kammerpfeilerbau
+Eine breite Halle, 3 hoch und 9 oder 17 breit (einstellbar am Vermessungstisch), die direkt am Eingang beginnt. In jeder vierten Reihe bleiben Felspfeiler stehen, und jede zweite Pfeilerreihe bekommt Fackeln. Schienen, Zäune und Bretter braucht er dafür nicht, Fackeln sind freiwillig.
+
+Ohne Füllmaterial an Wasser oder Lava gibt er den äußeren Teil dieser halben Reihe auf und gräbt weiter. In der mittleren Spalte gibt er den Rest der Halle auf.
 
 # Diamanten!
 Findet er Diamanten, baut er die ganze Ader ab und eilt dann mit blinkender Antenne nach Hause, um sie dir zu zeigen.""")),
