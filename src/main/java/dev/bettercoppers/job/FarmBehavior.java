@@ -21,6 +21,7 @@ import net.minecraft.world.entity.animal.golem.CopperGolemState;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.AttachedStemBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -48,7 +49,7 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 	private static final int ENERGY_PER_ACTION = 3;
 
 	enum Kind {
-		/** Ripe wheat, carrots, potatoes, beetroot, nether wart or pitcher crop: harvest and replant. */
+		/** Ripe wheat, carrots, potatoes, beetroot, nether wart, pitcher crop or torchflower: harvest and replant. */
 		HARVEST_CROP,
 		/** A pumpkin or melon grown from a stem. */
 		HARVEST_FRUIT,
@@ -114,6 +115,9 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 			return new Task(Kind.HARVEST_CROP, pos, null);
 		}
 		if (block instanceof PitcherCropBlock && state.getValue(PitcherCropBlock.HALF) == DoubleBlockHalf.LOWER && state.getValue(PitcherCropBlock.AGE) >= PitcherCropBlock.MAX_AGE) {
+			return new Task(Kind.HARVEST_CROP, pos, null);
+		}
+		if (state.is(Blocks.TORCHFLOWER) && level.getBlockState(pos.below()).is(Blocks.FARMLAND)) {
 			return new Task(Kind.HARVEST_CROP, pos, null);
 		}
 		if ((state.is(Blocks.PUMPKIN) || state.is(Blocks.MELON)) && isGrownFromStem(level, pos)) {
@@ -222,7 +226,8 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 	}
 
 	private void harvestCrop(ServerLevel level, CopperGolem golem, BlockPos pos) {
-		Item seed = level.getBlockState(pos).getBlock().asItem();
+		BlockState state = level.getBlockState(pos);
+		Item seed = state.is(Blocks.TORCHFLOWER) ? Items.TORCHFLOWER_SEEDS : state.getBlock().asItem();
 		harvestBlocks(level, golem, List.of(pos));
 		this.plant(level, golem, pos, seed);
 	}

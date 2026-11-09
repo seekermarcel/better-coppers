@@ -361,14 +361,14 @@ Beendest du seinen Beruf, bekommst du Spitzhacke und Plan zurück. Der Plan merk
 Findet er Diamanten, baut er die ganze Ader ab und eilt dann mit blinkender Antenne nach Hause, um sie dir zu zeigen.""")),
     "farmer": (("Farmer", """Sneak + right-click a golem with a copper hoe. Its field is everything within 8 blocks of its home chest.
 
-- It harvests ripe wheat, carrots, potatoes, beetroot, nether wart and pitcher crops and replants them right away.
+- It harvests ripe wheat, carrots, potatoes, beetroot, nether wart, pitcher crops and torchflowers on farmland and replants them right away.
 - It picks pumpkins and melons and leaves the stems.
 - It cuts sugar cane and bamboo once they are 3 high.
 
 It keeps 16 of every seed it can plant. It never tills new land: you build the field, the golem looks after it. A stem needs a free block next to it for its fruit, so leave those spots as plain dirt. Sneak + right-click the farmer with seeds to give it some."""),
                ("Bauer", """Schleichen + Rechtsklick mit einer Kupferhacke auf einen Golem. Sein Feld ist alles im Umkreis von 8 Blöcken um seine Heimattruhe.
 
-- Er erntet reifen Weizen, Karotten, Kartoffeln, Rote Bete, Netherwarzen und Kannenpflanzen und pflanzt sofort nach.
+- Er erntet reifen Weizen, Karotten, Kartoffeln, Rote Bete, Netherwarzen, Kannenpflanzen und Fackellilien auf Ackerboden und pflanzt sofort nach.
 - Er erntet Kürbisse und Melonen und lässt die Stiele stehen.
 - Er schneidet Zuckerrohr und Bambus, sobald sie 3 hoch sind.
 

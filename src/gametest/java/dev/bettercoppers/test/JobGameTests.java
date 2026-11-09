@@ -64,6 +64,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.PitcherCropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
@@ -483,12 +484,44 @@ public class JobGameTests {
 		farmerPlants(h, Items.PITCHER_POD, Blocks.PITCHER_CROP);
 	}
 
+	@GameTest(maxTicks = 2400)
+	public void farmer_picks_torchflower_on_farmland_only(GameTestHelper h) {
+		Container chest = farmerWithHome(h);
+		BlockPos crop = new BlockPos(4, 1, 3);
+		BlockPos wild = new BlockPos(6, 1, 3);
+		h.setBlock(crop.below(), MOIST_FARMLAND);
+		h.setBlock(crop, Blocks.TORCHFLOWER);
+		h.setBlock(wild.below(), Blocks.GRASS_BLOCK);
+		h.setBlock(wild, Blocks.TORCHFLOWER);
+		chest.setItem(0, new ItemStack(Items.TORCHFLOWER_SEEDS));
+		h.succeedWhen(() -> {
+			h.assertTrue(count(chest, Items.TORCHFLOWER) >= 1, "no torchflower delivered yet");
+			h.assertBlockPresent(Blocks.TORCHFLOWER_CROP, crop);
+			h.assertBlockPresent(Blocks.TORCHFLOWER, wild);
+		});
+	}
+
+	/** Bare dry farmland can turn to dirt on any random tick, before the golem gets there. */
+	private static final BlockState MOIST_FARMLAND = Blocks.FARMLAND.defaultBlockState().setValue(FarmlandBlock.MOISTURE, FarmlandBlock.MAX_MOISTURE);
+
+	/** A farmer with a copper hoe, linked to a copper chest at (1, 1, 1). Builds the floor, so place fields after it. Returns the chest. */
+	private Container farmerWithHome(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		CopperGolem golem = GameTests.golem(h, new BlockPos(2, 1, 2));
+		GameTests.energize(golem);
+		give(h, golem, new ItemStack(Items.COPPER_HOE));
+		Homes.set(golem, h.absolutePos(home));
+		return chest;
+	}
+
 	private void farmerPlants(GameTestHelper h, Item seed, Block grown) {
 		scene(h);
 		BlockPos home = new BlockPos(1, 1, 1);
 		GameTests.chest(h, home, COPPER_CHEST).setItem(0, new ItemStack(seed, 4));
 		BlockPos field = new BlockPos(4, 1, 3);
-		h.setBlock(field.below(), Blocks.FARMLAND);
+		h.setBlock(field.below(), MOIST_FARMLAND);
 		CopperGolem golem = GameTests.golem(h, new BlockPos(2, 1, 2));
 		GameTests.energize(golem);
 		give(h, golem, new ItemStack(Items.COPPER_HOE));
