@@ -6,13 +6,13 @@ infobox:
     Job item: Copper pickaxe and Mineshaft Plan
     Needs home: "Yes"
     Running costs: Energy, rust, tool wear
-    Work radius: The Mineshaft Plan's tunnel, 8 to 128 blocks
+    Work radius: The Mineshaft Plan's mine, 8 to 128 blocks
     Mod: Better Coppers
 ---
 
 # Miner
 
-A **miner** is a [copper golem](/golem/copper-golem) that digs a mineshaft in the style of a vanilla [abandoned mineshaft](https://minecraft.wiki/w/Mineshaft), following a [Mineshaft Plan](/items/mineshaft_plan). It digs out the ores it comes across, keeps the tunnel safe from water and lava, and brings what it mines to its [home](/start/homes-and-status) chest.
+A **miner** is a [copper golem](/golem/copper-golem) that digs the mine a [Mineshaft Plan](/items/mineshaft_plan) describes: a [mineshaft](#the-tunnel) in the style of a vanilla [abandoned mineshaft](https://minecraft.wiki/w/Mineshaft) or a [Staircase](#the-staircase). It digs out the ores it comes across, keeps the tunnel safe from water and lava, and brings what it mines to its [home](/start/homes-and-status) chest.
 
 ## Setup
 
@@ -48,6 +48,18 @@ The tunnel is 3 blocks wide and 3 blocks high. The marked entrance is the middle
 The golem works one slice at a time: the middle column first, then the left and right columns, each from the top down. It then lays the floor, the support and the torch. It stands in the middle of the slice behind the one it works on. If there is no floor to stand on, as at a ledge or the edge of a cave, it lays one first from one block further back.
 
 <!-- MEDIA: jobs-miner-shaft.png | screenshot | A finished 3x3 mineshaft from inside, with plank beams on fence posts, torches on the beams and rails down the middle -->
+
+### The Staircase
+
+A **Staircase** is a walkable stairway going down from the entrance, one block down per block forward, the way the player looked when marking. It is 1 block wide with 2 clear blocks above each step. The Mineshaft Plan's length is its depth, so the lowest step is that many blocks below the entrance. It stops 5 layers above the bottom of the world, where bedrock begins, and is shorter if the entrance is too low.
+
+| Part | Where | Made of |
+|---|---|---|
+| Opening | Every step, 2 high | Dug out |
+| Floor | Under the step, where the block below is not solid | Any planks or [filler](#filler) |
+| Torch | Steps 4, 12, 20, and so on (every 8th), on the right wall at head height, seen going down | Skipped where the light level is already 10 or more |
+
+The golem works from the step above, the upper block first. A Staircase needs no rails, fences or supports, so there is nothing to [check before digging](#supplies); the golem still takes floor patches and torches along when it visits its chest. Golems and chained [Copper Chest Minecarts](/items/copper_chest_minecart) walk the stairs, and every trip goes back to the one home chest.
 
 ### Supplies
 
@@ -93,7 +105,7 @@ A miner can harvest diamond, gold, redstone and emerald ore with its copper pick
 | Situation | What the golem does |
 |---|---|
 | Water or lava in the block, or touching it | Plugs it with filler, 15 ticks each, then digs on. Skips fluids the golem itself stands in |
-| No filler at a fluid | Gives up the current Mine Section, which in a mineshaft is the rest of the tunnel. It does not go home for filler: it carries on at once and lays rails in the part already dug. The Mineshaft Plan's tooltip and the golem's status show the block where it gave up (only the latest). Marking the Mineshaft Plan again is the retry: finished steps skip themselves |
+| No filler at a fluid | Gives up the current Mine Section, which in a mineshaft is the rest of the tunnel and in a Staircase the rest of the stairs. It does not go home for filler: it carries on at once and, in a mineshaft, lays rails in the part already dug. The Mineshaft Plan's tooltip and the golem's status show the block where it gave up (only the latest). Marking the Mineshaft Plan again is the retry: finished steps skip themselves |
 | No filler at a fluid beside a chased ore or fallen block | Skips only that block. The Mineshaft Plan is untouched |
 | Gravel or sand fell into its last 32 digs | Clears it before anything else |
 | Walking without getting closer | Every 5 seconds, digs out the nearest block that fell into the finished tunnel |

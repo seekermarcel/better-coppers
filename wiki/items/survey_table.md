@@ -42,10 +42,10 @@ Right-clicking a Survey Table opens its screen. The screen looks like a [stonecu
 |---|---|
 | Shortest | 8 blocks |
 | Starting value | 32 blocks |
-| Longest | 128 blocks for a Mineshaft, shown with "max" |
+| Longest | 128 blocks for a Mineshaft or Staircase, shown with "max" |
 | Step | 8 blocks per click |
 
-The length resets to 32 when the screen is opened. There are 16 possible lengths. Clicking the Mine Pattern button moves on to the next Mine Pattern; Mineshaft is the only one so far. A Mine Pattern with a setting besides length adds a second row of **-** and **+** buttons for it. The result is a blank Mineshaft Plan with no entrance marked. Paper left in the slot returns to the player when the screen closes.
+The length resets to 32 when the screen is opened. There are 16 possible lengths. Clicking the Mine Pattern button moves on to the next Mine Pattern: Mineshaft or Staircase. A Mine Pattern with a setting besides length adds a second row of **-** and **+** buttons for it. The result is a blank Mineshaft Plan with no entrance marked. Paper left in the slot returns to the player when the screen closes.
 
 ## Advancements
 

@@ -337,10 +337,10 @@ Rechtsklicke die Lore mit einer Eisen- oder Kupferkette, damit sie dir folgt, da
 Ein Sortierer lädt alles, was mit dem ersten Gegenstand verwandt ist: Stein bringt auch Steinstufen, -treppen und -ziegel mit, aber keine Eichenstämme. Dann liefert er alles in einem Gang aus.
 
 Andere Berufe füllen erst die Lore, dann ihren Beutel.""")),
-    "miner": (("Miner", """Miners dig a vanilla-style 3x3 mineshaft with plank floors, supports, torches and rails.
+    "miner": (("Miner", """Miners dig a vanilla-style 3x3 mineshaft with plank floors, supports, torches and rails, or a Staircase straight down.
 
 # The plan
-Craft a Survey Table: 2 paper over 2 copper ingots over 2 planks. Put paper in, choose a length (8 to 128) and take out the mineshaft plan.
+Craft a Survey Table: 2 paper over 2 copper ingots over 2 planks. Put paper in, choose a Mine Pattern and a length (8 to 128) and take out the mineshaft plan.
 
 Use the plan on the ground where the mine should start. The tunnel heads the way you look.
 
@@ -350,19 +350,22 @@ Sneak + right-click it with a copper pickaxe first, then with the plan: without 
 # Supplies
 Without planks, fences and rails it does not dig. Keep those and torches in its chest; it fetches them when it needs them. Without torches it digs on and leaves them out.
 
+# Staircase
+A Staircase goes down one block for every block forward, one wide, with the plan's length as its depth. It stops above the bedrock. It takes no planks, fences or rails: only blocks to patch holes in the floor, and torches if you have them.
+
 # On the job
 It digs out ores touching what it digs and follows each vein for up to 16 ores, diamond, gold, redstone and emerald included. It plugs water and lava with filler it dug itself, such as cobblestone, stone or dirt, and walks home with up to 64 items. Link a sorter to the same chest to sort the loot.
 
-Out of filler at water or lava, it gives up the rest of the tunnel and goes on to lay its rails in the part it dug. The plan and its status show where it gave up. Mark the plan again at the same spot to have that part dug: finished steps skip themselves.
+Out of filler at water or lava, it gives up the rest of the tunnel and goes on to lay its rails in the part it dug. A Staircase simply ends there. The plan and its status show where it gave up. Mark the plan again at the same spot to have that part dug: finished steps skip themselves.
 
 Ending its job gives you the pickaxe and plan back. The plan keeps its progress.
 
 # Diamonds!
 When it finds diamonds, it digs out the whole vein and then hurries home with its antenna blinking, to show you."""),
-              ("Bergmann", """Bergleute graben einen 3x3-Stollen wie in Vanilla, mit Bretterboden, Stützen, Fackeln und Schienen.
+              ("Bergmann", """Bergleute graben einen 3x3-Stollen wie in Vanilla, mit Bretterboden, Stützen, Fackeln und Schienen, oder eine Treppe gerade nach unten.
 
 # Der Plan
-Stelle einen Vermessungstisch her: 2 Papier über 2 Kupferbarren über 2 Bretter. Lege Papier hinein, wähle eine Länge (8 bis 128) und nimm den Stollenplan heraus.
+Stelle einen Vermessungstisch her: 2 Papier über 2 Kupferbarren über 2 Bretter. Lege Papier hinein, wähle eine Minenform und eine Länge (8 bis 128) und nimm den Stollenplan heraus.
 
 Benutze den Plan auf dem Boden, wo der Stollen beginnen soll. Er führt in deine Blickrichtung.
 
@@ -372,10 +375,13 @@ Schleichen + Rechtsklick auf ihn, erst mit einer Kupferspitzhacke, dann mit dem 
 # Nachschub
 Ohne Bretter, Zäune und Schienen wird nicht gegraben. Lege sie und Fackeln in seine Truhe; er holt sie, wenn er sie braucht. Ohne Fackeln gräbt er weiter und lässt sie weg.
 
+# Treppe
+Eine Treppe führt mit jedem Block nach vorn einen Block tiefer, einen Block breit, und die Länge des Plans ist ihre Tiefe. Sie endet über dem Grundgestein. Sie braucht keine Bretter, Zäune oder Schienen: nur Blöcke, um Löcher im Boden zu flicken, und Fackeln, wenn du welche hast.
+
 # Bei der Arbeit
 Er baut Erze ab, die an das grenzen, was er gräbt, und folgt jeder Ader für bis zu 16 Erze, auch bei Diamant-, Gold-, Redstone- und Smaragderz. Wasser und Lava stopft er mit selbst gegrabenem Füllmaterial wie Bruchstein, Stein oder Erde zu und geht mit bis zu 64 Gegenständen nach Hause. Ein Sortierer an derselben Truhe sortiert die Beute.
 
-Ohne Füllmaterial an Wasser oder Lava gibt er den Rest des Tunnels auf und legt im gegrabenen Teil seine Schienen. Plan und Status zeigen, wo er aufgegeben hat. Markiere den Plan erneut an derselben Stelle, damit dieser Teil gegraben wird: Fertige Schritte überspringt er.
+Ohne Füllmaterial an Wasser oder Lava gibt er den Rest des Tunnels auf und legt im gegrabenen Teil seine Schienen. Eine Treppe endet einfach dort. Plan und Status zeigen, wo er aufgegeben hat. Markiere den Plan erneut an derselben Stelle, damit dieser Teil gegraben wird: Fertige Schritte überspringt er.
 
 Beendest du seinen Beruf, bekommst du Spitzhacke und Plan zurück. Der Plan merkt sich den Fortschritt.
 

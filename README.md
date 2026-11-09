@@ -74,16 +74,18 @@ To move a golem to another chest, link it again.
 
 ### Miner
 1. Make a **Survey Table** (2 paper / 2 copper ingots / 2 planks, stacked in that order).
-2. Put paper in, choose a length (8–128) and take out the **mineshaft plan**.
+2. Put paper in, choose a Mine Pattern and a length (8–128) and take out the **mineshaft plan**.
 3. Mark the entrance by using the plan on the ground (or on a wall). The tunnel heads the way you look.
 4. Sneak + right-click the golem with a **copper pickaxe**, then with the plan, then link it to a copper chest near the entrance.
 
-The golem digs a **3×3 vanilla-style mineshaft**: plank floor over gaps, a support every 4 blocks (fence posts and a plank beam), torches on the beams, and rails laid at the end.
+The **Mineshaft** pattern is a **3×3 vanilla-style mineshaft**: plank floor over gaps, a support every 4 blocks (fence posts and a plank beam), torches on the beams, and rails laid at the end.
 
-- **No supplies, no digging.** It must carry the rails, fences and planks for what it digs. It fetches them from its chest, or waits there until you restock. Torches come from the chest too, but without them it digs on and leaves them out.
+The **Staircase** pattern is a walkable stairway one block wide, going down one block per block forward, with the plan's length as its depth. It stops above the bedrock and needs no rails, fences or planks, only filler or planks for holes in the floor, and torches if there are any.
+
+- **No supplies, no digging.** In a Mineshaft it must carry the rails, fences and planks for what it digs. It fetches them from its chest, or waits there until you restock. Torches come from the chest too, but without them it digs on and leaves them out.
 - **Ores:** it digs out ores touching what it digs and follows each vein for up to 16 ores, diamond, gold, redstone and emerald included.
 - **Diamonds:** when it finds diamonds, it digs out the whole vein and hurries home with its antenna blinking.
-- **Safety:** it plugs water and lava with filler it dug itself (cobblestone, stone, dirt and the like) and clears gravel and sand that falls in. Out of filler, it gives up the rest of the tunnel, lays its rails in the part it dug, and the plan shows where it stopped.
+- **Safety:** it plugs water and lava with filler it dug itself (cobblestone, stone, dirt and the like) and clears gravel and sand that falls in. Out of filler, it gives up the rest of the tunnel, lays its rails in the part it dug, and the plan shows where it stopped; a Staircase simply ends there.
 - **Slow and clumsy:** it digs two to three times slower than a player and skips blocks it can't reach.
 - **Loot:** it carries 64 items (more with a cart), then walks home. Link a sorter to the same chest and it sorts the loot, leaving the mining supplies alone.
 - **Getting things back:** end its job to get the pickaxe and the plan back. The plan keeps its progress. It takes the pickaxe first, then the plan.

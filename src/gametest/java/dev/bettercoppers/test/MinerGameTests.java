@@ -18,6 +18,7 @@ import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.SectionPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
@@ -109,7 +110,11 @@ public class MinerGameTests {
 		SurveyTableMenu menu = new SurveyTableMenu(1, player.getInventory());
 		menu.getSlot(0).set(new ItemStack(Items.PAPER));
 		menu.clickMenuButton(player, SurveyTableMenu.BUTTON_NEXT_PATTERN);
-		h.assertTrue(menu.getPattern() == MinePattern.MINESHAFT, Component.literal("the only Mine Pattern cycles back to itself"));
+		h.assertTrue(menu.getPattern() != MinePattern.MINESHAFT, Component.literal("the button moves on to another Mine Pattern"));
+		for (int i = 1; i < MinePattern.values().length; i++) {
+			menu.clickMenuButton(player, SurveyTableMenu.BUTTON_NEXT_PATTERN);
+		}
+		h.assertTrue(menu.getPattern() == MinePattern.MINESHAFT, Component.literal("a full round comes back to the Mineshaft"));
 		for (int i = 0; i < 20; i++) {
 			menu.clickMenuButton(player, SurveyTableMenu.BUTTON_LONGER);
 		}
@@ -119,6 +124,62 @@ public class MinerGameTests {
 		h.assertTrue(plan.length() == 128, Component.literal("length stops at the pattern's maximum: " + plan.length()));
 		h.assertTrue(plan.setting() == 0, Component.literal("a pattern without a setting ignores its buttons: " + plan.setting()));
 		h.succeed();
+	}
+
+	private static final int STAIR_DEPTH = 32;
+	private static final int STAIR_TOP = STAIR_DEPTH + 2;
+	private static final BlockPos STAIR_HOME = new BlockPos(2, STAIR_TOP, 0);
+
+	/** The block a golem stands in on step {@code i} of the scene's stairs, which head south along x = 4 from z = 0. */
+	private static BlockPos stairStep(int i) {
+		return new BlockPos(4, STAIR_TOP - i, i);
+	}
+
+	/**
+	 * Solid stone under a stone roof, entrance on the top edge. A hole in the floor of the middle step needs a patch,
+	 * the torches have to be fetched from the chest, and the load goes all the way back up.
+	 */
+	@GameTest(maxTicks = 6000, padding = 48)
+	public void miner_digs_a_long_staircase_to_the_end_and_carries_the_load_home(GameTestHelper h) {
+		ServerLevel level = h.getLevel();
+		level.clockManager().setTotalTicks(level.dimensionType().defaultClock().orElseThrow(), 1000L);
+		for (int x = 2; x <= 6; x++) {
+			for (int z = 0; z <= STAIR_DEPTH + 1; z++) {
+				for (int y = 1; y <= STAIR_TOP + 2; y++) {
+					boolean aboveTheLanding = z == 0 && y >= STAIR_TOP;
+					h.setBlock(new BlockPos(x, y, z), aboveTheLanding ? Blocks.AIR : Blocks.STONE);
+				}
+			}
+		}
+		// Longer than the chunks a test keeps loaded, and entities freeze at their border.
+		for (int z = 0; z <= STAIR_DEPTH + 1; z++) {
+			for (int x : new int[] {2, 6}) {
+				BlockPos pos = h.absolutePos(new BlockPos(x, 0, z));
+				level.setChunkForced(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()), true);
+			}
+		}
+		h.setBlock(stairStep(STAIR_DEPTH / 2).below(), Blocks.AIR);
+		Container chest = GameTests.chest(h, STAIR_HOME, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.TORCH, 16));
+		CopperGolem golem = GameTests.golem(h, new BlockPos(3, STAIR_TOP, 0));
+		GameTests.energize(golem);
+		ItemStack planStack = new ItemStack(ModItems.MINESHAFT_PLAN);
+		planStack.set(ModComponents.MINE_PLAN, MinePlan.blank(MinePattern.STAIRCASE, STAIR_DEPTH).marked(h.absolutePos(new BlockPos(4, STAIR_TOP, 1)), Direction.SOUTH));
+		give(h, golem, new ItemStack(Items.COPPER_PICKAXE));
+		give(h, golem, planStack);
+		Homes.set(golem, h.absolutePos(STAIR_HOME));
+		h.succeedWhen(() -> {
+			String where = " golem at " + h.relativePos(golem.blockPosition()) + ", progress " + progress(golem);
+			for (int i = 1; i <= STAIR_DEPTH; i++) {
+				h.assertTrue(h.getBlockState(stairStep(i)).isAir(), "step " + i + " not dug;" + where);
+				h.assertTrue(!h.getBlockState(stairStep(i).above()).isSolid(), "no headroom on step " + i + ";" + where);
+				h.assertTrue(h.getBlockState(stairStep(i).below()).isSolid(), "no floor under step " + i + ";" + where);
+			}
+			h.assertTrue(h.getBlockState(stairStep(4).above()).is(Blocks.WALL_TORCH), "no torch on step 4;" + where);
+			h.assertTrue(chest.countItem(Items.COBBLESTONE) > 0, "the load is not home;" + where);
+			h.assertTrue(Load.of(golem).hasNothingToBringHome(), "still carrying its load;" + where);
+			h.assertValueEqual(progress(golem), MineLayout.build(MinerData.get(golem).plan(), level.getMinY()).size(), "steps done");
+		});
 	}
 
 	private static boolean hasKey(Component component, String key) {

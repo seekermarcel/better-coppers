@@ -49,12 +49,16 @@ public final class MineLayout {
 	}
 
 	private static final int SUPPORT_SPACING = 4;
+	private static final int STAIR_TORCH_SPACING = 8;
+	/** How high vanilla's bedrock floor reaches; a golem cannot dig it. */
+	private static final int BEDROCK_LAYERS = 5;
 
 	private final BlockPos entrance;
 	private final Direction forward;
 	private final Direction right;
 	private final List<Step> steps = new ArrayList<>();
 	private BlockPos stand;
+	private Direction backOff;
 	private Needs needs = Needs.NONE;
 	private int resumeAt;
 
@@ -63,12 +67,14 @@ public final class MineLayout {
 		this.forward = forward;
 		this.right = forward.getClockWise();
 		this.stand = entrance;
+		this.backOff = forward.getOpposite();
 	}
 
 	public static List<Step> build(MinePlan plan, int minY) {
 		MineLayout layout = new MineLayout(plan.entrance().orElseThrow(), plan.heading().orElseThrow());
 		return switch (plan.pattern()) {
 			case MINESHAFT -> layout.mineshaft(plan.length());
+			case STAIRCASE -> layout.staircase(plan.length(), minY);
 		};
 	}
 
@@ -94,6 +100,37 @@ public final class MineLayout {
 		return this.steps;
 	}
 
+	/** Stops above the bedrock; a hazard gives up the rest of the stairs, and there is nothing after them. */
+	private List<Step> staircase(int length, int minY) {
+		int depth = Math.min(Math.min(length, MinePattern.STAIRCASE.maxLength()), this.entrance.getY() - minY - BEDROCK_LAYERS);
+		this.stairs(this.cell(-1, 0, 0), this.forward, depth);
+		int end = this.steps.size();
+		this.steps.replaceAll(step -> step.resumingAt(end));
+		return this.steps;
+	}
+
+	/**
+	 * A carved stairway, one block down per block of {@code run}, from the open block {@code start} (where the golem
+	 * stands for the first step) until it is {@code depth} blocks lower. One wide with two clear blocks above each step
+	 * and nothing to carry but floor patches, torches optional. Any generator can append these.
+	 */
+	private void stairs(BlockPos start, Direction run, int depth) {
+		this.needs = Needs.NONE;
+		// One step back is up as well as back, and straight back is the rock under the step behind.
+		this.backOff = Direction.UP;
+		for (int i = 1; i <= depth; i++) {
+			this.stand = start.relative(run, i - 1).below(i - 1);
+			BlockPos step = start.relative(run, i).below(i);
+			this.add(Action.DIG, step.above());
+			this.add(Action.DIG, step);
+			this.add(Action.FLOOR, step.below());
+			if (i % STAIR_TORCH_SPACING == STAIR_TORCH_SPACING / 2) {
+				this.add(Action.TORCH, step.above(), run.getCounterClockWise());
+			}
+		}
+		this.backOff = this.forward.getOpposite();
+	}
+
 	/** Slices that get two fence posts and a plank beam. */
 	private static boolean isSupportSlice(int slice) {
 		return slice % SUPPORT_SPACING == 2;
@@ -113,7 +150,7 @@ public final class MineLayout {
 	}
 
 	private void add(Action action, BlockPos pos, Direction facing) {
-		this.steps.add(new Step(action, pos, this.stand, facing, this.forward.getOpposite(), action == Action.DIG ? this.needs : Needs.NONE, this.resumeAt));
+		this.steps.add(new Step(action, pos, this.stand, facing, this.backOff, action == Action.DIG ? this.needs : Needs.NONE, this.resumeAt));
 	}
 
 	private void slice(int i) {

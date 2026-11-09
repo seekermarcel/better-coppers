@@ -13,7 +13,9 @@ import net.minecraft.util.StringRepresentable;
  */
 public enum MinePattern implements StringRepresentable {
 	/** Vanilla-style corridor with wooden supports and rails. */
-	MINESHAFT("mineshaft", MinePlan.MAX_LENGTH, Setting.NONE);
+	MINESHAFT("mineshaft", MinePlan.MAX_LENGTH, Setting.NONE),
+	/** Walkable stairway going down from the entrance, its length being its depth. */
+	STAIRCASE("staircase", MinePlan.MAX_LENGTH, Setting.NONE);
 
 	public static final Codec<MinePattern> CODEC = StringRepresentable.fromEnum(MinePattern::values);
 	public static final StreamCodec<ByteBuf, MinePattern> STREAM_CODEC = ByteBufCodecs.idMapper(i -> values()[i], MinePattern::ordinal);

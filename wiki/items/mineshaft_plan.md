@@ -28,7 +28,7 @@ To **mark** a Mineshaft Plan, use it on a block where the mine should start.
 | Top of a block | The block above it |
 | Any other side of a block | The clicked block itself |
 
-The entrance is the middle block of the first slice at floor height. The tunnel heads in the horizontal direction the player is facing. A message shows the entrance coordinates and heading.
+The entrance is the middle block of the first slice at floor height, or the top of a Staircase. The mine heads in the horizontal direction the player is facing. A message shows the entrance coordinates and heading.
 
 Marking a Mineshaft Plan again moves the entrance, resets its progress to 0 and clears where a golem gave up. A Mineshaft Plan cannot be marked while a golem holds it.
 
@@ -48,7 +48,7 @@ When the golem's job ends, the Mineshaft Plan comes back to the player with its 
 
 | Line | Shown |
 |---|---|
-| Mineshaft | Always, in gold |
+| The Mine Pattern's name | Always, in gold |
 | Length: *N* blocks | Always |
 | The Mine Pattern's setting and value | For a Mine Pattern that has a setting |
 | Use on the ground at the mine entrance | While unmarked, in yellow |
@@ -72,6 +72,8 @@ Progress counts finished steps of the [tunnel layout](/jobs/miner#the-tunnel), i
 
 Each slice has 12 dig and floor steps. Each support adds 7 steps. Each torch adds 1 step.
 
+A [Staircase](/jobs/miner#the-staircase) has 3 steps per block of depth plus 1 per torch: 25 steps at length 8, 50 at 16, 100 at 32, 200 at 64 and 400 at 128.
+
 ## Advancements
 
 | Advancement | How | ID |
@@ -91,8 +93,8 @@ The item component has these fields:
 
 | Field | Type | Meaning |
 |---|---|---|
-| `pattern` | String | Always `mineshaft` |
-| `length` | Integer, 8 to 128 | Tunnel length in blocks |
+| `pattern` | String | `mineshaft` or `staircase` |
+| `length` | Integer, 8 to 128 | Length of the tunnel, or depth of a Staircase, in blocks |
 | `setting` | Integer, default 0 | The value of the Mine Pattern's setting, 0 if it has none |
 | `entrance` | Block position, optional | Set by marking |
 | `heading` | Direction, optional | Set by marking |
