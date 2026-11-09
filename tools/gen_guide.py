@@ -361,18 +361,18 @@ Beendest du seinen Beruf, bekommst du Spitzhacke und Plan zurück. Der Plan merk
 Findet er Diamanten, baut er die ganze Ader ab und eilt dann mit blinkender Antenne nach Hause, um sie dir zu zeigen.""")),
     "farmer": (("Farmer", """Sneak + right-click a golem with a copper hoe. Its field is everything within 8 blocks of its home chest.
 
-- It harvests ripe wheat, carrots, potatoes, beetroot and nether wart and replants them right away.
+- It harvests ripe wheat, carrots, potatoes, beetroot, nether wart and pitcher crops and replants them right away.
 - It picks pumpkins and melons and leaves the stems.
 - It cuts sugar cane and bamboo once they are 3 high.
 
-It keeps 16 of every seed it can plant. Pumpkin seeds, melon seeds and pitcher pods are not among them, so it never plants those. It never tills new land: you build the field, the golem looks after it. Sneak + right-click the farmer with seeds to give it some."""),
+It keeps 16 of every seed it can plant. It never tills new land: you build the field, the golem looks after it. A stem needs a free block next to it for its fruit, so leave those spots as plain dirt. Sneak + right-click the farmer with seeds to give it some."""),
                ("Bauer", """Schleichen + Rechtsklick mit einer Kupferhacke auf einen Golem. Sein Feld ist alles im Umkreis von 8 Blöcken um seine Heimattruhe.
 
-- Er erntet reifen Weizen, Karotten, Kartoffeln, Rote Bete und Netherwarzen und pflanzt sofort nach.
+- Er erntet reifen Weizen, Karotten, Kartoffeln, Rote Bete, Netherwarzen und Kannenpflanzen und pflanzt sofort nach.
 - Er erntet Kürbisse und Melonen und lässt die Stiele stehen.
 - Er schneidet Zuckerrohr und Bambus, sobald sie 3 hoch sind.
 
-Er behält 16 von jedem Saatgut, das er pflanzen kann. Kürbiskerne, Melonenkerne und Kannenpflanzenkapseln gehören nicht dazu, er pflanzt sie also nie. Neues Land pflügt er nie: Du legst das Feld an, der Golem pflegt es. Schleichen + Rechtsklick mit Saatgut auf den Bauern gibt ihm welches.""")),
+Er behält 16 von jedem Saatgut, das er pflanzen kann. Neues Land pflügt er nie: Du legst das Feld an, der Golem pflegt es. Ein Stiel braucht für seine Frucht einen freien Block daneben, lass diese Stellen also als einfache Erde. Schleichen + Rechtsklick mit Saatgut auf den Bauern gibt ihm welches.""")),
     "workers": (("Forester, Fisher, Keeper, Crafter", """Sneak + right-click a golem with one of these items to give it the job.
 
 # Forester: a copper axe

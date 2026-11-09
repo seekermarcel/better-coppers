@@ -30,9 +30,10 @@ The field is a box around the home chest: 8 blocks to each side and 3 up and dow
 | Task | What the farmer does |
 |---|---|
 | Ripe crops: wheat, carrots, potatoes, beetroot, nether wart | Harvests and replants right away, using the seed from the drops |
+| Ripe pitcher crop | Harvests the pitcher plant and plants a new pod if it carries one |
 | Pumpkin or melon attached to a stem | Picks it and leaves the stem |
 | Sugar cane or bamboo, at least 3 high | Cuts everything above the bottom block |
-| Empty farmland | Plants a crop from its supplies |
+| Empty farmland | Plants a crop, pumpkin or melon seeds, or a pitcher pod from its supplies |
 | Empty soul sand | Plants nether wart from its supplies |
 
 Empty farmland gets what the neighbouring blocks grow if the farmer carries that seed, or else any crop seed it carries. It only plants on blocks with air above.
@@ -43,7 +44,7 @@ Each task takes 25 to 39 ticks (1.25 to 2 seconds), longer with rust. A short he
 
 A farmer keeps 16 of every seed kind in its supplies. When unloading, seeds up to 16 of each kind stay with it. When restocking, it takes up to 16 of each seed kind found in the chest. If empty farmland is waiting and it carries no crop seeds while the chest holds some, it goes home to fetch them.
 
-A **seed** is an item that plants a crop block or nether wart. Carrots and potatoes count. Pumpkin seeds, melon seeds and pitcher pods do not, so a farmer neither plants nor keeps them.
+A **seed** is an item that plants a crop block or nether wart. Carrots, potatoes, pumpkin seeds, melon seeds and pitcher pods count.
 
 A farmer given seeds with sneak + right-click takes the whole held stack. A [sorter](/jobs/sorter) sharing the chest leaves 16 of every seed and all spare copper hoes.
 
@@ -58,13 +59,14 @@ The harvest goes into a chained [Copper Chest Minecart](/items/copper_chest_mine
 | Harvesting a block | 3 | 1, only for pumpkins, melons and bamboo |
 | Planting | 3 | None |
 
-Ripe crops, nether wart and sugar cane break instantly, so they cost the hoe nothing. Harvesting and replanting a crop costs 6 energy. A full charge of 1000 energy is about 166 harvest-and-replant cycles. A copper hoe has 190 durability. Farmers stop at night. See [Running costs](/golem/running-costs) and [Tools](/golem/tools).
+Ripe crops, nether wart, pitcher crops and sugar cane break instantly, so they cost the hoe nothing. Harvesting and replanting a crop costs 6 energy. A full charge of 1000 energy is about 166 harvest-and-replant cycles. A copper hoe has 190 durability. Farmers stop at night. See [Running costs](/golem/running-costs) and [Tools](/golem/tools).
 
 ## Limits and edge cases
 
 - A farmer never tills land, bone-meals crops or waters fields.
 - A pumpkin or melon counts only if a stem attached to it faces it. Ones placed by hand are left alone.
-- If it carries no seed for a harvested crop, no replant happens.
+- A stem grows its fruit into a free block next to it. The farmer plants on all empty farmland, so leave the spots for the fruit as plain dirt or a field of stems never fruits.
+- If it carries no seed for a harvested crop, no replant happens. A ripe pitcher crop gives a pitcher plant and no pod, so its pods have to come from you.
 - Empty soul sand alone does not send the farmer home to fetch nether wart. It plants nether wart it already carries, or takes some on its next chest visit.
 - A blocked crop is skipped for 30 seconds after 15 seconds without getting closer.
 

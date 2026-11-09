@@ -26,8 +26,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
+import net.minecraft.world.level.block.PitcherCropBlock;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.StemBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.gameevent.GameEvent;
 import org.jspecify.annotations.Nullable;
 
@@ -45,7 +48,7 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 	private static final int ENERGY_PER_ACTION = 3;
 
 	enum Kind {
-		/** Ripe wheat, carrots, potatoes, beetroot or nether wart: harvest and replant. */
+		/** Ripe wheat, carrots, potatoes, beetroot, nether wart or pitcher crop: harvest and replant. */
 		HARVEST_CROP,
 		/** A pumpkin or melon grown from a stem. */
 		HARVEST_FRUIT,
@@ -84,7 +87,7 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 			if (found == null) {
 				if (!seedsAtHome && level.getBlockState(pos).is(Blocks.FARMLAND) && level.getBlockState(pos.above()).isAir()) {
 					Container chest = Homes.container(level, home);
-					seedsAtHome = chest != null && Inventories.contains(chest, stack -> isSeed(stack) && cropOf(stack) instanceof CropBlock);
+					seedsAtHome = chest != null && Inventories.contains(chest, FarmBehavior::growsOnFarmland);
 				}
 				continue;
 			}
@@ -94,7 +97,7 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 				bestDistance = distance;
 			}
 		}
-		if (best == null && seedsAtHome && load.find(stack -> cropOf(stack) instanceof CropBlock).isEmpty()) {
+		if (best == null && seedsAtHome && load.find(FarmBehavior::growsOnFarmland).isEmpty()) {
 			// Empty farmland and seeds waiting in the chest: fetch them.
 			this.requestReturn();
 		}
@@ -110,6 +113,9 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 		if (block instanceof NetherWartBlock && state.getValue(NetherWartBlock.AGE) >= NetherWartBlock.MAX_AGE) {
 			return new Task(Kind.HARVEST_CROP, pos, null);
 		}
+		if (block instanceof PitcherCropBlock && state.getValue(PitcherCropBlock.HALF) == DoubleBlockHalf.LOWER && state.getValue(PitcherCropBlock.AGE) >= PitcherCropBlock.MAX_AGE) {
+			return new Task(Kind.HARVEST_CROP, pos, null);
+		}
 		if ((state.is(Blocks.PUMPKIN) || state.is(Blocks.MELON)) && isGrownFromStem(level, pos)) {
 			return new Task(Kind.HARVEST_FRUIT, pos, null);
 		}
@@ -121,7 +127,7 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 			return null;
 		}
 		if (state.is(Blocks.FARMLAND)) {
-			Item seed = this.pickSeed(level, load, above, stack -> cropOf(stack) instanceof CropBlock);
+			Item seed = this.pickSeed(level, load, above, FarmBehavior::growsOnFarmland);
 			return seed == null ? null : new Task(Kind.PLANT, above, seed);
 		}
 		if (state.is(Blocks.SOUL_SAND)) {
@@ -167,9 +173,15 @@ public class FarmBehavior extends JobBehavior<FarmBehavior.Task> {
 		return stack.getItem() instanceof BlockItem blockItem ? blockItem.getBlock() : null;
 	}
 
-	/** Anything a farmer can plant: crops for farmland and nether wart for soul sand. */
+	/** Crops, pumpkin and melon stems and pitcher crops. */
+	private static boolean growsOnFarmland(ItemStack stack) {
+		Block block = cropOf(stack);
+		return block instanceof CropBlock || block instanceof StemBlock || block instanceof PitcherCropBlock;
+	}
+
+	/** Anything a farmer can plant: what grows on farmland and nether wart for soul sand. */
 	public static boolean isSeed(ItemStack stack) {
-		return stack.getItem() instanceof BlockItem blockItem && (blockItem.getBlock() instanceof CropBlock || blockItem.getBlock() instanceof NetherWartBlock);
+		return growsOnFarmland(stack) || cropOf(stack) instanceof NetherWartBlock;
 	}
 
 	// --- working ---

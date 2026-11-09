@@ -64,7 +64,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.PitcherCropBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import org.jspecify.annotations.Nullable;
 
 /** One game test per job: each builds a small scene, hands the golem its tool the way a player would, and waits. */
@@ -462,6 +465,56 @@ public class JobGameTests {
 			for (BlockPos crop : crops) {
 				h.assertBlockPresent(Blocks.WHEAT, crop);
 			}
+		});
+	}
+
+	@GameTest(maxTicks = 2400)
+	public void farmer_plants_pumpkin_seeds(GameTestHelper h) {
+		farmerPlants(h, Items.PUMPKIN_SEEDS, Blocks.PUMPKIN_STEM);
+	}
+
+	@GameTest(maxTicks = 2400)
+	public void farmer_plants_melon_seeds(GameTestHelper h) {
+		farmerPlants(h, Items.MELON_SEEDS, Blocks.MELON_STEM);
+	}
+
+	@GameTest(maxTicks = 2400)
+	public void farmer_plants_pitcher_pods(GameTestHelper h) {
+		farmerPlants(h, Items.PITCHER_POD, Blocks.PITCHER_CROP);
+	}
+
+	private void farmerPlants(GameTestHelper h, Item seed, Block grown) {
+		scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		GameTests.chest(h, home, COPPER_CHEST).setItem(0, new ItemStack(seed, 4));
+		BlockPos field = new BlockPos(4, 1, 3);
+		h.setBlock(field.below(), Blocks.FARMLAND);
+		CopperGolem golem = GameTests.golem(h, new BlockPos(2, 1, 2));
+		GameTests.energize(golem);
+		give(h, golem, new ItemStack(Items.COPPER_HOE));
+		Homes.set(golem, h.absolutePos(home));
+		h.succeedWhen(() -> h.assertBlockPresent(grown, field));
+	}
+
+	@GameTest(maxTicks = 2400)
+	public void farmer_harvests_ripe_pitcher_and_replants(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.PITCHER_POD));
+		BlockPos crop = new BlockPos(4, 1, 3);
+		h.setBlock(crop.below(), Blocks.FARMLAND);
+		BlockState ripe = Blocks.PITCHER_CROP.defaultBlockState().setValue(PitcherCropBlock.AGE, PitcherCropBlock.MAX_AGE);
+		h.setBlock(crop, ripe);
+		h.setBlock(crop.above(), ripe.setValue(PitcherCropBlock.HALF, DoubleBlockHalf.UPPER));
+		CopperGolem golem = GameTests.golem(h, new BlockPos(2, 1, 2));
+		GameTests.energize(golem);
+		give(h, golem, new ItemStack(Items.COPPER_HOE));
+		Homes.set(golem, h.absolutePos(home));
+		h.succeedWhen(() -> {
+			h.assertTrue(count(chest, Items.PITCHER_PLANT) >= 1, "no pitcher plant delivered yet");
+			h.assertBlockPresent(Blocks.PITCHER_CROP, crop);
+			h.assertTrue(h.getBlockState(crop).getValue(PitcherCropBlock.AGE) < PitcherCropBlock.MAX_AGE, "not replanted yet");
 		});
 	}
 
