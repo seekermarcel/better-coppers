@@ -1,7 +1,10 @@
 package dev.bettercoppers.job;
 
+import dev.bettercoppers.golem.FrameFilter;
 import dev.bettercoppers.golem.Inventories;
+import dev.bettercoppers.golem.Quota;
 import dev.bettercoppers.home.Homes;
+import dev.bettercoppers.item.QuotaSlipItem;
 import dev.bettercoppers.runningcosts.RunningCosts;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,7 +33,8 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Crafts whatever is shown in item frames on or right next to its home chest, using only what is in that chest, one
- * item at a time and slowly. It stops once a stack of the result is in the chest.
+ * item at a time and slowly. It stops once a stack of the result is in the chest, or the amount a Quota Slip on the
+ * chest lists for it.
  */
 public class CraftBehavior extends JobBehavior<CraftBehavior.Order> {
 	private static final int FRAME_RANGE = 2;
@@ -55,9 +59,15 @@ public class CraftBehavior extends JobBehavior<CraftBehavior.Order> {
 		if (chest == null) {
 			return null;
 		}
+		Quota quota = FrameFilter.at(level, home).quota();
 		for (ItemFrame frame : level.getEntitiesOfClass(ItemFrame.class, new AABB(home).inflate(FRAME_RANGE))) {
 			ItemStack wanted = frame.getItem();
-			if (wanted.isEmpty() || Inventories.count(chest, stack -> stack.is(wanted.getItem())) >= STOCK_LIMIT) {
+			// A slip only sets amounts, it is never an order.
+			if (wanted.isEmpty() || wanted.getItem() instanceof QuotaSlipItem) {
+				continue;
+			}
+			int limit = quota.of(wanted.getItem()) > 0 ? quota.of(wanted.getItem()) : STOCK_LIMIT;
+			if (Inventories.count(chest, stack -> stack.is(wanted.getItem())) >= limit) {
 				continue;
 			}
 			for (CraftingRecipe recipe : recipesFor(level, wanted.getItem())) {

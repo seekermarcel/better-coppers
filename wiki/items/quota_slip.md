@@ -41,9 +41,10 @@ A slot goes up to the item's stack size. For more of an item, use more slots: th
 
 ## What a quota does
 
-- Only sorters and couriers read it. [Jobless golems](/golem/copper-golem) ignore it.
+- Only sorters, couriers and [crafters](/jobs/crafter#quotas) read it. [Jobless golems](/golem/copper-golem) ignore it.
 - A chest with a slip counts as a [reserved chest](/jobs/sorter#reserved-chests) for the items listed. A blank slip reserves nothing.
 - Quotas are per item type and ignore enchantments and other item data.
 - Golems deliver only up to the amount, and take only what is above it.
 - A [courier](/jobs/courier#refilling-a-chest) whose destination has a slip keeps that chest filled.
+- A [crafter](/jobs/crafter#quotas) crafts what its frames show up to the amount on a slip on its home chest, instead of a stack.
 - If two slips on one chest list the same item, the larger amount counts.

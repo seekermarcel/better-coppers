@@ -352,6 +352,35 @@ public class JobWorkGameTests {
 			.thenSucceed();
 	}
 
+	@GameTest(maxTicks = 1200, padding = PADDING)
+	public void crafter_stops_at_the_quota_on_its_chest(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos home = new BlockPos(1, 1, 1);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.STICK, 10));
+		chest.setItem(1, new ItemStack(Items.OAK_PLANKS, 8));
+		ItemFrame frame = new ItemFrame(h.getLevel(), h.absolutePos(home.west()), Direction.WEST);
+		frame.setItem(new ItemStack(Items.STICK));
+		h.getLevel().addFreshEntity(frame);
+		// The slip sets the amount, and is no order itself: no Quota Slip is crafted from the paper and copper.
+		ItemFrame slip = new ItemFrame(h.getLevel(), h.absolutePos(home.north()), Direction.NORTH);
+		slip.setItem(JobGameTests.slipOf(new ItemStack(Items.STICK, 16)));
+		h.getLevel().addFreshEntity(slip);
+		chest.setItem(2, new ItemStack(Items.PAPER, 8));
+		chest.setItem(3, new ItemStack(Items.COPPER_INGOT, 8));
+		worker(h, new BlockPos(2, 1, 2), Items.CRAFTING_TABLE, home);
+		// Two batches of four reach 18, the first count at or above 16. Then it stops, with planks left.
+		Runnable done = () -> {
+			h.assertValueEqual(chest.countItem(Items.STICK), 18, "sticks in the chest");
+			h.assertValueEqual(chest.countItem(Items.OAK_PLANKS), 4, "planks in the chest");
+			h.assertValueEqual(chest.countItem(Items.PAPER), 8, "paper in the chest");
+		};
+		h.startSequence()
+			.thenWaitUntil(done)
+			.thenExecuteAfter(200, done)
+			.thenSucceed();
+	}
+
 	@GameTest(maxTicks = 2400, padding = PADDING)
 	public void backed_up_crafter_delivers_then_stops_at_a_stack_until_it_is_taken(GameTestHelper h) {
 		JobGameTests.scene(h);

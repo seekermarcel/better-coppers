@@ -448,7 +448,7 @@ Feeds pairs of animals with food from its chest so they breed, up to 16 of each 
 Takes the honey from full bee nests and beehives within 10 blocks, but only from those smoked by a lit campfire below them, so the bees stay calm. With glass bottles from its chest it fills one bottle per hive, without them it shears three honeycomb. It does not climb, so keep the hives within its reach.
 
 # Crafter: a crafting table
-Crafts what the item frames on or next to its chest show, from the ingredients in that chest."""),
+Crafts what the item frames on or next to its chest show, from the ingredients in that chest, until the chest holds a stack. A Quota Slip on the chest sets another amount, for example 16 Charging Pads."""),
                 ("Förster, Fischer, Tierpfleger, Imker, Handwerker", """Schleichen + Rechtsklick mit einem dieser Gegenstände auf einen Golem gibt ihm den Beruf.
 
 # Förster: eine Kupferaxt
@@ -464,7 +464,7 @@ Füttert Tierpaare mit Futter aus seiner Truhe, damit sie sich vermehren, bis zu
 Holt den Honig aus vollen Bienennestern und Bienenstöcken im Umkreis von 10 Blöcken, aber nur aus denen, die ein brennendes Lagerfeuer darunter einräuchert, damit die Bienen ruhig bleiben. Mit Glasflaschen aus seiner Truhe füllt er eine Flasche pro Stock, ohne sie schneidet er drei Honigwaben. Klettern kann er nicht, also setz die Stöcke in seine Reichweite.
 
 # Handwerker: eine Werkbank
-Stellt her, was die Rahmen an oder neben seiner Truhe zeigen, aus den Zutaten in dieser Truhe.""")),
+Stellt her, was die Rahmen an oder neben seiner Truhe zeigen, aus den Zutaten in dieser Truhe, bis ein Stapel darin liegt. Ein Mengenzettel an der Truhe legt eine andere Menge fest, zum Beispiel 16 Ladefelder.""")),
     "courier": (("Courier", """A courier carries everything from one chest to another, however far apart they are.
 
 1. Sneak + right-click the golem with an empty hand.
