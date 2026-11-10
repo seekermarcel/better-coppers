@@ -12,7 +12,7 @@ infobox:
 
 # Crafter
 
-A **crafter** is a [copper golem](/golem/copper-golem) that crafts whatever the item frames on or next to its [home](/start/homes-and-status) chest show, using only what is in that chest. It stops at a stack of the result.
+A **crafter** is a [copper golem](/golem/copper-golem) that crafts whatever the item frames on or next to its [home](/start/homes-and-status) chest show, using only what is in that chest. It stops at a stack of the result, or at the amount a [Quota Slip](/items/quota_slip) on the chest sets.
 
 ## Setup
 
@@ -20,12 +20,19 @@ A **crafter** is a [copper golem](/golem/copper-golem) that crafts whatever the 
 2. Link the golem to a copper chest within 32 blocks of the golem.
 3. Hang an item frame on or right next to the chest, showing what should be crafted.
 4. Put the ingredients in the chest.
+5. Optional: hang a [Quota Slip](/items/quota_slip) on the chest to set how many it should keep.
 
 <!-- MEDIA: jobs-crafter-setup.png | screenshot | A crafter with a crafting table standing at its copper chest, with item frames on the chest showing sticks and torches and ingredients visible in the open chest -->
 
 ## Behaviour
 
-The golem looks at every item frame with an item within 2 blocks of the home chest. For each, it crafts while the chest holds fewer than 64 of that item. The first frame it can craft for is done next. [Eyes](/golem/eyes) do not change this range.
+The golem looks at every item frame with an item within 2 blocks of the home chest. For each, it crafts while the chest holds fewer than 64 of that item. The first frame it can craft for is done next.
+
+### Quotas
+
+A [Quota Slip](/items/quota_slip) in a frame on the home chest changes the 64 for every item it lists. To always keep 16 Charging Pads, frame a Charging Pad and hang a slip listing 16 Charging Pads. The amount can be below or above 64. The crafter counts before each craft, so it can end a little above the amount when one craft makes several items.
+
+The slip only sets amounts. An item on the slip that no frame shows is not crafted, and a frame showing a slip is never crafted. [Eyes](/golem/eyes) do not change this range.
 
 It uses shaped and shapeless crafting recipes whose result is the framed item, and only ingredients from that chest. Recipes the game marks as special are not used. Furnace, smithing and stonecutter recipes are not used.
 

@@ -102,6 +102,7 @@ Radii are measured in blocks. [Eyes](/golem/eyes) multiply them; heights are not
 | Fisher: time per catch | 20 to 50 seconds |
 | Animal keeper: herd limit | 16 per kind |
 | Crafter: item frames counted | Within 2 blocks of the home |
+| Crafter: stock per framed item | 64, or the amount on a [Quota Slip](/items/quota_slip) on the home chest |
 | Idle stroll | Walks back when more than 6 blocks from home |
 
 ### Energy and rust

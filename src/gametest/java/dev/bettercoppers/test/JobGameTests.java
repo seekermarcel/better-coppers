@@ -927,7 +927,7 @@ public class JobGameTests {
 		});
 	}
 
-	private static ItemStack slipOf(ItemStack... lines) {
+	static ItemStack slipOf(ItemStack... lines) {
 		ItemStack slip = new ItemStack(ModItems.QUOTA_SLIP);
 		slip.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(List.of(lines)));
 		return slip;
