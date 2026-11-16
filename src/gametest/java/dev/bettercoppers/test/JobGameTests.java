@@ -1073,6 +1073,23 @@ public class JobGameTests {
 	}
 
 	@GameTest
+	public void grindstone_and_smithing_table_frames_stand_for_weapons_and_tools(GameTestHelper h) {
+		BlockPos weapons = new BlockPos(1, 1, 1);
+		BlockPos tools = new BlockPos(3, 1, 1);
+		GameTests.chest(h, weapons, Blocks.BARREL);
+		GameTests.chest(h, tools, Blocks.BARREL);
+		hangFrame(h, weapons, new ItemStack(Items.GRINDSTONE));
+		hangFrame(h, tools, new ItemStack(Items.SMITHING_TABLE));
+		FrameFilter weapon = FrameFilter.at(h.getLevel(), h.absolutePos(weapons));
+		FrameFilter tool = FrameFilter.at(h.getLevel(), h.absolutePos(tools));
+		h.assertTrue(weapon.allows(new ItemStack(Items.DIAMOND_SWORD)) && weapon.allows(new ItemStack(Items.CROSSBOW)), "weapons");
+		h.assertFalse(weapon.allows(new ItemStack(Items.IRON_AXE)), "an axe is a tool");
+		h.assertTrue(tool.allows(new ItemStack(Items.IRON_AXE)) && tool.allows(new ItemStack(Items.COPPER_PICKAXE)), "tools");
+		h.assertFalse(tool.allows(new ItemStack(Items.IRON_SWORD)), "a sword is a weapon");
+		h.succeed();
+	}
+
+	@GameTest
 	public void quota_slip_grid_stops_at_the_stack_size_and_keeps_samples(GameTestHelper h) {
 		Player player = h.makeMockPlayer(GameType.SURVIVAL);
 		ItemStack slip = new ItemStack(ModItems.QUOTA_SLIP);

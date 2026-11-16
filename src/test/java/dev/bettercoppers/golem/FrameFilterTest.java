@@ -87,4 +87,27 @@ class FrameFilterTest {
 		assertTrue(allows(filter, Items.COAL));
 		assertTrue(allows(filter, Items.RAW_IRON));
 	}
+
+	@Test
+	void groupFramesStandForUnstackables() {
+		assertTrue(allows(filter(new ItemStack(Items.ENCHANTING_TABLE)), Items.ENCHANTED_BOOK));
+		assertFalse(allows(filter(new ItemStack(Items.ENCHANTING_TABLE)), Items.BOOK));
+		FrameFilter armour = filter(new ItemStack(Items.ARMOR_STAND));
+		assertTrue(allows(armour, Items.IRON_HELMET));
+		assertTrue(allows(armour, Items.ELYTRA));
+		assertTrue(allows(armour, Items.DIAMOND_HORSE_ARMOR));
+		assertFalse(allows(armour, Items.CARVED_PUMPKIN));
+		assertFalse(allows(armour, Items.SADDLE));
+		assertTrue(allows(filter(new ItemStack(Items.BREWING_STAND)), Items.SPLASH_POTION));
+		assertFalse(allows(filter(new ItemStack(Items.BREWING_STAND)), Items.TIPPED_ARROW));
+	}
+
+	@Test
+	void enderChestTakesUnstackablesAfterOtherFrames() {
+		FrameFilter any = filter(new ItemStack(Items.ENDER_CHEST));
+		assertTrue(allows(any, Items.MUSIC_DISC_CAT));
+		assertFalse(allows(any, Items.ENDER_PEARL));
+		assertFalse(any.allowsBeforeCatchAll(new ItemStack(Items.MUSIC_DISC_CAT)));
+		assertTrue(filter(bundleOf(Items.ENDER_CHEST)).allowsBeforeCatchAll(new ItemStack(Items.ENDER_CHEST)));
+	}
 }

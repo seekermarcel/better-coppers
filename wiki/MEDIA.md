@@ -2,7 +2,7 @@
 
 Put each file in `wiki/public/media/` under the name given here. Screenshots are PNG, clips short MP4s under about 10 MB (longer ones go on YouTube). Each one replaces the `<!-- MEDIA: ... -->` comment of the same name in its page. In the same pass, the shaped blocks get `image: /media/<file>` in their infobox, because their icons are only approximate cubes.
 
-42 items: 27 screenshots, 15 clips.
+43 items: 28 screenshots, 15 clips.
 
 ## automatisation/index
 
@@ -143,6 +143,7 @@ Put each file in `wiki/public/media/` under the name given here. Screenshots are
 ## jobs/sorter
 
 - [ ] `jobs-sorter-storage.png` (screenshot): A sorter's storage room: one copper chest as home, several barrels and plain chests, some of them with item frames showing cobblestone, a furnace and a bundle
+- [ ] `jobs-sorter-overflow.png` (screenshot): A row of barrels next to framed chests, the barrels holding a mix of leftover items
 
 ## reference/advancements
 

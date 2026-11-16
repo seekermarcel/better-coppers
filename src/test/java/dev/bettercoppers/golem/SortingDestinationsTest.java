@@ -69,6 +69,17 @@ class SortingDestinationsTest {
 	}
 
 	@Test
+	void enderChestFrameComesAfterOtherFrames() {
+		ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
+		Spot any = spot(1, Kind.BARREL, new SimpleContainer(27), List.of(new ItemStack(Items.ENDER_CHEST)));
+		Spot books = spot(9, Kind.BARREL, new SimpleContainer(27), List.of(new ItemStack(Items.ENCHANTING_TABLE)));
+		Spot matching = spot(2, Kind.CHEST, holding(book.copy()), List.of());
+
+		assertEquals(books, SortingDestinations.find(List.of(any, books, matching), book, ORIGIN).spots().getFirst());
+		assertEquals(Tier.CATCH_ALL, SortingDestinations.find(List.of(any, matching), book, ORIGIN).tier());
+	}
+
+	@Test
 	void nearestFirst() {
 		ItemStack coal = new ItemStack(Items.COAL);
 		Spot far = spot(9, Kind.BARREL, new SimpleContainer(27), List.of());

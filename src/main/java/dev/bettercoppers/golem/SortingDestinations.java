@@ -29,17 +29,19 @@ final class SortingDestinations {
 
 	/**
 	 * Where an item may go, in order of preference. A chest or barrel with item frames on it is reserved: it takes the
-	 * items its frames show, and nothing else.
+	 * items its frames show, and nothing else. An ender chest frame takes any unstackable, after all other frames.
 	 */
 	enum Tier {
 		FRAMED,
+		CATCH_ALL,
 		MATCHING_CHEST,
 		BARREL,
 		EMPTY_CHEST;
 
 		boolean accepts(Spot spot, ItemStack item) {
-			if (this == FRAMED) {
-				return spot.kind() != Kind.SOURCE && spot.frames().allows(item) && Inventories.hasRoom(spot.container(), item)
+			if (this == FRAMED || this == CATCH_ALL) {
+				boolean allows = this == FRAMED ? spot.frames().allowsBeforeCatchAll(item) : spot.frames().allows(item);
+				return spot.kind() != Kind.SOURCE && allows && Inventories.hasRoom(spot.container(), item)
 					&& spot.frames().quota().room(spot.container(), item) > 0;
 			}
 			if (!spot.frames().isEmpty()) {
@@ -49,7 +51,7 @@ final class SortingDestinations {
 				case MATCHING_CHEST -> spot.kind() == Kind.CHEST && Inventories.containsItem(spot.container(), item) && Inventories.hasRoom(spot.container(), item);
 				case BARREL -> spot.kind() == Kind.BARREL && Inventories.hasRoom(spot.container(), item);
 				case EMPTY_CHEST -> spot.kind() == Kind.CHEST && spot.container().isEmpty();
-				case FRAMED -> false;
+				case FRAMED, CATCH_ALL -> false;
 			};
 		}
 	}
@@ -109,7 +111,7 @@ final class SortingDestinations {
 
 	/** Whether a cart stack unloads here: same item as delivered, or (matching chest) anything the chest holds, or (framed) what the frames show. */
 	static boolean belongs(ItemStack stack, ItemStack delivered, Spot destination, Tier tier) {
-		if (tier == Tier.FRAMED) {
+		if (tier == Tier.FRAMED || tier == Tier.CATCH_ALL) {
 			return destination.frames().allows(stack);
 		}
 		return ItemStack.isSameItem(stack, delivered) || tier == Tier.MATCHING_CHEST && Inventories.containsItem(destination.container(), stack);

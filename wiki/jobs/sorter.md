@@ -38,11 +38,28 @@ The first rule with a matching container wins. Among matches, the nearest wins.
 | Order | Destination | Condition |
 |---|---|---|
 | 1 | [Reserved chest](#reserved-chests) | One of its frames allows the item, and it has room |
-| 2 | Chest without frames | Already holds that item, and has room |
-| 3 | Barrel without frames | Has room |
-| 4 | Chest without frames | Is empty |
+| 2 | [Catch-all](#catch-all-for-unstackables) reserved chest | An ender chest frame allows the item, and it has room |
+| 3 | Chest without frames | Already holds that item, and has room |
+| 4 | [Overflow barrel](#overflow-barrels) | Has no frames, and has room |
+| 5 | Chest without frames | Is empty |
 
 Items match by item type only, so a named or enchanted item counts as the plain item.
+
+When a destination is full, the item goes to the next match: first another container of the same rule, then the next rule. A full reserved chest sends its items on to a chest that holds them, then to a barrel, then to an empty chest.
+
+### Overflow barrels
+
+A barrel without frames is an **overflow barrel**. It takes any item that has no reserved chest and no chest already holding it. A barrel does not need to be empty or to hold the item already: the sorter fills barrels one after another, nearest first, with whatever is left. Items only go to an empty chest when every barrel is full.
+
+This makes barrels the place for leftovers. One way to set up a storage room:
+
+1. Frame the containers for what you want in a fixed place.
+2. Put one item of each other thing you want kept together in a plain chest. Each chest then gathers its item.
+3. Place a few barrels for everything else.
+
+An overflow barrel keeps nothing apart: it collects new items and the overflow of full chests in the order they arrive. To keep an item out of the barrels, give it a reserved chest or a matching chest with room.
+
+<!-- MEDIA: jobs-sorter-overflow.png | screenshot | A row of barrels next to framed chests, the barrels holding a mix of leftover items -->
 
 ### Range
 
@@ -62,8 +79,24 @@ A **reserved chest** is a chest or barrel with item frames on it. It takes only 
 | A furnace | Everything a furnace can smelt, including cobblestone, sand and logs |
 | A blast furnace | Everything a blast furnace can smelt, such as ores and raw metals |
 | A smoker | Everything a smoker can cook, such as raw food |
+| A grindstone | All weapons: swords, spears, maces, tridents, bows and crossbows |
+| A smithing table | All tools: pickaxes, axes, shovels, hoes, shears, brushes, fishing rods and flint and steel |
+| An enchanting table | All enchanted books |
+| An armor stand | All armour: helmets, chestplates, leggings, boots, elytra, horse armour and wolf armour |
+| A brewing stand | All potions, splash potions and lingering potions |
+| An ender chest | Every item that does not stack, [after all other frames](#catch-all-for-unstackables) |
 
-To reserve a container for furnaces or bundles themselves, put one in a bundle and frame the bundle.
+To reserve a container for furnaces, bundles or any of these blocks themselves, put one in a bundle and frame the bundle.
+
+### Groups of unstackables
+
+An item that does not stack fills a whole bundle, so a bundle frame cannot list many swords or enchanted books. The grindstone, smithing table, enchanting table, armor stand and brewing stand frames stand for those groups instead. An axe counts as a tool, not a weapon. Weapons, tools and armour match whatever their material, enchantments or damage.
+
+### Catch-all for unstackables
+
+A container with an ender chest frame takes every item that does not stack: weapons, tools, armour, enchanted books, potions, music discs, saddles, totems and the like. It comes after all other reserved chests, so a sword goes to a grindstone container first and only to the ender chest container if there is none with room. It still comes before chests and barrels without frames.
+
+An ender chest frame together with other frames on the same container lets in both.
 
 A [Quota Slip](/items/quota_slip) in a frame sets how much of each listed item the container should hold. The sorter delivers only up to that amount and sends the rest to the next destination. On its home chest, it leaves that amount behind. If working stock also applies, the larger amount stays. A sorter never fetches items to fill a quota: that takes a [courier](/jobs/courier#refilling-a-chest).
 

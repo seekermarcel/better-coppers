@@ -251,6 +251,8 @@ Schleichen + Rechtsklick mit einem anderen Arbeitsgegenstand auf ihn. Du bekomms
 3. otherwise an empty chest.
 It knows every container within 32 blocks (8 up and down).
 
+Barrels without frames are for overflow: they take whatever has no chest of its own, and what does not fit into a full chest. Items only go to an empty chest when every barrel is full.
+
 # Item frames
 Hang item frames on a chest or barrel to reserve it: it then takes only the items its frames show, and they go there before anywhere else.
 
@@ -260,7 +262,15 @@ One frame can stand for many items:
 - A furnace: everything a furnace can smelt. That includes cobblestone, sand and logs.
 - A bundle: everything in the bundle. One of each item is enough.
 
-To reserve a chest for furnaces or bundles themselves, put one in a bundle and frame that. An empty bundle lets nothing in.
+Items that do not stack fill a whole bundle, so these blocks stand for them:
+- A grindstone: all weapons (swords, spears, maces, tridents, bows, crossbows).
+- A smithing table: all tools (pickaxes, axes, shovels, hoes, shears, brushes, fishing rods, flint and steel).
+- An enchanting table: all enchanted books.
+- An armor stand: all armour, elytra and horse armour.
+- A brewing stand: all potions.
+- An ender chest: anything that does not stack, after every other frame.
+
+To reserve a chest for furnaces, bundles or these blocks themselves, put one in a bundle and frame that. An empty bundle lets nothing in.
 
 # Quota Slips
 A Quota Slip (paper and a copper ingot) says how much of each item a chest should hold. Hang it in a frame on the chest: golems then bring no more than that, and leave that much in it. It also counts as a frame showing those items.
@@ -289,6 +299,8 @@ Sorters are free to run: no energy, no rust."""),
 3. sonst in eine leere Truhe.
 Er kennt jeden Behälter im Umkreis von 32 Blöcken (8 nach oben und unten).
 
+Fässer ohne Rahmen fangen den Überlauf auf: Sie nehmen alles, was keine eigene Truhe hat, und was in eine volle Truhe nicht mehr passt. Erst wenn alle Fässer voll sind, kommt etwas in eine leere Truhe.
+
 # Rahmen
 Häng Rahmen an eine Truhe oder ein Fass, um sie zu reservieren: Dann kommen nur die gezeigten Gegenstände hinein, und zwar vor allen anderen Truhen.
 
@@ -298,7 +310,15 @@ Ein Rahmen kann für viele Gegenstände stehen:
 - Ein Ofen: alles, was ein Ofen schmelzen kann. Dazu gehören auch Bruchstein, Sand und Stämme.
 - Ein Bündel: alles, was im Bündel liegt. Von jedem Gegenstand reicht einer.
 
-Soll eine Truhe Öfen oder Bündel selbst aufnehmen, leg eins davon in ein Bündel und häng dieses in den Rahmen. Ein leeres Bündel lässt nichts hinein.
+Nicht stapelbare Gegenstände füllen ein ganzes Bündel, darum stehen diese Blöcke für sie:
+- Ein Schleifstein: alle Waffen (Schwerter, Speere, Streitkolben, Dreizacke, Bögen, Armbrüste).
+- Ein Schmiedetisch: alle Werkzeuge (Spitzhacken, Äxte, Schaufeln, Hacken, Scheren, Pinsel, Angeln, Feuerzeuge).
+- Ein Zaubertisch: alle verzauberten Bücher.
+- Ein Rüstungsständer: alle Rüstungen, Elytren und Pferderüstungen.
+- Ein Braustand: alle Tränke.
+- Eine Endertruhe: alles, was nicht stapelbar ist, nach allen anderen Rahmen.
+
+Soll eine Truhe Öfen, Bündel oder diese Blöcke selbst aufnehmen, leg eins davon in ein Bündel und häng dieses in den Rahmen. Ein leeres Bündel lässt nichts hinein.
 
 # Mengenzettel
 Ein Mengenzettel (Papier und ein Kupferbarren) legt fest, wie viel von jedem Gegenstand in einer Truhe liegen soll. Häng ihn in einen Rahmen an der Truhe: Golems bringen dann nicht mehr als das und lassen so viel darin liegen. Er zählt außerdem wie ein Rahmen, der diese Gegenstände zeigt.
