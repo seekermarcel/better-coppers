@@ -37,7 +37,9 @@ The courier walks to the pickup chest, takes what it can carry, walks to the des
 | Delivery | Puts in everything it carries. 60 ticks at the chest |
 | Destination full | Waits 10 seconds and tries again, keeping the rest |
 | Chest gone or locked | Waits, looking again every 10 seconds, until the route is fixed |
-| Stuck for 10 seconds | Shakes its head, walks to a random spot up to 10 blocks away for at most 5 seconds, then tries again |
+| Stuck for 10 seconds | Shakes its head, walks to a random spot up to 10 blocks away for at most 5 seconds, then tries again. It counts as stuck when it neither got closer nor reached a block it had not stood on |
+
+A courier looks for a way up to 64 blocks around itself, four times as far as other golems. So it follows a tunnel or a path round a lake even when that first leads away from the target. A target further away than that it heads for in stages: each time, it walks to the spot within reach that is nearest to the target. A detour that needs more than 64 blocks of walking away can still leave it stuck.
 
 ### Frames on the pickup chest
 

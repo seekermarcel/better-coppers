@@ -381,6 +381,29 @@ public class JobGameTests {
 		h.succeedWhen(() -> h.assertTrue(count(match, Items.COBBLESTONE) == 2, "cobblestone not delivered yet"));
 	}
 
+	/** Without a cart, a sorter takes all three weapons on one trip: one in its hand and two in its pouch, but not the pickaxe. */
+	@GameTest(maxTicks = 1200, padding = SORTER_PADDING)
+	public void sorter_carries_weapons_together_without_a_cart(GameTestHelper h) {
+		scene(h);
+		BlockPos home = new BlockPos(2, 1, 4);
+		Container chest = GameTests.chest(h, home, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.IRON_SWORD));
+		chest.setItem(1, new ItemStack(Items.BOW));
+		chest.setItem(2, new ItemStack(Items.DIAMOND_SWORD));
+		chest.setItem(3, new ItemStack(Items.IRON_PICKAXE));
+		BlockPos weapons = new BlockPos(6, 1, 4);
+		Container barrel = GameTests.chest(h, weapons, Blocks.BARREL);
+		hangFrame(h, weapons, new ItemStack(Items.GRINDSTONE));
+		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
+		GameTests.energize(golem);
+		give(h, golem, new ItemStack(Items.BUNDLE));
+		Homes.set(golem, h.absolutePos(home));
+		h.startSequence()
+			.thenWaitUntil(() -> h.assertValueEqual(Load.of(golem).count(stack -> true), 2, "weapons in the pouch"))
+			.thenWaitUntil(() -> h.assertTrue(barrel.countItem(Items.BOW) == 1 && barrel.countItem(Items.IRON_SWORD) + barrel.countItem(Items.DIAMOND_SWORD) == 2, "weapons not delivered yet"))
+			.thenSucceed();
+	}
+
 	/** Chests with the item that the sorter cannot reach come first by distance; they must not hide the one it can. */
 	@GameTest(maxTicks = 1200, padding = SORTER_PADDING)
 	public void sorter_delivers_past_many_unreachable_matching_chests(GameTestHelper h) {
@@ -697,6 +720,31 @@ public class JobGameTests {
 		GameTests.chest(h, from, COPPER_CHEST).setItem(0, new ItemStack(Items.IRON_INGOT, 8));
 		Container target = GameTests.chest(h, to, COPPER_CHEST);
 		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 4));
+		GameTests.energize(golem);
+		Couriers.setRoute(golem, new CourierRoute(h.absolutePos(from), h.absolutePos(to)));
+		h.succeedWhen(() -> h.assertTrue(count(target, Items.IRON_INGOT) == 8, "ingots not delivered yet"));
+	}
+
+	/**
+	 * The chests are 4 blocks apart, but the only way between them is a hairpin tunnel that first leads 30 blocks away:
+	 * beyond the golem's usual path search, and long enough to look stuck to a watch that only counts getting closer.
+	 */
+	@GameTest(maxTicks = 3600, padding = SORTER_PADDING)
+	public void courier_follows_a_tunnel_that_leads_away_first(GameTestHelper h) {
+		for (int x = -1; x <= 32; x++) {
+			for (int z = 0; z <= 6; z++) {
+				boolean tunnel = x >= 0 && x <= 31 && (z == 1 || z == 5) || x == 31 && z >= 1 && z <= 5;
+				h.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
+				h.setBlock(new BlockPos(x, 1, z), tunnel ? Blocks.AIR : Blocks.STONE);
+				h.setBlock(new BlockPos(x, 2, z), tunnel ? Blocks.AIR : Blocks.STONE);
+				h.setBlock(new BlockPos(x, 3, z), Blocks.STONE);
+			}
+		}
+		BlockPos from = new BlockPos(0, 1, 1);
+		BlockPos to = new BlockPos(0, 1, 5);
+		GameTests.chest(h, from, COPPER_CHEST).setItem(0, new ItemStack(Items.IRON_INGOT, 8));
+		Container target = GameTests.chest(h, to, COPPER_CHEST);
+		CopperGolem golem = GameTests.golem(h, new BlockPos(2, 1, 1));
 		GameTests.energize(golem);
 		Couriers.setRoute(golem, new CourierRoute(h.absolutePos(from), h.absolutePos(to)));
 		h.succeedWhen(() -> h.assertTrue(count(target, Items.IRON_INGOT) == 8, "ingots not delivered yet"));

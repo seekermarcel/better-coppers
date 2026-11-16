@@ -251,7 +251,9 @@ Schleichen + Rechtsklick mit einem anderen Arbeitsgegenstand auf ihn. Du bekomms
 3. otherwise an empty chest.
 It knows every container within 32 blocks (8 up and down).
 
-Barrels without frames are for overflow: they take whatever has no chest of its own, and what does not fit into a full chest. Items only go to an empty chest when every barrel is full.
+Barrels without frames are for overflow: they take whatever has no chest of its own, and what does not fit into a full chest. A barrel that already holds the item comes first. Items only go to an empty chest when every barrel is full.
+
+An item that does not stack brings more of its kind along, up to 16: all weapons, all tools, all armour.
 
 # Item frames
 Hang item frames on a chest or barrel to reserve it: it then takes only the items its frames show, and they go there before anywhere else.
@@ -299,7 +301,9 @@ Sorters are free to run: no energy, no rust."""),
 3. sonst in eine leere Truhe.
 Er kennt jeden Behälter im Umkreis von 32 Blöcken (8 nach oben und unten).
 
-Fässer ohne Rahmen fangen den Überlauf auf: Sie nehmen alles, was keine eigene Truhe hat, und was in eine volle Truhe nicht mehr passt. Erst wenn alle Fässer voll sind, kommt etwas in eine leere Truhe.
+Fässer ohne Rahmen fangen den Überlauf auf: Sie nehmen alles, was keine eigene Truhe hat, und was in eine volle Truhe nicht mehr passt. Ein Fass, das den Gegenstand schon enthält, kommt zuerst. Erst wenn alle Fässer voll sind, kommt etwas in eine leere Truhe.
+
+Ein nicht stapelbarer Gegenstand nimmt weitere seiner Art mit, bis zu 16: alle Waffen, alle Werkzeuge, alle Rüstungen.
 
 # Rahmen
 Häng Rahmen an eine Truhe oder ein Fass, um sie zu reservieren: Dann kommen nur die gezeigten Gegenstände hinein, und zwar vor allen anderen Truhen.

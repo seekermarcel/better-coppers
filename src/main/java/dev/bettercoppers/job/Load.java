@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
+import java.util.function.UnaryOperator;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
@@ -17,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 /**
- * What a golem with a paying job carries for it: pouch, supplies and the chained cart. A short-lived view, so get a new
+ * What a golem with a job carries for it: pouch (a sorter's spare unstackables), supplies and the chained cart. A short-lived view, so get a new
  * one instead of keeping it. Reading never adds an attachment to the golem; the first write does.
  * <p>
  * Items are never lost: what does not fit in the chest stays in the load, and only {@link #dropAll} lets go of them.
@@ -137,6 +138,12 @@ public final class Load {
 				}
 			}
 		}
+	}
+
+	/** Hands each pouch stack that {@code which} picks to {@code put}, and keeps what it gives back. */
+	public void unloadPouch(Predicate<ItemStack> which, UnaryOperator<ItemStack> put) {
+		this.pouch.replaceAll(stack -> which.test(stack) ? put.apply(stack) : stack);
+		this.pouch.removeIf(ItemStack::isEmpty);
 	}
 
 	/** Passes on pouch and supplies, for a job's end. The cart keeps its items. */

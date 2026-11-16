@@ -9,6 +9,7 @@ import dev.bettercoppers.golem.SortingDestinations.Spot;
 import dev.bettercoppers.golem.SortingDestinations.Tier;
 import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.home.Homes;
+import dev.bettercoppers.job.Load;
 import dev.bettercoppers.job.Jobs;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -173,6 +174,11 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 		ItemStack hand = golem.getMainHandItem();
 		if (hand.isEmpty() && cart != null && !cart.isEmpty()) {
 			hand = Inventories.takeFirst(cart, BetterCoppersApi.carryLimit(golem, Golems.HAND_LIMIT), stack -> true);
+			this.setHandItem(golem, hand);
+		}
+		if (hand.isEmpty()) {
+			// A sorter has no supplies, so this is the next unstackable from its pouch.
+			hand = Load.of(golem).takeOne(stack -> true);
 			this.setHandItem(golem, hand);
 		}
 
@@ -358,6 +364,17 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 				}
 			}
 			cart.setChanged();
+		} else if (kind.getMaxStackSize() == 1) {
+			// Without a cart, more unstackables of the same kind come along in the pouch, up to what the golem can carry.
+			Load load = Load.of(golem);
+			int room = BetterCoppersApi.carryLimit(golem, Golems.HAND_LIMIT) - hand.getCount();
+			for (int slot = 0; slot < source.getContainerSize() && room > 0; slot++) {
+				ItemStack stack = source.getItem(slot);
+				if (!stack.isEmpty() && stack.getMaxStackSize() == 1 && ItemFamilies.related(kind, stack) && mayLeave.applyAsInt(stack) > 0) {
+					load.stash(source.removeItem(slot, 1));
+					room--;
+				}
+			}
 		}
 		source.setChanged();
 		this.setHandItem(golem, hand);
@@ -384,6 +401,10 @@ public class SortItemsBehavior extends Behavior<CopperGolem> {
 				}
 			}
 			cart.setChanged();
+		}
+		if (this.targetSpot != null) {
+			Spot spot = this.targetSpot;
+			Load.of(golem).unloadPouch(stack -> SortingDestinations.belongs(stack, delivered, spot, this.tier), stack -> quota.insert(destination, stack));
 		}
 		if (!left.isEmpty()) {
 			this.ignore(this.target, now);

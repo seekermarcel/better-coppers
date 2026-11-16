@@ -27,7 +27,9 @@ A golem with a bundle and no home does nothing. A sorter already holding a bundl
 
 ## Behaviour
 
-A sorter empties only its own home chest, both halves of a double chest included. It takes up to 16 items from the first stack it may move, walks to where they belong, puts them in and comes back. A [Copper Satchel](/items/copper_satchel) doubles this to 32. Every chest visit, real or [decoy](#decoys), takes 60 ticks (3 seconds).
+A sorter empties only its own home chest, both halves of a double chest included. It takes up to 16 items from the first stack it may move, walks to where they belong, puts them in and comes back. A [Copper Satchel](/items/copper_satchel) doubles this to 32.
+
+If that first item does not stack, the sorter also takes more of the same kind into its pouch, up to the same 16 or 32 in all: the same item, or others of its [group](#groups-of-unstackables), such as all weapons. At each destination it puts in everything from its pouch that belongs there, then takes the next item from the pouch and finds it a place before going back. Which items count as the same kind follows the [cart rule](#towing-a-cart). With a [chained cart](#towing-a-cart), the cart carries them instead. Every chest visit, real or [decoy](#decoys), takes 60 ticks (3 seconds).
 
 A sorter walks at full speed and works by day and by night. With nothing left to sort, or nowhere to put what it holds, it waits 7 seconds and looks again.
 
@@ -40,8 +42,9 @@ The first rule with a matching container wins. Among matches, the nearest wins.
 | 1 | [Reserved chest](#reserved-chests) | One of its frames allows the item, and it has room |
 | 2 | [Catch-all](#catch-all-for-unstackables) reserved chest | An ender chest frame allows the item, and it has room |
 | 3 | Chest without frames | Already holds that item, and has room |
-| 4 | [Overflow barrel](#overflow-barrels) | Has no frames, and has room |
-| 5 | Chest without frames | Is empty |
+| 4 | [Overflow barrel](#overflow-barrels) | Has no frames, already holds that item, and has room |
+| 5 | Overflow barrel | Has no frames, and has room |
+| 6 | Chest without frames | Is empty |
 
 Items match by item type only, so a named or enchanted item counts as the plain item.
 
@@ -49,7 +52,7 @@ When a destination is full, the item goes to the next match: first another conta
 
 ### Overflow barrels
 
-A barrel without frames is an **overflow barrel**. It takes any item that has no reserved chest and no chest already holding it. A barrel does not need to be empty or to hold the item already: the sorter fills barrels one after another, nearest first, with whatever is left. Items only go to an empty chest when every barrel is full.
+A barrel without frames is an **overflow barrel**. It takes any item that has no reserved chest and no chest already holding it. A barrel does not need to be empty or to hold the item already. The sorter first tops up a barrel that already holds the item, so stacks stay together, and otherwise uses the nearest barrel with room. Items only go to an empty chest when every barrel is full.
 
 This makes barrels the place for leftovers. One way to set up a storage room:
 
@@ -133,7 +136,7 @@ Two items are related if they are the same item or their IDs share a material wo
 | Binding words count together with the next word | nether, end, dark, pale, sea, glow | `nether_bricks` is not related to `nether_wart` |
 | Any other shared word counts | | `oak_planks` and `oak_log` share "oak"; `oak_log` and `birch_log` share "log" |
 
-Items with durability (tools, weapons, armour) only travel with exactly the same item.
+Unstackables of the same [group](#groups-of-unstackables) are related: all weapons travel together, as do all tools, all armour, all enchanted books and all potions. Other items with durability only travel with exactly the same item.
 
 At the destination, the sorter unloads from the cart every stack of the delivered item. Into a matching chest it also unloads anything the chest already holds. Into a reserved chest it unloads everything the frames allow. When its hand is empty and the cart is not, it takes up to 16 items from the cart and finds them a destination. Working stock is respected: only items above it are loaded.
 

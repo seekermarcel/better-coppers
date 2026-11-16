@@ -10,7 +10,8 @@ import net.minecraft.world.item.ItemStack;
 /**
  * Decides which items a golem with a cart loads together. Items are related when their ids share a material word,
  * e.g. stone, stone_slab, stone_bricks and stone_brick_stairs all share "stone". Shape words and colours are ignored,
- * so oak_slab is not related to stone_slab, but all wool colours are related to each other.
+ * so oak_slab is not related to stone_slab, but all wool colours are related to each other. Unstackables in the same
+ * frame group (all weapons, all tools, ...) are related too.
  */
 public final class ItemFamilies {
 	private static final Set<String> IGNORED_WORDS = Set.of(
@@ -34,7 +35,11 @@ public final class ItemFamilies {
 		if (a.is(b.getItem())) {
 			return true;
 		}
-		// Tools, weapons and armour only travel with exactly the same item.
+		Item group = a.getMaxStackSize() == 1 && b.getMaxStackSize() == 1 ? FrameFilter.group(a) : null;
+		if (group != null && group == FrameFilter.group(b)) {
+			return true;
+		}
+		// Otherwise tools, weapons and armour only travel with exactly the same item.
 		if (a.has(DataComponents.MAX_DAMAGE) || b.has(DataComponents.MAX_DAMAGE)) {
 			return false;
 		}

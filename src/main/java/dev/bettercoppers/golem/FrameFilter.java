@@ -10,6 +10,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.decoration.ItemFrame;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.BundleContents;
@@ -27,6 +28,9 @@ import org.jspecify.annotations.Nullable;
  * unstackable no other frame takes.
  */
 public final class FrameFilter {
+	/** The blocks whose frames stand for a group of unstackables. The groups without tags come first, so unit tests reach them without bound tags. */
+	private static final List<Item> GROUP_BLOCKS = List.of(Items.ENCHANTING_TABLE, Items.ARMOR_STAND, Items.BREWING_STAND, Items.GRINDSTONE, Items.SMITHING_TABLE);
+
 	private final List<ItemStack> shown;
 	private final Quota quota;
 	private final BiPredicate<RecipeType<? extends AbstractCookingRecipe>, ItemStack> cooks;
@@ -90,27 +94,36 @@ public final class FrameFilter {
 		if (cooking != null) {
 			return this.cooks.test(cooking, item);
 		}
-		if (frame.is(Items.GRINDSTONE)) {
-			return item.is(ItemTags.SWORDS) || item.is(ItemTags.SPEARS) || item.is(Items.MACE) || item.is(Items.TRIDENT) || item.is(Items.BOW) || item.is(Items.CROSSBOW);
-		}
-		if (frame.is(Items.SMITHING_TABLE)) {
-			return item.is(ItemTags.PICKAXES) || item.is(ItemTags.AXES) || item.is(ItemTags.SHOVELS) || item.is(ItemTags.HOES)
-				|| item.is(Items.SHEARS) || item.is(Items.BRUSH) || item.is(Items.FISHING_ROD) || item.is(Items.FLINT_AND_STEEL);
-		}
-		if (frame.is(Items.ENCHANTING_TABLE)) {
-			return item.is(Items.ENCHANTED_BOOK);
-		}
-		if (frame.is(Items.ARMOR_STAND)) {
-			Equippable equippable = item.get(DataComponents.EQUIPPABLE);
-			return equippable != null && equippable.slot().isArmor() && item.getMaxStackSize() == 1;
-		}
-		if (frame.is(Items.BREWING_STAND)) {
-			return item.is(Items.POTION) || item.is(Items.SPLASH_POTION) || item.is(Items.LINGERING_POTION);
+		if (GROUP_BLOCKS.contains(frame.getItem())) {
+			return inGroup(frame.getItem(), item);
 		}
 		if (frame.is(Items.ENDER_CHEST)) {
 			return item.getMaxStackSize() == 1;
 		}
 		return ItemStack.isSameItem(frame, item);
+	}
+
+	/** The block whose frame stands for this item's group of unstackables, or null if it is in none. */
+	static @Nullable Item group(ItemStack item) {
+		return GROUP_BLOCKS.stream().filter(block -> inGroup(block, item)).findFirst().orElse(null);
+	}
+
+	private static boolean inGroup(Item block, ItemStack item) {
+		if (block == Items.ENCHANTING_TABLE) {
+			return item.is(Items.ENCHANTED_BOOK);
+		}
+		if (block == Items.ARMOR_STAND) {
+			Equippable equippable = item.get(DataComponents.EQUIPPABLE);
+			return equippable != null && equippable.slot().isArmor() && item.getMaxStackSize() == 1;
+		}
+		if (block == Items.BREWING_STAND) {
+			return item.is(Items.POTION) || item.is(Items.SPLASH_POTION) || item.is(Items.LINGERING_POTION);
+		}
+		if (block == Items.GRINDSTONE) {
+			return item.is(ItemTags.SWORDS) || item.is(ItemTags.SPEARS) || item.is(Items.MACE) || item.is(Items.TRIDENT) || item.is(Items.BOW) || item.is(Items.CROSSBOW);
+		}
+		return item.is(ItemTags.PICKAXES) || item.is(ItemTags.AXES) || item.is(ItemTags.SHOVELS) || item.is(ItemTags.HOES)
+			|| item.is(Items.SHEARS) || item.is(Items.BRUSH) || item.is(Items.FISHING_ROD) || item.is(Items.FLINT_AND_STEEL);
 	}
 
 	private static @Nullable RecipeType<? extends AbstractCookingRecipe> cookingOf(ItemStack frame) {

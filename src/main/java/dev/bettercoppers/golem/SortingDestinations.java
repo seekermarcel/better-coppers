@@ -35,6 +35,7 @@ final class SortingDestinations {
 		FRAMED,
 		CATCH_ALL,
 		MATCHING_CHEST,
+		MATCHING_BARREL,
 		BARREL,
 		EMPTY_CHEST;
 
@@ -49,6 +50,7 @@ final class SortingDestinations {
 			}
 			return switch (this) {
 				case MATCHING_CHEST -> spot.kind() == Kind.CHEST && Inventories.containsItem(spot.container(), item) && Inventories.hasRoom(spot.container(), item);
+				case MATCHING_BARREL -> spot.kind() == Kind.BARREL && Inventories.containsItem(spot.container(), item) && Inventories.hasRoom(spot.container(), item);
 				case BARREL -> spot.kind() == Kind.BARREL && Inventories.hasRoom(spot.container(), item);
 				case EMPTY_CHEST -> spot.kind() == Kind.CHEST && spot.container().isEmpty();
 				case FRAMED, CATCH_ALL -> false;

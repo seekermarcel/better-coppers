@@ -69,6 +69,16 @@ class SortingDestinationsTest {
 	}
 
 	@Test
+	void aBarrelHoldingTheItemComesBeforeOtherBarrels() {
+		ItemStack coal = new ItemStack(Items.COAL);
+		Spot near = spot(1, Kind.BARREL, holding(new ItemStack(Items.DIRT)), List.of());
+		Spot holding = spot(9, Kind.BARREL, holding(new ItemStack(Items.COAL)), List.of());
+		Found found = SortingDestinations.find(List.of(near, holding), coal, ORIGIN);
+		assertEquals(Tier.MATCHING_BARREL, found.tier());
+		assertEquals(holding, found.spots().getFirst());
+	}
+
+	@Test
 	void enderChestFrameComesAfterOtherFrames() {
 		ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
 		Spot any = spot(1, Kind.BARREL, new SimpleContainer(27), List.of(new ItemStack(Items.ENDER_CHEST)));

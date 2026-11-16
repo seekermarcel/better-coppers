@@ -45,6 +45,11 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 	private static final int DETOUR_TICKS = 100;
 	/** Beyond this, a waiting courier still keeps its chunks loaded so it does not freeze on the way. */
 	private static final double NEAR = 12.0;
+	/**
+	 * How far its path search reaches, instead of the follow range of 16. A target further away gets a path to the
+	 * nearest point within this, which in a tunnel that first leads away is a dead end.
+	 */
+	private static final float PATH_SEARCH = 64.0F;
 
 	private final TravelWatch travel = new TravelWatch();
 	private int interactionTicks;
@@ -76,7 +81,13 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 	}
 
 	@Override
+	protected void start(ServerLevel level, CopperGolem golem, long timestamp) {
+		golem.getNavigation().setRequiredPathLength(PATH_SEARCH);
+	}
+
+	@Override
 	protected void stop(ServerLevel level, CopperGolem golem, long timestamp) {
+		golem.getNavigation().setRequiredPathLength(0.0F);
 		this.endInteraction(level, golem);
 		this.travel.reset();
 		this.detour = null;

@@ -11,6 +11,23 @@ The **version history** lists the released versions of Better Coppers and its Au
 | v0.2.0 | 2026-11-09 | 26.3 | 0.20.1 or newer | 25 or newer |
 | v0.1.0 | 2026-11-08 | 26.3 | 0.20.1 or newer | 25 or newer |
 
+## Unreleased
+
+### Better Coppers
+
+New:
+
+- Item frames showing a grindstone, smithing table, enchanting table, armor stand or brewing stand reserve a container for all weapons, tools, enchanted books, armour or potions. An ender chest frame takes anything that does not stack. See [reserved chests](/jobs/sorter#reserved-chests).
+- A [sorter](/jobs/sorter) without a cart carries up to 16 unstackables of the same kind in one trip, and a cart carries a whole group of them, such as all weapons.
+
+Changed:
+
+- A sorter tops up a barrel that already holds the item before using other barrels.
+
+Fixed:
+
+- [Couriers](/jobs/courier) no longer get stuck where the way to the target first leads away from it, such as a tunnel that turns back.
+
 ## v0.2.0
 
 Worlds from v0.1.0 load as they are. As before, the add-on needs the base mod of exactly the same version.

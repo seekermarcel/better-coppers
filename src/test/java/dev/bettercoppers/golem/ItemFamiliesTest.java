@@ -27,4 +27,11 @@ class ItemFamiliesTest {
 		assertTrue(ItemFamilies.related(new ItemStack(Items.IRON_INGOT), new ItemStack(Items.IRON_BLOCK)));
 		assertFalse(ItemFamilies.related(new ItemStack(Items.IRON_INGOT), new ItemStack(Items.OAK_LOG)));
 	}
+
+	@Test
+	void unstackablesOfOneFrameGroupAreRelated() {
+		assertTrue(ItemFamilies.related(new ItemStack(Items.IRON_HELMET), new ItemStack(Items.DIAMOND_BOOTS)));
+		assertTrue(ItemFamilies.related(new ItemStack(Items.POTION), new ItemStack(Items.LINGERING_POTION)));
+		assertFalse(ItemFamilies.related(new ItemStack(Items.IRON_HELMET), new ItemStack(Items.ENCHANTED_BOOK)));
+	}
 }
