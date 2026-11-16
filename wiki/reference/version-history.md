@@ -8,10 +8,13 @@ The **version history** lists the released versions of Better Coppers and its Au
 
 | Version | Date | Minecraft | Fabric Loader | Java |
 |---|---|---|---|---|
+| v0.3.0 | 2026-11-16 | 26.3 | 0.20.1 or newer | 25 or newer |
 | v0.2.0 | 2026-11-09 | 26.3 | 0.20.1 or newer | 25 or newer |
 | v0.1.0 | 2026-11-08 | 26.3 | 0.20.1 or newer | 25 or newer |
 
-## Unreleased
+## v0.3.0
+
+Worlds from v0.2.0 load as they are, and courier routes from before keep working without stops. As before, the add-on needs the base mod of exactly the same version.
 
 ### Better Coppers
 
@@ -25,6 +28,7 @@ Changed:
 
 - A stuck [courier](/jobs/courier#getting-stuck) walks back along its way, further each time, instead of to a random spot nearby, and its status says where it keeps getting stuck.
 - A sorter tops up a barrel that already holds the item before using other barrels.
+- A [Quota Slip](/items/quota_slip) on a [crafter's](/jobs/crafter#quotas) home chest sets how many of each framed item it keeps, instead of a stack. The crafter no longer crafts Quota Slips.
 
 Fixed:
 

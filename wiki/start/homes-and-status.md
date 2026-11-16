@@ -50,7 +50,7 @@ The golem stops glowing when the pick ends. See [Controls](/start/controls) for 
 | Machine (add-on) | Links an operator; other golems get a message | Links an operator; other golems get a message |
 | Anything else | Acts as normal; the pick stays | Acts as normal; the pick stays |
 
-Starting a route sets a new time limit of 12,000 ticks (10 minutes) to reach the other end. See [Courier](/jobs/courier). Setting a home on a courier ends its route, and whatever it carries stays in its hand. Any item may be held while clicking the block.
+Starting a route sets a new time limit of 12,000 ticks (10 minutes) to reach the other end. See [Courier](/jobs/courier). Setting a home on a courier ends its route, and whatever it carries stays in its hand. Any item may be held while clicking the block. On the way to the other end, sneak + right-click on any other block with an empty hand adds a [stop](/jobs/courier#stops).
 
 ## Status message
 
@@ -61,7 +61,7 @@ The form depends on the job:
 | Golem | Message |
 |---|---|
 | Paying job | `Job, place, energy N%, rust: state` and any extras |
-| Sorter or courier | `Job, place` |
+| Sorter or courier | `Job, place`, and for a courier that keeps getting stuck, `stuck near X Y Z` |
 | Jobless | `No job, place` |
 
 Extras are only shown on [paying jobs](/golem/running-costs). Eyes or upgrades on a sorter, courier or jobless golem do not appear in its status.
@@ -69,7 +69,7 @@ Extras are only shown on [paying jobs](/golem/running-costs). Eyes or upgrades o
 | Part | Values |
 |---|---|
 | Job | The job's name, or `No job` |
-| Place | `home X Y Z`, or `workplace X Y Z` for an operator's machine, or `route X, Y, Z -> X, Y, Z` for a courier, or `no home` |
+| Place | `home X Y Z`, or `workplace X Y Z` for an operator's machine, or `route X, Y, Z -> X, Y, Z` for a courier (with `, N stops` if its route has [stops](/jobs/courier#stops)), or `no home` |
 | Energy | Energy as a percentage of 1000, rounded down |
 | Rust | See below |
 
@@ -100,7 +100,7 @@ While a player sneaks, particles show where nearby golems belong. Only that play
 | Golem | What is shown |
 |---|---|
 | Has a home or workplace | A dotted line of copper dust from the golem to the chest or machine |
-| Courier | A line to each end of its route that is within 40 blocks of the golem |
+| Courier | A line to each end and each stop of its route that is within 40 blocks of the golem |
 | Has a job but no home, workplace or route | A puff of smoke over its head |
 | Jobless, no home | Nothing |
 
