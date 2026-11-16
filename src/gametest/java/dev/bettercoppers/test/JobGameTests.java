@@ -725,6 +725,26 @@ public class JobGameTests {
 		h.succeedWhen(() -> h.assertTrue(count(target, Items.IRON_INGOT) == 8, "ingots not delivered yet"));
 	}
 
+	/** The courier walks past its stop on the way to the destination, though it lies off the straight way. */
+	@GameTest(maxTicks = 1200)
+	public void courier_walks_past_its_stops(GameTestHelper h) {
+		scene(h);
+		BlockPos from = new BlockPos(1, 1, 4);
+		BlockPos to = new BlockPos(7, 1, 4);
+		BlockPos stop = new BlockPos(4, 1, 0);
+		GameTests.chest(h, from, COPPER_CHEST).setItem(0, new ItemStack(Items.IRON_INGOT, 8));
+		Container target = GameTests.chest(h, to, COPPER_CHEST);
+		CopperGolem golem = GameTests.golem(h, new BlockPos(2, 1, 4));
+		GameTests.energize(golem);
+		Couriers.setRoute(golem, new CourierRoute(h.absolutePos(from), h.absolutePos(to), List.of(h.absolutePos(stop))));
+		boolean[] passed = new boolean[1];
+		h.onEachTick(() -> passed[0] |= Golems.isInReach(golem, h.absolutePos(stop)));
+		h.succeedWhen(() -> {
+			h.assertTrue(count(target, Items.IRON_INGOT) == 8, "ingots not delivered yet");
+			h.assertTrue(passed[0], "delivered without passing the stop");
+		});
+	}
+
 	/**
 	 * The chests are 4 blocks apart, but the only way between them is a hairpin tunnel that first leads 30 blocks away:
 	 * beyond the golem's usual path search, and long enough to look stuck to a watch that only counts getting closer.

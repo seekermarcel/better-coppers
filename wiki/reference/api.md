@@ -142,6 +142,7 @@ BetterCoppersApi.spendEnergy(golem, 1);
 |---|---|
 | `int tick(Entity, Vec3)` | Records one tick of walking towards the target and returns how many ticks in a row made no progress. |
 | `void reset()` | Starts over, for a new target. |
+| `static TravelWatch countingNewGround()` | A watch that also counts stepping onto a block the golem has not stood on since the last reset as progress. For long trips whose way may first lead away from the target, as couriers use. |
 
 ```java
 private final TravelWatch travel = new TravelWatch();

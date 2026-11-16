@@ -13,6 +13,7 @@ import dev.bettercoppers.api.TravelWatch;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.golem.Errands;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -36,13 +37,18 @@ import org.jspecify.annotations.Nullable;
 /**
  * A courier walks to the first chest of its route, takes what it can carry (16 items, or a whole cart load with a
  * chained cart), walks to the second chest however far away it is, and puts everything in. While it travels it keeps
- * its chunks loaded. Stuck somewhere, it shakes its head, wanders off a few blocks and tries again; it never gives up.
+ * its chunks loaded. On the way it walks past the route's stops in turn. Stuck somewhere, it shakes its head, walks back
+ * along its own trail (further each time it gets stuck again before the next stop) and tries again; it never gives up.
  * A destination with a quota changes the round: the courier waits there until something is missing and fetches only that.
  */
 public class CourierBehavior extends Behavior<CopperGolem> {
 	private static final int WAIT_TICKS = 200;
 	private static final int STALL_TICKS = 200;
 	private static final int DETOUR_TICKS = 100;
+	/** Long enough to walk back 96 blocks. */
+	private static final int BACKTRACK_TICKS = 600;
+	/** From this many escapes in a row, its status says where it is stuck. */
+	private static final int REPORT_ESCAPES = 2;
 	/** Beyond this, a waiting courier still keeps its chunks loaded so it does not freeze on the way. */
 	private static final double NEAR = 12.0;
 	/**
@@ -51,10 +57,16 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 	 */
 	private static final float PATH_SEARCH = 64.0F;
 
-	private final TravelWatch travel = new TravelWatch();
+	private final TravelWatch travel = TravelWatch.countingNewGround();
 	private int interactionTicks;
 	private @Nullable Vec3 detour;
 	private int detourTicks;
+	private int detourLimit;
+	/** The route end it is heading for, and the index of the next stop on the way. Not saved: after a restart it picks the nearest stop. */
+	private @Nullable BlockPos goal;
+	private int nextStop;
+	private final Trail trail = new Trail();
+	private int escapes;
 	private int waitTicks;
 	/** Bringing back what the destination's quota would not take. Not saved: after a restart it just tries the destination again. */
 	private boolean returning;
@@ -92,6 +104,7 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 		this.travel.reset();
 		this.detour = null;
 		this.waitTicks = 0;
+		this.goal = null;
 		golem.getNavigation().stop();
 		golem.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
 	}
@@ -128,15 +141,19 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 			this.tickDetour(golem);
 			return;
 		}
-		if (!Golems.isInReach(golem, target)) {
+		BlockPos stop = this.nextStop(golem, route, target);
+		if (stop != null || !Golems.isInReach(golem, target)) {
+			BlockPos walkTo = stop != null ? stop : target;
 			this.endInteraction(level, golem);
-			if (this.travel.tick(golem, Vec3.atCenterOf(target)) > STALL_TICKS) {
+			this.trail.record(golem.blockPosition());
+			if (this.travel.tick(golem, Vec3.atCenterOf(walkTo)) > STALL_TICKS) {
 				this.startDetour(golem);
 				return;
 			}
-			BehaviorUtils.setWalkAndLookTargetMemories(golem, target, 1.0F, 1);
+			BehaviorUtils.setWalkAndLookTargetMemories(golem, walkTo, 1.0F, stop != null ? 0 : 1);
 			return;
 		}
+		this.passed(golem);
 
 		Container container = Homes.containerAt(level, target);
 		if (container == null) {
@@ -265,16 +282,53 @@ public class CourierBehavior extends Behavior<CopperGolem> {
 		this.waitTicks = WAIT_TICKS;
 	}
 
+	/**
+	 * The next stop to walk to on the way to {@code end}, or null once all are passed. Heading for a new end, it starts
+	 * at the stop nearest to it, so that a restart mid-way does not send it back to the first one.
+	 */
+	private @Nullable BlockPos nextStop(CopperGolem golem, CourierRoute route, BlockPos end) {
+		List<BlockPos> stops = route.stopsTowards(end);
+		if (!end.equals(this.goal)) {
+			this.goal = end;
+			this.nextStop = 0;
+			for (int i = 1; i < stops.size(); i++) {
+				if (stops.get(i).distSqr(golem.blockPosition()) < stops.get(this.nextStop).distSqr(golem.blockPosition())) {
+					this.nextStop = i;
+				}
+			}
+			this.passed(golem);
+		}
+		while (this.nextStop < stops.size() && Golems.isInReach(golem, stops.get(this.nextStop))) {
+			this.nextStop++;
+			this.passed(golem);
+		}
+		return this.nextStop < stops.size() ? stops.get(this.nextStop) : null;
+	}
+
+	/** Reached a stop or the end: a fresh start for the stall watch, the trail and the escapes. */
+	private void passed(CopperGolem golem) {
+		this.travel.reset();
+		this.trail.clear();
+		this.escapes = 0;
+		Couriers.setStuckAt(golem, null);
+	}
+
+	/** Stuck: walks back along its trail, further each time in a row, or a few blocks anywhere with no trail yet. */
 	private void startDetour(CopperGolem golem) {
 		this.travel.reset();
 		golem.setState(CopperGolemState.GETTING_NO_ITEM);
 		golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_NO_GET);
-		this.detour = LandRandomPos.getPos(golem, 10, 7);
+		if (++this.escapes >= REPORT_ESCAPES) {
+			Couriers.setStuckAt(golem, golem.blockPosition());
+		}
+		BlockPos crumb = this.trail.backtrack(this.escapes);
+		this.detour = crumb != null ? Vec3.atBottomCenterOf(crumb) : LandRandomPos.getPos(golem, 10, 7);
+		this.detourLimit = crumb != null ? BACKTRACK_TICKS : DETOUR_TICKS;
 		this.detourTicks = 0;
 	}
 
 	private void tickDetour(CopperGolem golem) {
-		if (++this.detourTicks > DETOUR_TICKS || this.detour == null || golem.position().distanceTo(this.detour) < 1.5) {
+		if (++this.detourTicks > this.detourLimit || this.detour == null || golem.position().distanceTo(this.detour) < 1.5) {
 			this.detour = null;
 			golem.setState(CopperGolemState.IDLE);
 			return;

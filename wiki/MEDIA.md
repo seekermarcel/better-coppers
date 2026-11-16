@@ -2,7 +2,7 @@
 
 Put each file in `wiki/public/media/` under the name given here. Screenshots are PNG, clips short MP4s under about 10 MB (longer ones go on YouTube). Each one replaces the `<!-- MEDIA: ... -->` comment of the same name in its page. In the same pass, the shaped blocks get `image: /media/<file>` in their infobox, because their icons are only approximate cubes.
 
-43 items: 28 screenshots, 15 clips.
+44 items: 29 screenshots, 15 clips.
 
 ## automatisation/index
 
@@ -112,6 +112,7 @@ Put each file in `wiki/public/media/` under the name given here. Screenshots are
 ## jobs/courier
 
 - [ ] `jobs-courier-route.png` (screenshot): A courier with items in its hand and a chained Copper Chest Minecart walking along a path, a barrel far behind it and a chest in the distance
+- [ ] `jobs-courier-stops.png` (screenshot): A player sneaking next to a courier at a tunnel entrance, copper dust lines running from the golem to two stops along the tunnel
 
 ## jobs/crafter
 

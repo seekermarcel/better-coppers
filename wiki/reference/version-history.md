@@ -18,10 +18,12 @@ The **version history** lists the released versions of Better Coppers and its Au
 New:
 
 - Item frames showing a grindstone, smithing table, enchanting table, armor stand or brewing stand reserve a container for all weapons, tools, enchanted books, armour or potions. An ender chest frame takes anything that does not stack. See [reserved chests](/jobs/sorter#reserved-chests).
+- [Courier](/jobs/courier) routes take [stops](/jobs/courier#stops): sneak + right-click the ground with an empty hand while setting a route. The courier walks past them in turn, so it finds its way through tunnels, round mountains and out of walled bases.
 - A [sorter](/jobs/sorter) without a cart carries up to 16 unstackables of the same kind in one trip, and a cart carries a whole group of them, such as all weapons.
 
 Changed:
 
+- A stuck [courier](/jobs/courier#getting-stuck) walks back along its way, further each time, instead of to a random spot nearby, and its status says where it keeps getting stuck.
 - A sorter tops up a barrel that already holds the item before using other barrels.
 
 Fixed:

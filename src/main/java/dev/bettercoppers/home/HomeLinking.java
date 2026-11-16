@@ -14,6 +14,7 @@ import dev.bettercoppers.job.Tools;
 import dev.bettercoppers.runningcosts.GolemRunningCosts;
 import dev.bettercoppers.runningcosts.RunningCosts;
 import com.mojang.datafixers.util.Pair;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +58,7 @@ import org.jspecify.annotations.Nullable;
  * <p>
  * Right-clicking a plain chest or barrel, or sneak + right-clicking a copper chest, instead starts a courier route; the
  * next chest of any kind or barrel clicked, at any distance in the same dimension, ends it. There are {@link #ROUTE_TICKS ten minutes} to walk there.
+ * On the way, sneak + right-click with an empty hand on any other block adds a stop on top of it, for the courier to walk past.
  * <p>
  * A plain empty-hand click on a golem with a job only shows its status (ADR 0009).
  */
@@ -70,9 +72,9 @@ public final class HomeLinking {
 	/** A route this long earns the "Long Haul" guide step. */
 	private static final int LONG_HAUL = 500;
 
-	private record Selection(UUID golem, ResourceKey<Level> dimension, long until, @Nullable BlockPos routeStart, long endJobUntil, long lastClick) {
+	private record Selection(UUID golem, ResourceKey<Level> dimension, long until, @Nullable BlockPos routeStart, List<BlockPos> stops, long endJobUntil, long lastClick) {
 		Selection clicked(long now) {
-			return new Selection(this.golem, this.dimension, this.until, this.routeStart, this.endJobUntil, now);
+			return new Selection(this.golem, this.dimension, this.until, this.routeStart, this.stops, this.endJobUntil, now);
 		}
 	}
 
@@ -170,7 +172,7 @@ public final class HomeLinking {
 			return;
 		}
 		drop(player, level);
-		SELECTIONS.put(player.getUUID(), new Selection(golem.getUUID(), level.dimension(), now + SELECTION_TICKS, null, hasJob ? now + END_JOB_TICKS : 0L, now));
+		SELECTIONS.put(player.getUUID(), new Selection(golem.getUUID(), level.dimension(), now + SELECTION_TICKS, null, List.of(), hasJob ? now + END_JOB_TICKS : 0L, now));
 		golem.addEffect(new MobEffectInstance(MobEffects.GLOWING, SELECTION_TICKS, 0, false, false));
 		golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_GET, 0.6F, 1.4F);
 		player.sendSystemMessage(Component.translatable(hasJob ? "message.bettercoppers.selected_job" : "message.bettercoppers.selected", status(golem)));
@@ -199,7 +201,7 @@ public final class HomeLinking {
 	/** The golem got a job, which no first click warned about: the next sneak-click must not end it. */
 	public static void closeEndJobWindow(CopperGolem golem) {
 		SELECTIONS.replaceAll((player, s) -> s.golem().equals(golem.getUUID())
-			? new Selection(s.golem(), s.dimension(), s.until(), s.routeStart(), 0L, s.lastClick()) : s);
+			? new Selection(s.golem(), s.dimension(), s.until(), s.routeStart(), s.stops(), 0L, s.lastClick()) : s);
 	}
 
 	/** Job, place, energy and rust, for the status message. */
@@ -208,12 +210,19 @@ public final class HomeLinking {
 		CourierRoute route = Couriers.route(golem);
 		BlockPos place = Jobs.place(golem);
 		Component placeText = route != null
-			? Component.translatable("status.bettercoppers.route", route.from().toShortString(), route.to().toShortString())
+			? route.stops().isEmpty()
+				? Component.translatable("status.bettercoppers.route", route.from().toShortString(), route.to().toShortString())
+				: Component.translatable("status.bettercoppers.route_stops", route.from().toShortString(), route.to().toShortString(), route.stops().size())
 			: place == null
 				? Component.translatable("status.bettercoppers.no_home")
 				: Component.translatable(place.equals(Homes.get(golem)) ? "status.bettercoppers.home" : "status.bettercoppers.workplace", place.getX(), place.getY(), place.getZ());
 		if (!Jobs.isPaying(golem)) {
-			return Component.translatable("message.bettercoppers.status_free", job, placeText);
+			MutableComponent free = Component.translatable("message.bettercoppers.status_free", job, placeText);
+			BlockPos stuck = Couriers.stuckAt(golem);
+			if (stuck != null) {
+				free.append(", ").append(Component.translatable("status.bettercoppers.stuck", stuck.getX(), stuck.getY(), stuck.getZ()));
+			}
+			return free;
 		}
 		int percent = RunningCosts.get(golem).energy() * 100 / GolemRunningCosts.MAX_ENERGY;
 		String rust = RunningCosts.isWaxed(golem) ? "waxed" : golem.getWeatherState().getSerializedName();
@@ -273,7 +282,11 @@ public final class HomeLinking {
 			}
 		}
 		if (selection.routeStart() != null) {
-			return Homes.canEndRoute(state) ? endRoute(player, serverLevel, selection, pos) : InteractionResult.PASS;
+			if (Homes.canEndRoute(state)) {
+				return endRoute(player, serverLevel, selection, pos);
+			}
+			// An empty hand, so that building on the way never adds stops.
+			return player.isShiftKeyDown() && player.getMainHandItem().isEmpty() ? addStop(player, serverLevel, selection, pos.above()) : InteractionResult.PASS;
 		}
 		// A golem whose job takes no route has no use for a sneak on a copper chest: it is still the home link.
 		boolean homeOnly = state.is(BlockTags.COPPER_CHESTS) && serverLevel.getEntity(selection.golem()) instanceof CopperGolem picked && !Jobs.takesRoute(picked);
@@ -281,7 +294,7 @@ public final class HomeLinking {
 			if (refuseRoute(player, serverLevel, selection)) {
 				return InteractionResult.FAIL;
 			}
-			SELECTIONS.put(player.getUUID(), new Selection(selection.golem(), selection.dimension(), serverLevel.getGameTime() + ROUTE_TICKS, pos, 0L, selection.lastClick()));
+			SELECTIONS.put(player.getUUID(), new Selection(selection.golem(), selection.dimension(), serverLevel.getGameTime() + ROUTE_TICKS, pos, List.of(), 0L, selection.lastClick()));
 			serverLevel.playSound(null, pos, SoundEvents.COPPER_GOLEM_ITEM_GET, SoundSource.NEUTRAL, 1.0F, 1.2F);
 			player.sendOverlayMessage(Component.translatable("message.bettercoppers.route_start"));
 			return InteractionResult.SUCCESS;
@@ -316,6 +329,21 @@ public final class HomeLinking {
 		return true;
 	}
 
+	private static InteractionResult addStop(Player player, ServerLevel level, Selection selection, BlockPos stop) {
+		if (selection.stops().size() >= CourierRoute.MAX_STOPS) {
+			player.sendOverlayMessage(Component.translatable("message.bettercoppers.route_stop_limit", CourierRoute.MAX_STOPS));
+			return InteractionResult.FAIL;
+		}
+		BlockPos last = selection.stops().isEmpty() ? selection.routeStart() : selection.stops().getLast();
+		List<BlockPos> stops = new ArrayList<>(selection.stops());
+		stops.add(stop);
+		SELECTIONS.put(player.getUUID(), new Selection(selection.golem(), selection.dimension(), selection.until(), selection.routeStart(), List.copyOf(stops), 0L, selection.lastClick()));
+		level.playSound(null, stop, SoundEvents.COPPER_GOLEM_ITEM_GET, SoundSource.NEUTRAL, 1.0F, 1.6F);
+		level.sendParticles(HomeDisplay.COPPER_DUST, stop.getX() + 0.5, stop.getY() + 0.2, stop.getZ() + 0.5, 12, 0.25, 0.1, 0.25, 0.0);
+		player.sendOverlayMessage(Component.translatable("message.bettercoppers.route_stop", stops.size(), (int) Math.sqrt(last.distSqr(stop))));
+		return InteractionResult.SUCCESS;
+	}
+
 	private static InteractionResult endRoute(Player player, ServerLevel level, Selection selection, BlockPos pos) {
 		if (refuseRoute(player, level, selection)) {
 			return InteractionResult.FAIL;
@@ -326,9 +354,12 @@ public final class HomeLinking {
 			return InteractionResult.FAIL;
 		}
 		drop(player, level);
-		Couriers.assign(level, selection.golem(), new CourierRoute(start, pos));
+		Couriers.assign(level, selection.golem(), new CourierRoute(start, pos, selection.stops()));
 		level.playSound(null, pos, SoundEvents.COPPER_GOLEM_ITEM_DROP, SoundSource.NEUTRAL, 1.0F, 1.2F);
-		player.sendOverlayMessage(Component.translatable("message.bettercoppers.route_set", (int) Math.sqrt(start.distSqr(pos))));
+		int length = (int) Math.sqrt(start.distSqr(pos));
+		player.sendOverlayMessage(selection.stops().isEmpty()
+			? Component.translatable("message.bettercoppers.route_set", length)
+			: Component.translatable("message.bettercoppers.route_set_stops", length, selection.stops().size()));
 		Guide.job(player, "courier");
 		if (start.distSqr(pos) >= LONG_HAUL * LONG_HAUL) {
 			Guide.award(player, "long_haul");

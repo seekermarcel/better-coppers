@@ -655,6 +655,25 @@ public class HandoverGameTests {
 			.thenSucceed();
 	}
 
+	@GameTest
+	public void sneak_clicks_on_the_way_add_route_stops(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos first = new BlockPos(1, 1, 1);
+		BlockPos second = new BlockPos(6, 1, 6);
+		h.setBlock(first, Blocks.CHEST);
+		h.setBlock(second, Blocks.CHEST);
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		click(h, player, golem, true, ItemStack.EMPTY);
+		h.assertTrue(clickBlock(h, player, first).consumesAction(), "route start");
+		h.assertValueEqual(clickBlock(h, player, new BlockPos(5, 0, 1)), InteractionResult.PASS, "a plain click adds no stop");
+		h.assertTrue(sneakClickBlock(h, player, new BlockPos(3, 0, 5)).consumesAction(), "first stop");
+		h.assertTrue(sneakClickBlock(h, player, new BlockPos(2, 0, 2)).consumesAction(), "second stop");
+		h.assertTrue(clickBlock(h, player, second).consumesAction(), "route end");
+		h.assertValueEqual(Couriers.route(golem).stops(), List.of(h.absolutePos(new BlockPos(3, 1, 5)), h.absolutePos(new BlockPos(2, 1, 2))), "stops in click order");
+		h.succeed();
+	}
+
 	// --- refusals ---
 
 	@GameTest

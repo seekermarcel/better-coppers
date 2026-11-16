@@ -106,7 +106,7 @@ What does not fit in the player's inventory lands at the player's feet. A chaine
 | Machine (add-on) | Either | Links an operator to it |
 | Any other block | Either | Acts as normal and keeps the pick |
 
-After a route is started, the next right-click on any chest or barrel ends it, at any distance in the same dimension, within 10 minutes. Clicking the chest the route started at is refused and the pick stays. See [Homes and status](/start/homes-and-status) and [Courier](/jobs/courier).
+After a route is started, the next right-click on any chest or barrel ends it, at any distance in the same dimension, within 10 minutes. Before that, sneak + right-click on any other block with an empty hand adds a [stop](/jobs/courier#stops) on top of it. Clicking the chest the route started at is refused and the pick stays. See [Homes and status](/start/homes-and-status) and [Courier](/jobs/courier).
 
 ## Other controls
 

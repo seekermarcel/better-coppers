@@ -18,7 +18,8 @@ A **courier** is a [copper golem](/golem/copper-golem) that carries everything f
 
 1. Sneak + right-click the golem with an empty hand. It glows.
 2. Within 30 seconds, right-click a plain chest, trapped chest or barrel, or sneak + right-click a copper chest. The golem picks things up here. A plain click on a copper chest would make it the golem's home instead.
-3. Within 10 minutes, right-click the destination: any chest, copper chest or barrel, in the same dimension.
+3. Optionally, on the way, sneak + right-click the ground with an empty hand to add a [stop](#stops).
+4. Within 10 minutes, right-click the destination: any chest, copper chest or barrel, in the same dimension.
 
 There is no distance limit, but both ends must be in the same dimension and must not be the same container. The golem may be far away and unloaded when the route is set; it takes the route as soon as it loads, unless it has since been given another job. A route set this way is lost if the server restarts before the golem loads.
 
@@ -37,9 +38,35 @@ The courier walks to the pickup chest, takes what it can carry, walks to the des
 | Delivery | Puts in everything it carries. 60 ticks at the chest |
 | Destination full | Waits 10 seconds and tries again, keeping the rest |
 | Chest gone or locked | Waits, looking again every 10 seconds, until the route is fixed |
-| Stuck for 10 seconds | Shakes its head, walks to a random spot up to 10 blocks away for at most 5 seconds, then tries again. It counts as stuck when it neither got closer nor reached a block it had not stood on |
+| Stuck for 10 seconds | Shakes its head, walks back along its own way and tries again. See [getting stuck](#getting-stuck) |
 
-A courier looks for a way up to 64 blocks around itself, four times as far as other golems. So it follows a tunnel or a path round a lake even when that first leads away from the target. A target further away than that it heads for in stages: each time, it walks to the spot within reach that is nearest to the target. A detour that needs more than 64 blocks of walking away can still leave it stuck.
+### Finding the way
+
+A courier looks for a way up to 64 blocks around itself, four times as far as other golems. So it follows a tunnel or a path round a lake even when that first leads away from the target. A target further away than that it heads for in stages: each time, it walks to the spot within reach that is nearest to the target. A detour that needs more than 64 blocks of walking away can leave it stuck. Then give the route [stops](#stops).
+
+### Stops
+
+A **stop** is a spot on the route that the courier walks past, in the order they were set, and back past them in reverse. Stops show the courier the way where it cannot find it alone, such as through a long tunnel, round a mountain or out of a walled base through its one gate.
+
+To add one, sneak + right-click the ground with an empty hand while setting the route, after clicking the pickup chest. The stop is the block on top of the one clicked. Each new stop shows a puff of copper dust and how far it is from the last point. A route takes up to 32 stops. Clicking a chest or barrel ends the route, so stops cannot go on containers.
+
+| Rule | Detail |
+|---|---|
+| Spacing | Up to 64 blocks of walking apart, so the courier can find the way between them. Closer at turns and gates |
+| Passed | When the courier is within about a block of it |
+| Starting mid-way | Heading for one end of the route, it starts at the stop nearest to it, and then takes the rest in order. So after a restart it does not go back to the first stop |
+| Riding | A courier only takes a minecart or boat towards a stop at least 24 blocks away, so space stops out along rails or water |
+| Changing stops | Set the route again. A new route replaces the old one with its stops |
+
+While you sneak near a courier, copper dust lines run from it to the ends and stops of its route within 40 blocks. Its status shows how many stops its route has.
+
+<!-- MEDIA: jobs-courier-stops.png | screenshot | A player sneaking next to a courier at a tunnel entrance, copper dust lines running from the golem to two stops along the tunnel -->
+
+### Getting stuck
+
+A courier counts as stuck after 10 seconds in which it neither got closer to the next stop or end nor reached a block it had not stood on. It then walks back along the way it came, about 32 blocks, and tries again from there. Stuck again before the next stop, it goes back 64 blocks, then 96. It remembers its way back to the last stop it passed, or the chest it left from. With no way behind it yet, it walks to a random spot up to 10 blocks away instead. Each try back gives it up to 30 seconds.
+
+From the second time in a row, its status says **stuck near** and the place. Add a stop there or just past it. The courier never gives up.
 
 ### Frames on the pickup chest
 

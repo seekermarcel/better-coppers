@@ -7,6 +7,7 @@ import dev.bettercoppers.registry.ModAttachments;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
@@ -73,6 +74,15 @@ public final class Couriers {
 
 	public static void setShortage(CopperGolem golem, @Nullable Map<Item, Integer> shortage) {
 		golem.setAttached(ModAttachments.SHORTAGE, shortage);
+	}
+
+	/** Where the courier keeps getting stuck on its way, or null. */
+	public static @Nullable BlockPos stuckAt(CopperGolem golem) {
+		return golem.getAttached(ModAttachments.STUCK_AT);
+	}
+
+	static void setStuckAt(CopperGolem golem, @Nullable BlockPos pos) {
+		golem.setAttached(ModAttachments.STUCK_AT, pos);
 	}
 
 	/** Gives the route to the golem now if it is loaded, or as soon as it loads. */

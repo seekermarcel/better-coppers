@@ -80,8 +80,12 @@ The place an add-on job works at instead of a home, such as an operator's machin
 _Avoid_: Home
 
 **Route**:
-A courier's pair of containers: pickup and destination. A golem with a route has no home.
+A courier's pair of containers: pickup and destination, and its stops. A golem with a route has no home.
 _Avoid_: Errand, path
+
+**Stop**:
+A spot on a route that the player set, which a courier walks past on its way, in order, and back in reverse.
+_Avoid_: Waypoint, checkpoint
 
 **Errand**:
 Temporary work that pauses whatever the golem was doing, such as repairing an iron golem.

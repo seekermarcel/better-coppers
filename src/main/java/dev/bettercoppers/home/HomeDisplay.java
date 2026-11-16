@@ -3,6 +3,8 @@ package dev.bettercoppers.home;
 import dev.bettercoppers.courier.CourierRoute;
 import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.job.Jobs;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -14,7 +16,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * While a player sneaks, a faint line of copper dust runs from every working golem nearby to its home chest, seen only
- * by that player. Couriers show lines to both ends of their route, when those are close enough to see. Working golems
+ * by that player. Couriers show lines to both ends of their route and to its stops, when those are close enough to see. Working golems
  * without a home get a puff of smoke over their head instead.
  */
 public final class HomeDisplay {
@@ -22,7 +24,7 @@ public final class HomeDisplay {
 	private static final double RANGE = 24.0;
 	private static final double SPACING = 0.6;
 	private static final double ROUTE_LINE_RANGE = 40.0;
-	private static final DustParticleOptions COPPER_DUST = new DustParticleOptions(0xD8743F, 0.7F);
+	static final DustParticleOptions COPPER_DUST = new DustParticleOptions(0xD8743F, 0.7F);
 
 	private HomeDisplay() {
 	}
@@ -39,9 +41,12 @@ public final class HomeDisplay {
 				CourierRoute route = Couriers.route(golem);
 				BlockPos place = Jobs.place(golem);
 				if (route != null) {
-					for (BlockPos end : new BlockPos[] {route.from(), route.to()}) {
-						if (end.closerToCenterThan(golem.position(), ROUTE_LINE_RANGE)) {
-							drawLine(level, golem, end, player);
+					List<BlockPos> points = new ArrayList<>(route.stops());
+					points.add(route.from());
+					points.add(route.to());
+					for (BlockPos point : points) {
+						if (point.closerToCenterThan(golem.position(), ROUTE_LINE_RANGE)) {
+							drawLine(level, golem, point, player);
 						}
 					}
 				} else if (place != null) {

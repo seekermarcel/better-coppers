@@ -53,6 +53,7 @@ Golems only take copper tools. A sneak + right-click with any other pickaxe, hoe
 |---|---|
 | Right-click a copper chest within 32 blocks of the golem | Sets the [home](/start/homes-and-status) |
 | Right-click a chest or barrel, or sneak + right-click a copper chest | Starts a courier route (golem without a job, or a courier) |
+| Then sneak + right-click the ground with an empty hand | Adds a stop to the route, up to 32 |
 | Then right-click any chest, copper chest or barrel | Ends the route; any distance in the same dimension |
 | Right-click a machine within 32 blocks of the golem (add-on) | Sets an operator's workplace |
 

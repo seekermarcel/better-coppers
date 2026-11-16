@@ -49,6 +49,10 @@ public final class ModAttachments {
 		BetterCoppers.id("route"), builder -> builder.persistent(CourierRoute.CODEC)
 	);
 
+	/** Where a courier got stuck again and again since its last stop, for its status. Not saved. */
+	public static final AttachmentType<BlockPos> STUCK_AT = AttachmentRegistry.create(BetterCoppers.id("stuck_at"), builder -> {
+	});
+
 	/** What a courier's destination was missing of its quota, see {@code Couriers.shortage}. */
 	public static final AttachmentType<Map<Item, Integer>> SHORTAGE = AttachmentRegistry.create(
 		BetterCoppers.id("shortage"), builder -> builder.persistent(Codec.unboundedMap(BuiltInRegistries.ITEM.byNameCodec(), Codec.INT))

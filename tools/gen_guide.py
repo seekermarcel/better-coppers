@@ -495,6 +495,10 @@ Stellt her, was die Rahmen an oder neben seiner Truhe zeigen, aus den Zutaten in
 2. Right-click a plain chest or barrel, or sneak + right-click a copper chest: it picks things up here. A plain click on a copper chest would make it its home.
 3. Walk to the destination (you have 10 minutes) and right-click a chest, copper chest or barrel there.
 
+On the way, sneak + right-click the ground with an empty hand to add a stop. The courier walks past the stops in order, and back in reverse. Use them where it cannot find the way alone: through long tunnels, round mountains, out of a walled base. Keep them within 64 blocks of each other.
+
+If it keeps getting stuck, its status says where: add a stop there.
+
 It takes 16 items per trip, or a cart load with a chained cart. On the road it keeps the chunks around it loaded, so the route keeps working while you are far away. If the destination is full, it waits.
 
 Hang item frames on the pickup chest and it takes only what they show, with the same rules as for a sorter. Other frames on the destination change nothing.
@@ -510,6 +514,10 @@ A golem with a job takes no route, except a courier: give it a new route and it 
 1. Schleichen + Rechtsklick mit leerer Hand auf den Golem.
 2. Rechtsklicke eine normale Truhe oder ein Fass, oder Schleichen + Rechtsklick auf eine Kupfertruhe: Hier holt er ab. Ein einfacher Klick auf eine Kupfertruhe würde sie zu seinem Zuhause machen.
 3. Geh zum Ziel (du hast 10 Minuten) und rechtsklicke dort eine Truhe, Kupfertruhe oder ein Fass.
+
+Unterwegs fügt Schleichen + Rechtsklick mit leerer Hand auf den Boden einen Halt hinzu. Der Kurier läuft der Reihe nach an den Halten vorbei, auf dem Rückweg umgekehrt. Setz sie dort, wo er den Weg allein nicht findet: durch lange Tunnel, um Berge herum, aus einer ummauerten Basis. Halte höchstens 64 Blöcke Abstand zwischen ihnen.
+
+Bleibt er immer wieder stecken, sagt sein Status, wo: Setz dort einen Halt.
 
 Er nimmt 16 Gegenstände pro Gang mit, mit angeketteter Lore eine ganze Ladung. Unterwegs hält er die Chunks um sich geladen, damit die Route auch funktioniert, wenn du weit weg bist. Ist das Ziel voll, wartet er.
 
