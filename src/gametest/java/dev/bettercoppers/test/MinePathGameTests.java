@@ -78,6 +78,83 @@ public class MinePathGameTests {
 			.thenSucceed();
 	}
 
+	/**
+	 * The same walk with rails down the middle of the finished Straights, as a miner with rails lays them. Vanilla keeps a
+	 * mob that stands off a rail from pathing onto one, which would leave the miner stuck at the entrance.
+	 */
+	@GameTest(maxTicks = 4000, padding = 48)
+	public void a_miner_walks_into_a_mine_with_rails(GameTestHelper h) {
+		Scene s = deepMine(h);
+		for (int z = 3; z < 3 + 8 * DONE; z++) {
+			h.setBlock(new BlockPos(BEAM.getX(), BEAM.getY() - 2, z), Blocks.RAIL);
+		}
+		miner(h, new BlockPos(2, 2, 1));
+		h.succeedWhen(() -> h.assertTrue(deepest(h, s.beam()).progress() > 0, "nothing dug in the fourth section"));
+	}
+
+	/**
+	 * Coal two deep under the walkway of the fourth section. The miner digs what it reaches from the walkway, never steps
+	 * down into the hole (it could not climb out, and patching the walkway would wall it in), and finishes the section.
+	 */
+	@GameTest(maxTicks = 6000, padding = 48)
+	public void a_miner_never_steps_down_into_a_vein_under_the_walkway(GameTestHelper h) {
+		Scene s = deepMine(h);
+		BlockPos top = new BlockPos(BEAM.getX(), 1, 3 + 8 * DONE + 3);
+		h.setBlock(top, Blocks.COAL_ORE);
+		h.setBlock(top.below(), Blocks.COAL_ORE);
+		CopperGolem golem = miner(h, new BlockPos(2, 2, 1));
+		int walkway = h.absolutePos(BlockPos.ZERO).getY() + 2;
+		h.onEachTick(() -> {
+			h.assertTrue(golem.getBlockY() >= walkway || !deepest(h, s.beam()).box().isInside(golem.blockPosition()), "stepped down into the vein at " + golem.blockPosition());
+			h.assertFalse(h.getLevel().getBlockState(golem.blockPosition()).isCollisionShapeFullBlock(h.getLevel(), golem.blockPosition()), "walled in at " + golem.blockPosition());
+		});
+		h.succeedWhen(() -> {
+			h.assertTrue(deepest(h, s.beam()).done(), "fourth section not done: progress " + deepest(h, s.beam()).progress());
+			h.assertFalse(h.getBlockState(top).is(Blocks.COAL_ORE), "ore under the walkway not dug");
+			h.assertTrue(h.getBlockState(top).isSolid(), "walkway over the vein not patched");
+		});
+	}
+
+	/**
+	 * A golem stands where the fourth section's first support post goes. The miner never puts the post into it, and once
+	 * the golem is gone it finishes the section.
+	 */
+	@GameTest(maxTicks = 6000, padding = 48)
+	public void a_miner_never_builds_into_a_golem(GameTestHelper h) {
+		Scene s = deepMine(h);
+		BlockPos post = new BlockPos(BEAM.getX() - 1, 2, 3 + 8 * DONE + 2);
+		h.setBlock(post, Blocks.AIR);
+		h.setBlock(post.above(), Blocks.AIR);
+		CopperGolem bystander = GameTests.golem(h, post);
+		bystander.setNoAi(true);
+		miner(h, new BlockPos(2, 2, 1));
+		h.onEachTick(() -> {
+			if (bystander.isAlive()) {
+				h.assertFalse(h.getLevel().getBlockState(bystander.blockPosition()).isSolid(), "built into the golem at " + bystander.blockPosition());
+			}
+		});
+		h.startSequence()
+			.thenWaitUntil(() -> h.assertTrue(deepest(h, s.beam()).progress() > 0, "nothing dug in the fourth section"))
+			.thenExecuteAfter(1200, bystander::discard)
+			.thenWaitUntil(() -> h.assertTrue(deepest(h, s.beam()).done(), "fourth section not done"))
+			.thenSucceed();
+	}
+
+	/** Out of energy in the fourth section of a mine with rails, the miner walks out along its tunnels to the pad by its home. */
+	@GameTest(maxTicks = 4000, padding = 48)
+	public void an_empty_miner_walks_out_of_the_mine_to_its_pad(GameTestHelper h) {
+		deepMine(h);
+		for (int z = 3; z < 3 + 8 * DONE; z++) {
+			h.setBlock(new BlockPos(BEAM.getX(), BEAM.getY() - 2, z), Blocks.RAIL);
+		}
+		BlockPos pad = new BlockPos(3, 1, 0);
+		h.setBlock(pad, dev.bettercoppers.registry.ModBlocks.CHARGING_PAD);
+		// Beside the rails, as a miner digging the tunnel's side stands.
+		CopperGolem golem = miner(h, new BlockPos(BEAM.getX() - 1, 2, 3 + 8 * DONE - 2));
+		dev.bettercoppers.runningcosts.RunningCosts.get(golem).setEnergy(0);
+		h.succeedWhen(() -> h.assertValueEqual(golem.blockPosition(), h.absolutePos(pad.above()), "where the empty miner stands"));
+	}
+
 	/** Walled in at the far end, it tries the Mine Path, then straight for home, then says it is stuck. */
 	@GameTest(maxTicks = 2400, padding = 48)
 	public void a_walled_in_miner_is_stuck_in_the_mine(GameTestHelper h) {

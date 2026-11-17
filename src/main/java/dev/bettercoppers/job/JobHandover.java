@@ -5,6 +5,7 @@ import dev.bettercoppers.api.GolemJob;
 import dev.bettercoppers.courier.Couriers;
 import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.golem.CartChaining;
+import dev.bettercoppers.golem.Golems;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.home.HomeLinking;
 import dev.bettercoppers.mining.Mines;
@@ -52,6 +53,7 @@ public final class JobHandover {
 		Load.of(golem).handOver(stack -> Inventories.giveOrDrop(player, stack));
 		RepairBehavior.giveCarried(player, golem);
 		Mines.release(golem);
+		Golems.walkOverRails(golem, false);
 		golem.removeAttached(ModAttachments.MINER);
 		golem.removeAttached(ModAttachments.WORKER);
 		golem.removeAttached(ModAttachments.LOST_TOOL);
