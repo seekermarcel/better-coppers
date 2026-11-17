@@ -11,7 +11,7 @@ A **job** is work a player assigns to a [copper golem](/golem/copper-golem). Bet
 | Job | Job item | Needs | Paying job | Work area | Mod |
 |---|---|---|---|---|---|
 | [Sorter](/jobs/sorter) | <Icon id="bundle" /> Any bundle | Home | No | Containers within 32 blocks of the golem, 8 up and down | Better Coppers |
-| [Miner](/jobs/miner) | <Icon id="copper_pickaxe" /> Copper pickaxe, then <Icon id="mineshaft_plan" /> [Mineshaft Plan](/items/mineshaft_plan) | Home | Yes | The Mineshaft Plan's mine, 8 to 128 blocks long | Better Coppers |
+| [Miner](/jobs/miner) | <Icon id="copper_pickaxe" /> Copper pickaxe | Home | Yes | A [Mine Entrance](/jobs/miner#mine-entrance) within 32 blocks of its home chest | Better Coppers |
 | [Farmer](/jobs/farmer) | <Icon id="copper_hoe" /> Copper hoe | Home | Yes | 8 blocks around the home, 3 up and down | Better Coppers |
 | [Forester](/jobs/forester) | <Icon id="copper_axe" /> Copper axe | Home | Yes | 12 blocks around the home, 6 up and down | Better Coppers |
 | [Fisher](/jobs/fisher) | <Icon id="fishing_rod" /> Fishing rod | Home | Yes | 10 blocks around the home, 4 down and 2 up | Better Coppers |
@@ -32,13 +32,13 @@ Everything given to a golem takes sneak + right-click (see [Controls](/start/con
 
 Pickaxes, axes and hoes must be copper. Others are refused with a message. An axe only becomes a job item on a clean, unwaxed golem. On a rusty or waxed golem any axe scrapes it instead. See [Tools](/golem/tools).
 
-Giving a golem a different job item ends its old job first. The player gets back the old job item, the Mineshaft Plan, the pouch and the supplies, and what does not fit lands at the player's feet. A chained [Copper Chest Minecart](/items/copper_chest_minecart) stays chained. A new tool for the same job only swaps the tools.
+Giving a golem a different job item ends its old job first. The player gets back the old job item, the pouch and the supplies, and what does not fit lands at the player's feet. A chained [Copper Chest Minecart](/items/copper_chest_minecart) stays chained. A new tool for the same job only swaps the tools.
 
 A golem with a job takes no route, except a courier. Other jobs have to be ended first. If a golem somehow qualifies for two jobs, the first match wins, in this order: route, add-on job, job tool, bundle. A courier carrying a hoe is a courier.
 
 ## Ending a job
 
-Sneak + right-click the golem twice with an empty hand, within 5 seconds. The player gets its tool or bundle, its Mineshaft Plan and everything it carries. A chained Copper Chest Minecart unchains and stays where it is, still loaded. Home, [eyes](/golem/eyes) and [trim](/golem/trims) stay with the golem, as do its energy and rust.
+Sneak + right-click the golem twice with an empty hand, within 5 seconds. The player gets its tool or bundle and everything it carries. A chained Copper Chest Minecart unchains and stays where it is, still loaded. Home, [eyes](/golem/eyes) and [trim](/golem/trims) stay with the golem, as do its energy and rust.
 
 ## What the paying jobs share
 

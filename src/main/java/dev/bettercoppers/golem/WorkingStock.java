@@ -9,7 +9,6 @@ import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.job.KeeperBehavior;
 import dev.bettercoppers.job.WorkerData;
 import dev.bettercoppers.mining.MineBehavior;
-import dev.bettercoppers.mining.MinePlan;
 import dev.bettercoppers.mining.MinerData;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,9 +75,9 @@ public final class WorkingStock {
 			if (job != null) {
 				reserves.add(reserveOf(job));
 			} else if (kind == Jobs.JobKind.MINER) {
-				// The spare pickaxe stays with any miner; supplies only with a marked plan.
-				boolean marked = isMarked(golem);
-				reserves.add(stack -> stack.is(Items.COPPER_PICKAXE) || marked && MineBehavior.isSupply(stack) ? ALL : 0);
+				// The spare pickaxe stays with any miner; supplies only with a mine.
+				boolean hasMine = hasMine(golem);
+				reserves.add(stack -> stack.is(Items.COPPER_PICKAXE) || hasMine && MineBehavior.isSupply(stack) ? ALL : 0);
 			}
 		}
 		return stack -> {
@@ -110,9 +109,8 @@ public final class WorkingStock {
 		};
 	}
 
-	private static boolean isMarked(CopperGolem golem) {
+	private static boolean hasMine(CopperGolem golem) {
 		MinerData data = MinerData.get(golem);
-		MinePlan plan = data == null ? null : data.plan();
-		return plan != null && plan.isMarked();
+		return data != null && data.mine() != null;
 	}
 }

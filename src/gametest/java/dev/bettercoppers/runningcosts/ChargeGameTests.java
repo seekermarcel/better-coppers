@@ -9,11 +9,7 @@ import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.JobHandover;
 import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.job.WorkerData;
-import dev.bettercoppers.mining.MineLayout;
-import dev.bettercoppers.mining.MinePattern;
-import dev.bettercoppers.mining.MinePlan;
 import dev.bettercoppers.registry.ModBlocks;
-import dev.bettercoppers.registry.ModComponents;
 import dev.bettercoppers.registry.ModItems;
 import dev.bettercoppers.test.GameTests;
 import dev.bettercoppers.test.JobGameTests;
@@ -83,8 +79,8 @@ public class ChargeGameTests {
 		UseEntityCallback.EVENT.invoker().interact(player, h.getLevel(), InteractionHand.MAIN_HAND, golem, null);
 	}
 
-	/** A miner in front of a stone block with a marked plan, home (1, 1, 7), its first dig out of reach of (4, 1, 7). */
-	private static MinePlan miner(GameTestHelper h, CopperGolem golem) {
+	/** A miner at a Mine Entrance in front of a stone block, home (1, 1, 7), its first dig out of reach of (4, 1, 7). */
+	private static void miner(GameTestHelper h, CopperGolem golem) {
 		for (int x = 2; x <= 6; x++) {
 			for (int y = 1; y <= 4; y++) {
 				for (int z = 0; z <= 5; z++) {
@@ -92,24 +88,20 @@ public class ChargeGameTests {
 				}
 			}
 		}
+		GameTests.mineEntrance(h, new BlockPos(4, 3, 6));
 		BlockPos home = new BlockPos(1, 1, 7);
 		Container supplies = GameTests.chest(h, home, Blocks.COPPER_CHEST.weathering().unaffected());
 		supplies.setItem(0, new ItemStack(Items.RAIL, 16));
 		supplies.setItem(1, new ItemStack(Items.OAK_PLANKS, 32));
 		supplies.setItem(2, new ItemStack(Items.OAK_FENCE, 16));
 		supplies.setItem(3, new ItemStack(Items.TORCH, 16));
-		MinePlan plan = MinePlan.blank(MinePattern.MINESHAFT, 16).marked(h.absolutePos(new BlockPos(4, 1, 5)), Direction.NORTH);
-		ItemStack planStack = new ItemStack(ModItems.MINESHAFT_PLAN);
-		planStack.set(ModComponents.MINE_PLAN, plan);
-		give(h, golem, new ItemStack(Items.COPPER_PICKAXE));
-		give(h, golem, planStack);
 		Homes.set(golem, h.absolutePos(home));
-		return plan;
+		give(h, golem, new ItemStack(Items.COPPER_PICKAXE));
 	}
 
-	private static void assertDugFirstBlock(GameTestHelper h, MinePlan plan) {
-		var first = MineLayout.build(plan, h.getLevel().getMinY()).stream().filter(step -> step.action() == MineLayout.Action.DIG).findFirst().orElseThrow();
-		h.assertTrue(h.getLevel().getBlockState(first.pos()).isAir(), "has not dug yet");
+	/** The first block of the first section: the top of its middle column. */
+	private static void assertDugFirstBlock(GameTestHelper h) {
+		h.assertTrue(h.getBlockState(new BlockPos(4, 3, 5)).isAir(), "has not dug yet");
 	}
 
 	private static void assertAt(GameTestHelper h, CopperGolem golem, BlockPos pos, String message) {
@@ -257,12 +249,12 @@ public class ChargeGameTests {
 		BlockPos pad = new BlockPos(4, 0, 7);
 		h.setBlock(pad, ModBlocks.CHARGING_PAD);
 		CopperGolem golem = h.spawn(EntityTypes.COPPER_GOLEM, new BlockPos(2, 1, 6));
-		MinePlan plan = miner(h, golem);
+		miner(h, golem);
 		RunningCosts.get(golem).setEnergy(900);
 		h.startSequence()
 			.thenWaitUntil(() -> assertAt(h, golem, pad.above(), "not in bed"))
 			.thenExecute(() -> level.clockManager().setTotalTicks(clock, DAY))
-			.thenWaitUntil(() -> assertDugFirstBlock(h, plan))
+			.thenWaitUntil(() -> assertDugFirstBlock(h))
 			.thenSucceed();
 	}
 
@@ -273,13 +265,13 @@ public class ChargeGameTests {
 		BlockPos pad = new BlockPos(4, 0, 7);
 		h.setBlock(pad, ModBlocks.CHARGING_PAD);
 		CopperGolem golem = h.spawn(EntityTypes.COPPER_GOLEM, pad.above());
-		MinePlan plan = miner(h, golem);
+		miner(h, golem);
 		RunningCosts.get(golem).setEnergy(0);
 		BlockPos power = pad.east();
 		h.startSequence()
 			.thenExecuteAfter(5, () -> h.setBlock(power, Blocks.REDSTONE_BLOCK))
 			.thenExecute(() -> h.assertValueEqual(energy(golem), ChargingPadBlock.ENERGY_PER_PULSE, "energy after a pulse"))
-			.thenWaitUntil(() -> assertDugFirstBlock(h, plan))
+			.thenWaitUntil(() -> assertDugFirstBlock(h))
 			.thenSucceed();
 	}
 

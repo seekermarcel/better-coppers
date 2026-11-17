@@ -19,7 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.equipment.trim.ArmorTrim;
 
 public final class ModAttachments {
-	/** The plan of a copper golem that was handed a pickaxe. Having this says a player made it a miner. */
+	/** The mine of a copper golem that was handed a pickaxe. Having this says a player made it a miner. */
 	public static final AttachmentType<MinerData> MINER = AttachmentRegistry.create(
 		BetterCoppers.id("miner"), builder -> builder.persistent(MinerData.CODEC).initializer(MinerData::new)
 	);

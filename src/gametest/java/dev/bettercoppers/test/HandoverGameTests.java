@@ -15,11 +15,8 @@ import dev.bettercoppers.job.Jobs.JobKind;
 import dev.bettercoppers.job.Load;
 import dev.bettercoppers.job.Tools;
 import dev.bettercoppers.job.WorkerData;
-import dev.bettercoppers.mining.MinePattern;
-import dev.bettercoppers.mining.MinePlan;
 import dev.bettercoppers.mining.MinerData;
 import dev.bettercoppers.registry.ModAttachments;
-import dev.bettercoppers.registry.ModComponents;
 import dev.bettercoppers.registry.ModEntities;
 import dev.bettercoppers.registry.ModItems;
 import dev.bettercoppers.trim.GolemTrims;
@@ -145,22 +142,6 @@ public class HandoverGameTests {
 
 	private static CourierRoute route(GameTestHelper h) {
 		return new CourierRoute(h.absolutePos(new BlockPos(1, 1, 1)), h.absolutePos(new BlockPos(6, 1, 6)));
-	}
-
-	/** The plan in the player's inventory, or null. */
-	private static @Nullable MinePlan planInInventory(Player player) {
-		for (ItemStack stack : player.getInventory()) {
-			if (stack.is(ModItems.MINESHAFT_PLAN)) {
-				return stack.get(ModComponents.MINE_PLAN);
-			}
-		}
-		return null;
-	}
-
-	private static ItemStack markedPlan(GameTestHelper h) {
-		ItemStack plan = new ItemStack(ModItems.MINESHAFT_PLAN);
-		plan.set(ModComponents.MINE_PLAN, MinePlan.blank(MinePattern.MINESHAFT, 8).marked(h.absolutePos(new BlockPos(4, 1, 1)), Direction.NORTH));
-		return plan;
 	}
 
 	private static InteractionResult clickBlock(GameTestHelper h, Player player, BlockPos rel) {
@@ -453,53 +434,37 @@ public class HandoverGameTests {
 	}
 
 	@GameTest
-	public void ending_a_miners_job_returns_its_plan_with_progress(GameTestHelper h) {
+	public void ending_a_miners_job_returns_the_pickaxe_and_its_load_and_forgets_the_mine(GameTestHelper h) {
 		JobGameTests.scene(h);
 		Player player = player(h);
 		CopperGolem golem = GameTests.golem(h, GOLEM);
 		give(h, player, golem, Items.COPPER_PICKAXE);
-		click(h, player, golem, true, markedPlan(h));
-		MinerData data = MinerData.get(golem);
-		data.setPlan(data.plan().withProgress(5));
+		MinerData.get(golem).setMine(h.absolutePos(new BlockPos(4, 3, 1)), Direction.Axis.X);
+		Load.of(golem).stash(new ItemStack(Items.RAW_IRON, 5));
+		Load.of(golem).addSupplies(new ItemStack(Items.RAIL, 3));
 		golem.setAttached(ModAttachments.EXCITED, true);
 		endJob(h, player, golem, () -> {
-			h.assertValueEqual(planInInventory(player).progress(), 5, "plan's progress");
 			assertHas(h, player, Items.COPPER_PICKAXE, 1);
-			h.assertFalse(golem.hasAttached(ModAttachments.MINER), "miner data left");
+			assertHas(h, player, Items.RAW_IRON, 5);
+			assertHas(h, player, Items.RAIL, 3);
+			h.assertFalse(golem.hasAttached(ModAttachments.MINER), "miner data, and with it the mine, left");
 			h.assertFalse(golem.hasAttached(ModAttachments.EXCITED), "still excited");
 		});
 	}
 
 	@GameTest
-	public void a_new_plan_returns_the_old_one(GameTestHelper h) {
-		JobGameTests.scene(h);
-		Player player = player(h);
-		CopperGolem golem = GameTests.golem(h, GOLEM);
-		give(h, player, golem, Items.COPPER_PICKAXE);
-		click(h, player, golem, true, markedPlan(h));
-		MinerData data = MinerData.get(golem);
-		data.setPlan(data.plan().withProgress(5));
-		click(h, player, golem, true, markedPlan(h));
-		h.assertValueEqual(data.plan().progress(), 0, "the new plan");
-		h.assertValueEqual(planInInventory(player).progress(), 5, "the old plan's progress");
-		h.succeed();
-	}
-
-	@GameTest
-	public void miner_with_a_lost_pickaxe_ends_and_its_plan_comes_back(GameTestHelper h) {
+	public void miner_with_a_lost_pickaxe_ends(GameTestHelper h) {
 		JobGameTests.scene(h);
 		Player player = player(h);
 		CopperGolem golem = GameTests.golem(h, GOLEM);
 		ItemStack worn = new ItemStack(Items.COPPER_PICKAXE);
 		worn.setDamageValue(worn.getMaxDamage() - 1);
 		click(h, player, golem, true, worn);
-		click(h, player, golem, true, markedPlan(h));
 		Tools.wear(golem, golem.getMainHandItem());
 		h.assertValueEqual(Jobs.of(golem), JobKind.MINER, "job after the pickaxe broke");
 		endJob(h, player, golem, () -> {
 			h.assertFalse(Jobs.has(golem), "still has a job");
 			h.assertFalse(golem.hasAttached(ModAttachments.LOST_TOOL), "still looks for its pickaxe");
-			h.assertTrue(planInInventory(player) != null, "plan not back");
 		});
 	}
 
@@ -619,16 +584,45 @@ public class HandoverGameTests {
 		h.succeed();
 	}
 
+	/** Picked up after the pickaxe, so the link is what makes it find the mine. A relink forgets it and looks again. */
 	@GameTest
-	public void new_pickaxe_keeps_the_plan(GameTestHelper h) {
+	public void relinking_a_miners_home_clears_its_mine(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos first = new BlockPos(1, 1, 1);
+		BlockPos second = new BlockPos(6, 1, 1);
+		h.setBlock(first, Blocks.COPPER_CHEST.weathering().unaffected());
+		h.setBlock(second, Blocks.COPPER_CHEST.weathering().unaffected());
+		BlockPos beam = GameTests.mineEntrance(h, new BlockPos(4, 3, 6));
+		Player player = player(h);
+		CopperGolem golem = GameTests.golem(h, GOLEM);
+		give(h, player, golem, Items.COPPER_PICKAXE);
+		h.assertTrue(MinerData.get(golem).mine() == null, "a mine without a home");
+		h.startSequence()
+			.thenExecuteAfter(10, () -> {
+				click(h, player, golem, true, ItemStack.EMPTY);
+				clickBlock(h, player, first);
+				h.assertValueEqual(MinerData.get(golem).mine(), beam, "mine after linking");
+				h.setBlock(new BlockPos(3, 3, 6), Blocks.AIR);
+			})
+			.thenExecuteAfter(10, () -> {
+				click(h, player, golem, true, ItemStack.EMPTY);
+				clickBlock(h, player, second);
+				h.assertValueEqual(Homes.get(golem), h.absolutePos(second), "new home");
+				h.assertTrue(MinerData.get(golem).mine() == null, "kept the mine after a relink");
+			})
+			.thenSucceed();
+	}
+
+	@GameTest
+	public void new_pickaxe_keeps_the_mine(GameTestHelper h) {
 		JobGameTests.scene(h);
 		Player player = player(h);
 		CopperGolem golem = GameTests.golem(h, GOLEM);
 		give(h, player, golem, Items.COPPER_PICKAXE);
-		click(h, player, golem, true, markedPlan(h));
+		BlockPos beam = h.absolutePos(new BlockPos(4, 3, 1));
+		MinerData.get(golem).setMine(beam, Direction.Axis.X);
 		give(h, player, golem, Items.COPPER_PICKAXE);
-		h.assertTrue(MinerData.get(golem).plan() != null, "plan gone");
-		assertHas(h, player, ModItems.MINESHAFT_PLAN, 0);
+		h.assertValueEqual(MinerData.get(golem).mine(), beam, "mine");
 		h.succeed();
 	}
 
@@ -755,25 +749,6 @@ public class HandoverGameTests {
 		h.assertFalse(Couriers.isCourier(farmer), "farmer got a route");
 		h.succeed();
 	}
-
-	@GameTest
-	public void plan_is_refused_without_a_pickaxe_in_hand(GameTestHelper h) {
-		JobGameTests.scene(h);
-		Player player = player(h);
-		CopperGolem golem = GameTests.golem(h, GOLEM);
-		ItemStack plan = markedPlan(h);
-		click(h, player, golem, true, plan);
-		h.assertValueEqual(plan.getCount(), 1, "plan kept by the player");
-		h.assertFalse(golem.hasAttached(ModAttachments.MINER), "miner data from a refused plan");
-		// One it picked up itself does not count either.
-		golem.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.COPPER_PICKAXE));
-		click(h, player, golem, true, plan);
-		h.assertValueEqual(plan.getCount(), 1, "plan kept by the player");
-		h.assertFalse(Jobs.has(golem), "got a job from a refused plan");
-		h.succeed();
-	}
-
-	// --- routes with copper chests ---
 
 	@GameTest
 	public void sneak_click_on_a_copper_chest_still_links_a_golem_whose_job_takes_no_route(GameTestHelper h) {
@@ -1335,10 +1310,9 @@ public class HandoverGameTests {
 		var level = h.getLevel();
 		CopperGolem golem = h.spawn(EntityTypes.COPPER_GOLEM, GOLEM);
 		BlockPos home = h.absolutePos(new BlockPos(1, 1, 1));
-		MinePlan plan = MinePlan.blank(MinePattern.MINESHAFT, 16);
 		golem.setAttached(ModAttachments.HOME, home);
 		golem.setAttached(ModAttachments.ROUTE, new CourierRoute(home, home.east(4)));
-		MinerData.getOrCreate(golem).setPlan(plan);
+		MinerData.getOrCreate(golem).setMine(home.north(3), Direction.Axis.Z);
 		golem.setAttached(ModAttachments.WORKER, new WorkerData());
 		golem.setAttached(ModAttachments.LOAD, new Load.Stored(List.of(new ItemStack(Items.WHEAT, 3)), List.of(new ItemStack(Items.RAIL, 5))));
 		golem.setAttached(ModAttachments.TRIM_TEMPLATE, new ItemStack(Items.COAST_ARMOR_TRIM_SMITHING_TEMPLATE));
@@ -1352,7 +1326,8 @@ public class HandoverGameTests {
 		loaded.load(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), saved.buildResult()));
 		h.assertValueEqual(loaded.getAttached(ModAttachments.HOME), home, "home");
 		h.assertValueEqual(loaded.getAttached(ModAttachments.ROUTE), new CourierRoute(home, home.east(4)), "route");
-		h.assertValueEqual(MinerData.get(loaded).plan(), plan, "plan");
+		h.assertValueEqual(MinerData.get(loaded).mine(), home.north(3), "mine");
+		h.assertValueEqual(MinerData.get(loaded).mineAxis(), Direction.Axis.Z, "mine axis");
 		h.assertTrue(loaded.hasAttached(ModAttachments.WORKER), "worker data lost");
 		Load.Stored stored = loaded.getAttached(ModAttachments.LOAD);
 		h.assertTrue(stored.pouch().size() == 1 && stored.pouch().getFirst().is(Items.WHEAT) && stored.pouch().getFirst().getCount() == 3, "pouch lost");

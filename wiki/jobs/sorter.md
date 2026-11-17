@@ -113,7 +113,7 @@ A sorter leaves what another golem sharing its chest needs to keep working. This
 
 | Golem sharing the chest | Left in the chest |
 |---|---|
-| Miner | All copper pickaxes. With a marked [Mineshaft Plan](/items/mineshaft_plan), also all torches, rails, planks and wooden fences |
+| Miner | All copper pickaxes. With a mine, also all torches, rails, planks and wooden fences |
 | Farmer | All copper hoes, 16 of every seed |
 | Forester | All copper axes, 8 of every sapling |
 | Fisher | All fishing rods |

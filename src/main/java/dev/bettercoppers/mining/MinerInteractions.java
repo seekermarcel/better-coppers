@@ -1,15 +1,11 @@
 package dev.bettercoppers.mining;
 
-import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.guide.Guide;
+import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.job.JobHandover;
-import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.registry.ModAttachments;
-import dev.bettercoppers.registry.ModComponents;
-import dev.bettercoppers.registry.ModItems;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -22,12 +18,8 @@ import net.minecraft.world.phys.EntityHitResult;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Turning a copper golem into a miner, with sneak + right-click:
- * <ul>
- * <li>with a pickaxe: the golem holds it;</li>
- * <li>then with a marked plan: the golem keeps the plan and starts digging.</li>
- * </ul>
- * When the job ends the plan comes back, progress included.
+ * Turning a copper golem into a miner: sneak + right-click it with a copper pickaxe. With a home it then looks for the
+ * nearest open Mine Entrance; without one, or without an entrance, the player is told what is missing.
  */
 public final class MinerInteractions {
 	private MinerInteractions() {
@@ -38,80 +30,29 @@ public final class MinerInteractions {
 			return InteractionResult.PASS;
 		}
 		ItemStack held = player.getItemInHand(hand);
-		if (held.is(ModItems.MINESHAFT_PLAN)) {
-			return givePlan(player, level, golem, held);
-		}
-		if (held.is(Items.COPPER_PICKAXE)) {
-			return givePickaxe(player, level, golem, held);
-		}
-		return InteractionResult.PASS;
-	}
-
-	private static InteractionResult givePlan(Player player, Level level, CopperGolem golem, ItemStack held) {
-		MinePlan plan = held.get(ModComponents.MINE_PLAN);
-		if (plan == null) {
+		if (!held.is(Items.COPPER_PICKAXE)) {
 			return InteractionResult.PASS;
 		}
-		if (!plan.isMarked()) {
-			if (!level.isClientSide()) {
-				player.sendOverlayMessage(Component.translatable("message.bettercoppers.plan_unmarked"));
-			}
-			return InteractionResult.SUCCESS;
-		}
-		if (!level.isClientSide()) {
-			if (Jobs.of(golem) != Jobs.JobKind.MINER || !MinerData.hasPickaxe(golem)) {
-				player.sendOverlayMessage(Component.translatable("message.bettercoppers.needs_pickaxe"));
-				return InteractionResult.SUCCESS;
-			}
-			MinerData data = MinerData.getOrCreate(golem);
-			held.consume(1, player);
-			if (data.plan() != null) {
-				returnPlan(player, golem, data);
-			}
-			data.setPlan(plan);
-			golem.playSound(SoundEvents.BOOK_PAGE_TURN);
-			Guide.job(player, "miner");
-		}
-		return InteractionResult.SUCCESS;
-	}
-
-	private static InteractionResult givePickaxe(Player player, Level level, CopperGolem golem, ItemStack held) {
-		if (!level.isClientSide()) {
+		if (level instanceof ServerLevel serverLevel) {
 			JobHandover.giveTool(player, golem, held);
-			MinerData data = MinerData.getOrCreate(golem);
-			if (data.plan() == null) {
-				player.sendOverlayMessage(Component.translatable("message.bettercoppers.needs_plan"));
-			} else {
-				Guide.job(player, "miner");
+			MinerData.getOrCreate(golem);
+			Guide.job(player, "miner");
+			if (Homes.get(golem) == null) {
+				player.sendOverlayMessage(Component.translatable("message.bettercoppers.miner_needs_home", Mines.ENTRANCE_SEARCH_RADIUS));
+			} else if (Mines.of(serverLevel, golem, true) == null) {
+				player.sendOverlayMessage(noEntrance());
 			}
 		}
 		return InteractionResult.SUCCESS;
 	}
 
-	public static void returnPlan(Player player, CopperGolem golem, MinerData data) {
-		ItemStack stack = planStack(data.plan());
-		data.setPlan(null);
-		Inventories.giveOrDrop(player, stack);
-		golem.playSound(SoundEvents.BOOK_PAGE_TURN);
+	/** One message for the hand-over hint and the status line. */
+	public static Component noEntrance() {
+		return Component.translatable("status.bettercoppers.no_mine_entrance", Mines.ENTRANCE_SEARCH_RADIUS);
 	}
 
-	private static ItemStack planStack(@Nullable MinePlan plan) {
-		ItemStack stack = new ItemStack(ModItems.MINESHAFT_PLAN);
-		stack.set(ModComponents.MINE_PLAN, plan);
-		return stack;
-	}
-
-	/** Drops the plan with the golem. */
+	/** Forgets the mine with the golem. */
 	public static void dropAll(CopperGolem golem) {
-		if (!(golem.level() instanceof ServerLevel level)) {
-			return;
-		}
-		MinerData data = golem.removeAttached(ModAttachments.MINER);
-		if (data == null) {
-			return;
-		}
-		if (data.plan() != null) {
-			golem.spawnAtLocation(level, planStack(data.plan()));
-		}
+		golem.removeAttached(ModAttachments.MINER);
 	}
 }

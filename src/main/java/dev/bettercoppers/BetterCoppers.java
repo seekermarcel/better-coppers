@@ -13,10 +13,8 @@ import dev.bettercoppers.job.WorkerInteractions;
 import dev.bettercoppers.mining.MinerInteractions;
 import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.registry.ModBlocks;
-import dev.bettercoppers.registry.ModComponents;
 import dev.bettercoppers.registry.ModEntities;
 import dev.bettercoppers.registry.ModItems;
-import dev.bettercoppers.registry.ModMenus;
 import dev.bettercoppers.trim.GolemTrims;
 import dev.bettercoppers.runningcosts.AxeDispenseBehavior;
 import net.fabricmc.api.ModInitializer;
@@ -41,12 +39,10 @@ public class BetterCoppers implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		ModComponents.init();
 		ModAttachments.init();
 		ModEntities.init();
 		ModBlocks.init();
 		ModItems.init();
-		ModMenus.init();
 		Couriers.init();
 		// In a phase of its own, as an add-on's handlers can register before these: mod load order varies.
 		Identifier handoverPress = id("handover_press");

@@ -34,9 +34,6 @@ All of these use the main hand. An item that is handed over is used up from the 
 | <Icon id="bundle" /> Bundle | Not a sorter | Becomes a [sorter](/jobs/sorter). Ends any other job. |
 | <Icon id="bundle" /> Bundle | Already a sorter | Nothing |
 | <Icon id="copper_pickaxe" /> Copper pickaxe | Any | Becomes a [miner](/jobs/miner), or swaps the pickaxe of a miner. |
-| <Icon id="mineshaft_plan" /> Marked [Mineshaft Plan](/items/mineshaft_plan) | Miner holding its pickaxe | Gives it the plan. An old plan comes back. |
-| <Icon id="mineshaft_plan" /> Marked Mineshaft Plan | Any other | Message: give it a copper pickaxe first |
-| <Icon id="mineshaft_plan" /> Unmarked Mineshaft Plan | Any | Message: mark the entrance first |
 | <Icon id="copper_hoe" /> Copper hoe | Any | Becomes a [farmer](/jobs/farmer), or swaps the hoe. |
 | <Icon id="copper_axe" /> Copper axe | Clean, not waxed | Becomes a [forester](/jobs/forester), or swaps the axe. |
 | <Icon id="copper_axe" /> Copper axe | Rusty or waxed | Scrapes it, as in vanilla |
@@ -87,7 +84,7 @@ Sneak + right-click the golem twice with an empty hand, within 5 seconds.
 |---|---|
 | Tool or bundle | Home |
 | Everything in its main and off hand, including a courier's cargo | [Eyes](/golem/eyes) |
-| Its Mineshaft Plan, progress included | [Trim](/golem/trims) |
+| | [Trim](/golem/trims) |
 | Pouch and supplies | Energy and rust |
 | Iron ingots held for a [repair](/golem/guards-and-repairs) | Add-on [upgrades](/automatisation/upgrades) |
 
@@ -116,7 +113,7 @@ After a route is started, the next right-click on any chest or barrel ends it, a
 | Right-click a [Copper Chest Minecart](/items/copper_chest_minecart) with an iron or copper chain | Chains it to the player |
 | Sneak + right-click a chained Copper Chest Minecart | Unchains it |
 | Axe in a dispenser, redstone pulse | [Scrapes](/start/vanilla-rule#the-axe-dispenser) the golem in front |
-| Use a [Mineshaft Plan](/items/mineshaft_plan) on a block | Marks the entrance |
+| Place the last block of a [Mine Entrance](/jobs/miner#mine-entrance) | Registers the entrance |
 
 ## See also
 

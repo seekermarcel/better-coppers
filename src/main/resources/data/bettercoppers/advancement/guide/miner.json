@@ -1,5 +1,5 @@
 {
-  "parent": "bettercoppers:guide/survey",
+  "parent": "bettercoppers:guide/mine_entrance",
   "criteria": {
     "done": {
       "trigger": "minecraft:impossible"

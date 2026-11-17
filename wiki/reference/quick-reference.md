@@ -13,7 +13,7 @@ Each job item is handed over with sneak + right-click. A golem has one job at a 
 | Job item | Job | Place | Running costs |
 |---|---|---|---|
 | <Icon id="bundle" /> Any bundle | [Sorter](/jobs/sorter) | Home | None |
-| <Icon id="copper_pickaxe" /> Copper pickaxe and <Icon id="mineshaft_plan" /> marked [Mineshaft Plan](/items/mineshaft_plan) | [Miner](/jobs/miner) | Home | Yes |
+| <Icon id="copper_pickaxe" /> Copper pickaxe | [Miner](/jobs/miner) | Home, a [Mine Entrance](/jobs/miner#mine-entrance) | Yes |
 | <Icon id="copper_hoe" /> Copper hoe | [Farmer](/jobs/farmer) | Home | Yes |
 | <Icon id="copper_axe" /> Copper axe, on a golem with no rust and no wax | [Forester](/jobs/forester) | Home | Yes |
 | <Icon id="fishing_rod" /> Fishing rod | [Fisher](/jobs/fisher) | Home | Yes |
@@ -98,7 +98,7 @@ Radii are measured in blocks. [Eyes](/golem/eyes) multiply them; heights are not
 |---|---|
 | Items carried per trip by a sorter or courier | 16 ([Copper Satchel](/items/copper_satchel): 32) |
 | Pouch size before walking home | 64 items (fisher: 8) |
-| Mineshaft Plan length | 8 to 128 blocks, default 32 |
+| Mine Entrance search radius | 32 blocks from the home chest |
 | Mineshaft support spacing | 4 blocks |
 | Fisher: time per catch | 20 to 50 seconds |
 | Animal keeper: herd limit | 16 per kind |

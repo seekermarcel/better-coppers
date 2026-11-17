@@ -67,7 +67,6 @@ When a golem dies or becomes a statue, it drops:
 | Item | Condition |
 |---|---|
 | Job tool or bundle | Held in its hands |
-| [Mineshaft Plan](/items/mineshaft_plan) | Miner, progress included |
 | Pouch and supplies | Paying job |
 | [Eye block](/golem/eyes) | Has eyes |
 | Trim template | Has a [trim](/golem/trims); the material is not returned |
@@ -124,7 +123,7 @@ An attachment that is absent means the golem does not have that thing.
 | `bettercoppers:home` | Int array `[x, y, z]` | Home copper chest |
 | `bettercoppers:route` | Compound: `from`, `to`, each `[x, y, z]` | Courier route |
 | `bettercoppers:worker` | Compound: optional `marks`, a list of `[x, y, z]` | Marks a farmer, forester, fisher, animal keeper, beekeeper or crafter. `marks` are a forester's stumps waiting for a sapling. |
-| `bettercoppers:miner` | Compound: optional `plan` | Marks a miner. `plan` has `pattern` (`mineshaft`), `length` (8 to 128), optional `entrance` `[x, y, z]`, optional `heading` (a horizontal direction such as `north`) and `progress`. |
+| `bettercoppers:miner` | Compound: optional `mine` `[x, y, z]` and `mine_axis` (`x` or `z`) | Marks a miner. `mine` is the middle plank of its Mine Entrance; the mine itself, with its progress, is saved with the dimension. |
 | `bettercoppers:load` | Compound: optional `pouch`, `supplies`, item stack lists | What it carries for a paying job |
 | `bettercoppers:running_costs` | Compound: `energy` 0 to 1000 (default 1000), `rust_progress` (default 0), `recharging` boolean | Energy and progress towards the next rust stage, which resets at 3000 |
 | `bettercoppers:lost_tool` | Item ID | A tool that broke, while the golem has no new one |

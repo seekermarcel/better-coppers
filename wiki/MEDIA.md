@@ -84,10 +84,6 @@ Put each file in `wiki/public/media/` under the name given here. Screenshots are
 
 - [ ] `items-grabber-arm.mp4` (clip): A grabber arm with its real shape visible (turntable base, arm segments, claw), swinging items from a chest onto a conveyor belt while a golem with a wrench stands beside it
 
-## items/mineshaft_plan
-
-- [ ] `items-mineshaft-plan-tooltip.png` (screenshot): The tooltip of a marked Mineshaft Plan with its length, entrance coordinates and heading, and a progress line
-
 ## items/press
 
 - [ ] `items-press.png` (screenshot): A press placed one block above a conveyor belt, seen from a three-quarter view so its real shape and the press head above the belt are visible
@@ -95,10 +91,6 @@ Put each file in `wiki/public/media/` under the name given here. Screenshots are
 ## items/saw
 
 - [ ] `items-saw.png` (screenshot): A saw placed one block above a conveyor belt, seen from a three-quarter view so its real shape and blade above the belt are visible
-
-## items/survey_table
-
-- [ ] `items-survey-table-screen.png` (screenshot): The Survey Table screen with paper in the left slot, a Mineshaft Plan in the right slot, and the length panel in the middle showing 32 with its minus and plus buttons
 
 ## jobs/animal-keeper
 
@@ -132,11 +124,10 @@ Put each file in `wiki/public/media/` under the name given here. Screenshots are
 
 ## jobs/miner
 
-- [ ] `jobs-miner-setup.png` (screenshot): A marked entrance on the surface with a copper chest next to it holding rails, fences, planks and torches, and a copper golem holding a copper pickaxe
+- [ ] `jobs-miner-setup.png` (screenshot): A Mine Entrance in a hillside with a copper chest next to it holding rails, fences, planks and torches, and a copper golem holding a copper pickaxe
 - [ ] `jobs-miner-entrance.png` (screenshot): A Mine Entrance built into a hillside: two oak fence posts 2 high with 3 spruce planks across their tops, and the "Mine Entrance built" message above the hotbar
-- [ ] `jobs-miner-shaft.png` (screenshot): A finished 3x3 mineshaft from inside, with plank beams on fence posts, torches on the beams and rails down the middle
-- [ ] `jobs-miner-hall.png` (screenshot): A finished Room and Pillar hall from inside, 9 wide, with rock pillars and torches on the pillars facing the entrance
-- [ ] `jobs-miner-multilevel.png` (screenshot): The landing of the stairs between two levels of a Multilevel Mine, seen from the flight going down, with a torch on the wall
+- [ ] `jobs-miner-shaft.png` (screenshot): A finished Straight from inside, with plank beams on fence posts, a torch on the first beam and rails down the middle
+- [ ] `jobs-miner-stairs-down.png` (screenshot): A finished Stairs Down section seen from its top, 3 wide, with rails sloping down to the landing and a torch on the left wall
 
 ## jobs/operator
 

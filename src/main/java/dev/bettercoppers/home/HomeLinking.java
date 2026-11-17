@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import dev.bettercoppers.mining.MinerData;
+import dev.bettercoppers.mining.MinerInteractions;
+import dev.bettercoppers.mining.Mines;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -238,10 +240,9 @@ public final class HomeLinking {
 		if (chest != null && !load.hasNothingToBringHome() && !load.fitsInto(chest)) {
 			status.append(", ").append(Component.translatable("status.bettercoppers.chest_full"));
 		}
-		MinerData miner = MinerData.get(golem);
-		if (miner != null && miner.plan() != null && miner.plan().givenUp().isPresent()) {
-			BlockPos pos = miner.plan().givenUp().orElseThrow();
-			status.append(", ").append(Component.translatable("status.bettercoppers.given_up", pos.getX(), pos.getY(), pos.getZ()));
+		Component mine = mineStatus(golem);
+		if (mine != null) {
+			status.append(", ").append(mine);
 		}
 		if (Eyes.tier(golem) > 0) {
 			status.append(", ").append(Component.translatable("status.bettercoppers.eyes", Math.round(Eyes.multiplier(golem) * 100)));
@@ -253,6 +254,20 @@ public final class HomeLinking {
 			}
 		}
 		return status;
+	}
+
+	/** The miner's mine line, built from its saved mine; null without a home or for any other job. */
+	private static @Nullable Component mineStatus(CopperGolem golem) {
+		MinerData miner = MinerData.get(golem);
+		BlockPos home = Homes.get(golem);
+		if (miner == null || home == null || !(golem.level() instanceof ServerLevel level)) {
+			return null;
+		}
+		BlockPos beam = miner.mine();
+		if (beam == null) {
+			beam = Mines.get(level).nearestOpen(level, home).map(Mines.Mine::entrance).orElse(null);
+		}
+		return beam == null ? MinerInteractions.noEntrance() : Component.translatable("status.bettercoppers.mine", beam.getX(), beam.getY(), beam.getZ());
 	}
 
 	public static InteractionResult onUseBlock(Player player, Level level, InteractionHand hand, BlockHitResult hitResult) {
@@ -312,6 +327,12 @@ public final class HomeLinking {
 		}
 		Couriers.setRoute(golem, null);
 		Homes.set(golem, pos);
+		// A new home means looking for the nearest entrance again.
+		MinerData miner = MinerData.get(golem);
+		if (miner != null) {
+			miner.clearMine();
+			Mines.of(serverLevel, golem, true);
+		}
 		serverLevel.playSound(null, pos, SoundEvents.COPPER_GOLEM_ITEM_DROP, SoundSource.NEUTRAL, 1.0F, 1.2F);
 		HomeDisplay.drawLine(serverLevel, golem, pos, null);
 		player.sendOverlayMessage(Component.translatable("message.bettercoppers.home_set", pos.getX(), pos.getY(), pos.getZ()));
