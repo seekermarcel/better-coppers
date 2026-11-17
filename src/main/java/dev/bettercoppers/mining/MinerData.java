@@ -33,6 +33,8 @@ public final class MinerData {
 
 	private @Nullable BlockPos mine;
 	private Direction.@Nullable Axis mineAxis;
+	/** Could not get out of the mine, by the Mine Path or straight. Not saved. */
+	private boolean stuck;
 
 	public static @Nullable MinerData get(CopperGolem golem) {
 		return golem.getAttached(ModAttachments.MINER);
@@ -58,6 +60,14 @@ public final class MinerData {
 	public void setMine(BlockPos entrance, Direction.Axis axis) {
 		this.mine = entrance.immutable();
 		this.mineAxis = axis;
+	}
+
+	public boolean isStuck() {
+		return this.stuck;
+	}
+
+	public void setStuck(boolean stuck) {
+		this.stuck = stuck;
 	}
 
 	public void clearMine() {

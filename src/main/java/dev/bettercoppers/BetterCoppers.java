@@ -10,6 +10,7 @@ import dev.bettercoppers.home.HomeLinking;
 import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.job.Tools;
 import dev.bettercoppers.job.WorkerInteractions;
+import dev.bettercoppers.mining.MineBehavior;
 import dev.bettercoppers.mining.MinerInteractions;
 import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.registry.ModBlocks;
@@ -46,6 +47,7 @@ public class BetterCoppers implements ModInitializer {
 		ModItems.init();
 		ModGameRules.init();
 		Couriers.init();
+		MineBehavior.init();
 		// In a phase of its own, as an add-on's handlers can register before these: mod load order varies.
 		Identifier handoverPress = id("handover_press");
 		UseEntityCallback.EVENT.addPhaseOrdering(handoverPress, Event.DEFAULT_PHASE);

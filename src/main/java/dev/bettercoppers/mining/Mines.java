@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -239,59 +240,87 @@ public final class Mines extends SavedData {
 	 * fits is dropped. Returns the index of the claimed section, or -1 if nothing is free.
 	 */
 	public int pick(ServerLevel level, Mine mine, CopperGolem golem) {
+		return pick(level, mine, golem, Set.of());
+	}
+
+	/** {@link #pick(ServerLevel, Mine, CopperGolem)}, leaving out work that starts at one of {@code skipped}. */
+	public int pick(ServerLevel level, Mine mine, CopperGolem golem, Set<OpenEnd> skipped) {
 		Mine saved = find(mine.entrance(), mine.axis()).orElseThrow();
 		int held = claimed(saved, golem);
 		if (held >= 0) {
 			return held;
 		}
 		Mine known = saved;
-		Optional<Integer> section = freeSections(level, known)
+		Optional<Integer> section = freeSections(level, known, skipped)
+			.filter(i -> level.isLoaded(known.sections().get(i).start().pos()))
 			.min(Comparator.comparingDouble(i -> known.sections().get(i).start().pos().distSqr(golem.blockPosition())));
 		if (section.isPresent()) {
 			return claim(level, saved, section.get(), golem);
 		}
 		while (true) {
 			Mine current = saved;
-			Optional<OpenEnd> pick = freeEnds(level, current).min(Comparator.comparingDouble(end -> end.pos().distSqr(golem.blockPosition())));
+			Optional<OpenEnd> pick = freeEnds(current, skipped).filter(end -> level.isLoaded(end.pos())).min(Comparator.comparingDouble(end -> end.pos().distSqr(golem.blockPosition())));
 			if (pick.isEmpty()) {
 				return -1;
 			}
 			OpenEnd end = pick.get();
-			List<OpenEnd> ends = new ArrayList<>(saved.ends());
-			ends.remove(end);
 			Section rolled = roll(level.getSeed(), MineLimits.of(level), saved, end);
 			if (rolled == null) {
 				// shortcut: an end no section fits is dropped; #42 closes it with a Barrier instead.
+				List<OpenEnd> ends = new ArrayList<>(saved.ends());
+				ends.remove(end);
 				saved = replace(saved, saved.with(saved.sections(), ends));
 				continue;
 			}
-			List<Section> sections = new ArrayList<>(saved.sections());
-			sections.add(rolled);
-			ends.addAll(rolled.openEnds());
-			Mine grown = replace(saved, saved.with(sections, ends));
-			return claim(level, grown, sections.size() - 1, golem);
+			Mine grown = grow(saved, rolled);
+			return claim(level, grown, grown.sections().size() - 1, golem);
 		}
 	}
 
-	/** Whether {@code golem} holds no section of {@code mine} and has nothing free to pick there. */
-	public boolean isWaiting(ServerLevel level, Mine mine, CopperGolem golem) {
-		return !mine.isFinished() && claimed(mine, golem) < 0 && freeSections(level, mine).findAny().isEmpty() && freeEnds(level, mine).findAny().isEmpty();
+	/** Saves a new section of {@code kind} at the Open End {@code end} of {@code mine}, with its Open Ends. Returns the mine as saved now. */
+	public Mine grow(Mine mine, OpenEnd end, Identifier kind, boolean mirrored) {
+		return grow(find(mine.entrance(), mine.axis()).orElseThrow(), Section.of(kind, end, mirrored, mine.parentOf(end)));
 	}
 
-	/** Indices of the unfinished, loaded sections nobody holds a valid claim on, oldest first. */
-	private Stream<Integer> freeSections(ServerLevel level, Mine mine) {
+	private Mine grow(Mine saved, Section section) {
+		List<OpenEnd> ends = new ArrayList<>(saved.ends());
+		ends.remove(section.start());
+		ends.addAll(section.openEnds());
+		List<Section> sections = new ArrayList<>(saved.sections());
+		sections.add(section);
+		return replace(saved, saved.with(sections, ends));
+	}
+
+	/**
+	 * Where the nearest free work in unloaded chunks starts (an unfinished section or an Open End), for a miner with
+	 * nothing free in loaded ones to walk towards without claiming it. Empty if there is none.
+	 */
+	public Optional<OpenEnd> unloadedWork(ServerLevel level, Mine mine, CopperGolem golem, Set<OpenEnd> skipped) {
+		Mine saved = find(mine.entrance(), mine.axis()).orElse(mine);
+		return Stream.concat(freeSections(level, saved, skipped).map(i -> saved.sections().get(i).start()), freeEnds(saved, skipped))
+			.filter(start -> !level.isLoaded(start.pos()))
+			.min(Comparator.comparingDouble(start -> start.pos().distSqr(golem.blockPosition())));
+	}
+
+	/** Whether {@code golem} holds no section of {@code mine} and has nothing free to pick there, loaded or not. */
+	public boolean isWaiting(ServerLevel level, Mine mine, CopperGolem golem) {
+		return !mine.isFinished() && claimed(mine, golem) < 0 && freeSections(level, mine, Set.of()).findAny().isEmpty() && freeEnds(mine, Set.of()).findAny().isEmpty();
+	}
+
+	/** Indices of the unfinished sections nobody holds a valid claim on, oldest first, leaving out those starting at {@code skipped}. */
+	private Stream<Integer> freeSections(ServerLevel level, Mine mine, Set<OpenEnd> skipped) {
 		return IntStream.range(0, mine.sections().size()).boxed()
-			.filter(i -> !mine.sections().get(i).done() && level.isLoaded(mine.sections().get(i).start().pos()))
+			.filter(i -> !mine.sections().get(i).done() && !skipped.contains(mine.sections().get(i).start()))
 			.filter(i -> {
 				Claim claim = claims.get(new ClaimKey(mine.entrance(), mine.axis(), mine.sections().get(i).start()));
 				return claim == null || !claim.isValid(level, mine);
 			});
 	}
 
-	/** The loaded Open Ends whose section (or the entrance) is done, oldest first. */
-	private static Stream<OpenEnd> freeEnds(ServerLevel level, Mine mine) {
+	/** The Open Ends whose section (or the entrance) is done, oldest first, leaving out {@code skipped}. */
+	private static Stream<OpenEnd> freeEnds(Mine mine, Set<OpenEnd> skipped) {
 		return mine.ends().stream()
-			.filter(end -> level.isLoaded(end.pos()))
+			.filter(end -> !skipped.contains(end))
 			.filter(end -> mine.parentOf(end) < 0 || mine.sections().get(mine.parentOf(end)).done());
 	}
 

@@ -379,6 +379,11 @@ After that the miner rolls each next section: a Straight, a Corner, a Crossing, 
 # Several miners
 Several miners can share a mine: every miner whose chest has the same entrance nearest works in it. Each digs its own section, and two never dig the same one. When every open tunnel already has a miner, the others wait at home, and a plain click says "Waiting: every tunnel has a miner". A miner that stops working for 5 minutes, such as one in an unloaded chunk, leaves its section to the next.
 
+# There and back
+The miner walks to its work through the tunnels it has dug, section by section, and the same way home. Stuck on the way out, it picks other work for this trip. Stuck on the way home, it tries straight for its chest. If that fails too, it shakes its head, a plain click says "Stuck in the mine", and it keeps trying: clear the way and it comes home.
+
+A mine only works while you are near: within the Mine Range plus 32 blocks of its entrance, the miner keeps the chunks around it loaded, however far it digs. With nobody near, it loads nothing, and work in unloaded chunks waits until you come back. It rides an empty minecart left on the rails of a long straight tunnel, but never places one.
+
 # Supplies
 Supports take fences and planks: without them it doesn't dig on. Keep those and torches in its chest; it fetches them when it needs them. Without torches it digs on and leaves them out. Rails are optional: it lays them last, from the far end back, only if it carries some.
 
@@ -417,6 +422,11 @@ Danach würfelt der Bergmann jeden weiteren Abschnitt aus: eine Gerade, eine Kur
 
 # Mehrere Bergleute
 Mehrere Bergleute können sich eine Mine teilen: Jeder Bergmann, dessen Truhe denselben Eingang am nächsten hat, arbeitet darin. Jeder gräbt seinen eigenen Abschnitt, und nie graben zwei denselben. Hat jeder offene Stollen schon einen Bergmann, warten die anderen zu Hause, und ein einfacher Klick zeigt „Wartet: In jedem Stollen gräbt schon ein Bergmann“. Ein Bergmann, der 5 Minuten nicht arbeitet, etwa in einem nicht geladenen Chunk, überlässt seinen Abschnitt dem nächsten.
+
+# Hin und zurück
+Der Bergmann geht durch die Stollen, die er gegraben hat, Abschnitt für Abschnitt zu seiner Arbeit und auf demselben Weg nach Hause. Bleibt er auf dem Hinweg stecken, sucht er sich für diesen Gang andere Arbeit. Bleibt er auf dem Heimweg stecken, versucht er es geradewegs zu seiner Truhe. Klappt auch das nicht, schüttelt er den Kopf, ein einfacher Klick zeigt „Steckt in der Mine fest“, und er versucht es weiter: Mach ihm den Weg frei, dann kommt er heim.
+
+Eine Mine arbeitet nur, solange du in der Nähe bist: Höchstens die Minenreichweite plus 32 Blöcke von ihrem Eingang hält der Bergmann die Chunks um sich geladen, egal wie weit er gräbt. Ist niemand in der Nähe, lädt er nichts, und Arbeit in nicht geladenen Chunks wartet, bis du zurückkommst. Liegt eine leere Lore auf den Schienen eines langen geraden Stollens, fährt er mit, aber er stellt nie selbst eine auf.
 
 # Nachschub
 Stützen brauchen Zäune und Bretter: Ohne sie gräbt er nicht weiter. Lege sie und Fackeln in seine Truhe; er holt sie, wenn er sie braucht. Ohne Fackeln gräbt er weiter und lässt sie weg. Schienen sind freiwillig: Er legt sie zuletzt, vom hinteren Ende zurück, nur wenn er welche dabeihat.
@@ -842,6 +852,7 @@ MESSAGES = [
     ("message.bettercoppers.mine_entrance_built", "Mine Entrance built", "Mineneingang gebaut"),
     ("message.bettercoppers.miner_needs_home", "Now link it to a copper chest within %s blocks of a Mine Entrance", "Verbinde ihn jetzt mit einer Kupfertruhe höchstens %s Blöcke von einem Mineneingang"),
     ("status.bettercoppers.no_mine_entrance", "No open Mine Entrance within %s blocks of its home chest", "Kein offener Mineneingang höchstens %s Blöcke von seiner Heimattruhe"),
+    ("status.bettercoppers.mine_stuck", "Stuck in the mine", "Steckt in der Mine fest"),
     ("status.bettercoppers.mine_waiting", "Waiting: every tunnel has a miner", "Wartet: In jedem Stollen gräbt schon ein Bergmann"),
     ("status.bettercoppers.mine", "Mine at %s %s %s", "Mine bei %s %s %s"),
     ("message.bettercoppers.quota_cleared", "The slip is blank again.", "Der Zettel ist wieder leer."),

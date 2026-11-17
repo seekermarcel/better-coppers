@@ -41,7 +41,7 @@ Placing the frame's last block yourself shows "Mine Entrance built" and awards [
 
 ### Finding it
 
-A miner with a home takes the nearest Mine Entrance within the [Entrance Search Radius](#settings) (32 blocks) of its home chest (straight-line distance to the middle plank) whose frame is whole and whose mine is not finished. It looks when it gets the pickaxe or a home, and every 5 seconds while it has none. It keeps that mine until the mine is finished, the frame is broken, it is linked to another chest or its job ends. A closer entrance built later does not take it away. A plain click on the miner shows "Waiting: every tunnel has a miner" (see [Several miners](#several-miners)), "Mine at x y z" (the middle plank), or "No open Mine Entrance within 32 blocks of its home chest".
+A miner with a home takes the nearest Mine Entrance within the [Entrance Search Radius](#settings) (32 blocks) of its home chest (straight-line distance to the middle plank) whose frame is whole and whose mine is not finished. It looks when it gets the pickaxe or a home, and every 5 seconds while it has none. It keeps that mine until the mine is finished, the frame is broken, it is linked to another chest or its job ends. A closer entrance built later does not take it away. A plain click on the miner shows "Stuck in the mine" (see [There and back](#there-and-back)), "Waiting: every tunnel has a miner" (see [Several miners](#several-miners)), "Mine at x y z" (the middle plank), or "No open Mine Entrance within 32 blocks of its home chest".
 
 ### Which way it runs
 
@@ -88,9 +88,20 @@ When a miner needs work, it takes, in one go:
 1. a section that isn't done and that nobody holds a claim on, such as one another miner left half-dug, or else
 2. an Open End whose section is done, where it rolls a new section.
 
-The nearest one wins, and on a tie the oldest. Work in unloaded chunks is left out. With nothing free, the miner waits at home, strolls around its chest and looks again every 5 seconds. A plain click on it shows "Waiting: every tunnel has a miner".
+The nearest one wins, and on a tie the oldest. Work in unloaded chunks is left out, and so is work it got stuck on the way to on this trip. If the only free work is in unloaded chunks, the miner walks towards the nearest of it without claiming anything, and takes it once the chunk has loaded. With nothing free, the miner waits at home, strolls around its chest and looks again every 5 seconds. A plain click on it shows "Waiting: every tunnel has a miner".
 
 A miner keeps its claim on trips home to unload or restock, while it shows off diamonds and while it digs out a vein. It lets go when the section is done, when its job ends, when it dies, when it is linked to another chest and when the frame is broken. A claim also runs out when the miner hasn't worked for 5 minutes, for example because its chunk isn't loaded, its pickaxe broke or it is busy elsewhere. Another miner may then take the section, and the first one looks for new work.
+
+### There and back
+
+The miner walks the **Mine Path**: from its home chest to the entrance, then along the start of each finished section on the way to its work, and the same way back. Where the tunnel runs straight, the path is one leg of up to 32 blocks; every turn starts a new leg. Inside its own section it walks from step to step.
+
+- **Stuck on the way out** (15 seconds without getting any closer): it leaves that work for this trip and picks other work. Back home, it tries it again.
+- **Stuck on the way home**: it walks straight for its chest once. If that fails too, it shakes its head and a plain click says "Stuck in the mine". It keeps trying, and shakes its head again every 5 seconds it gets no closer. Clear the way and it comes home by itself.
+
+A mine only works while a player is near. While any player who is not a spectator is within the [Mine Range](#settings) plus 32 blocks of the entrance (horizontally, in the same dimension), the miner keeps the chunks around it loaded, however far it digs. With nobody near, it loads nothing: a miner in an unloaded chunk stands still, and after 5 minutes its claim runs out. So a mine is never an ore farm that runs while you are away.
+
+It rides an empty minecart that stands on the rails of a long straight leg (24 blocks or more), like any golem. It never places or fetches minecarts.
 
 ### Straight
 
