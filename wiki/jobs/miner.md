@@ -41,7 +41,7 @@ Placing the frame's last block yourself shows "Mine Entrance built" and awards [
 
 ### Finding it
 
-A miner with a home takes the nearest Mine Entrance within the [Entrance Search Radius](#settings) (32 blocks) of its home chest (straight-line distance to the middle plank) whose frame is whole and whose mine is not finished. It looks when it gets the pickaxe or a home, and every 5 seconds while it has none. It keeps that mine until the mine is finished, the frame is broken, it is linked to another chest or its job ends. A closer entrance built later does not take it away. A plain click on the miner shows "Mine at x y z" (the middle plank), or "No open Mine Entrance within 32 blocks of its home chest".
+A miner with a home takes the nearest Mine Entrance within the [Entrance Search Radius](#settings) (32 blocks) of its home chest (straight-line distance to the middle plank) whose frame is whole and whose mine is not finished. It looks when it gets the pickaxe or a home, and every 5 seconds while it has none. It keeps that mine until the mine is finished, the frame is broken, it is linked to another chest or its job ends. A closer entrance built later does not take it away. A plain click on the miner shows "Waiting: every tunnel has a miner" (see [Several miners](#several-miners)), "Mine at x y z" (the middle plank), or "No open Mine Entrance within 32 blocks of its home chest".
 
 ### Which way it runs
 
@@ -78,6 +78,19 @@ Every section but a Dead End leaves one or more **Open Ends**: the block where t
 Some kinds can't follow others: no Stairs Up right after Stairs Down or the other way round, no Corner right after a Corner, and never a Dead End on the mine's last Open End. The miner tries up to 3 of the rolled kinds, each picked by weight from those not tried yet. A section that would overlap a tunnel already saved, in this mine or another, or reach past the [Mine Range or the Depth Floor](#settings), is left out. If none of the 3 fits, that Open End is dropped.
 
 A mine is finished when no Open End is left and every section is done. The miner then brings its load home and looks for the next open Mine Entrance.
+
+### Several miners
+
+Several miners can share a mine: every miner whose home chest has the same entrance nearest works in it. There is no limit to how many. A miner **claims** the section it digs, and no other miner digs a claimed section.
+
+When a miner needs work, it takes, in one go:
+
+1. a section that isn't done and that nobody holds a claim on, such as one another miner left half-dug, or else
+2. an Open End whose section is done, where it rolls a new section.
+
+The nearest one wins, and on a tie the oldest. Work in unloaded chunks is left out. With nothing free, the miner waits at home, strolls around its chest and looks again every 5 seconds. A plain click on it shows "Waiting: every tunnel has a miner".
+
+A miner keeps its claim on trips home to unload or restock, while it shows off diamonds and while it digs out a vein. It lets go when the section is done, when its job ends, when it dies, when it is linked to another chest and when the frame is broken. A claim also runs out when the miner hasn't worked for 5 minutes, for example because its chunk isn't loaded, its pickaxe broke or it is busy elsewhere. Another miner may then take the section, and the first one looks for new work.
 
 ### Straight
 
@@ -308,7 +321,6 @@ When the pickaxe breaks, the golem keeps its job, brings its load home and looks
 - A miner needs a home to work. Without one, it does nothing.
 - If the chest is broken or unloaded, the golem keeps its load and looks again every 10 seconds.
 - If the chest is full, what does not fit stays with the golem. It waits at home and goes back to its mine once something it carries fits.
-- Several miners on one mine dig the same section for now.
 
 ## Settings
 

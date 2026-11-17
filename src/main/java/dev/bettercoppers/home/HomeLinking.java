@@ -264,6 +264,10 @@ public final class HomeLinking {
 			return null;
 		}
 		BlockPos beam = miner.mine();
+		Mines mines = Mines.get(level);
+		if (beam != null && mines.find(beam, miner.mineAxis()).filter(mine -> mines.isWaiting(level, mine, golem)).isPresent()) {
+			return Component.translatable("status.bettercoppers.mine_waiting");
+		}
 		if (beam == null) {
 			beam = Mines.get(level).nearestOpen(level, home).map(Mines.Mine::entrance).orElse(null);
 		}
@@ -330,6 +334,7 @@ public final class HomeLinking {
 		// A new home means looking for the nearest entrance again.
 		MinerData miner = MinerData.get(golem);
 		if (miner != null) {
+			Mines.release(golem);
 			miner.clearMine();
 			Mines.of(serverLevel, golem, true);
 		}
