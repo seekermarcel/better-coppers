@@ -46,7 +46,7 @@ import net.minecraft.world.level.gamerules.GameRule;
  * and fluids. The usual scene is a stone block with a Mine Entrance in front of it, the mine heading north.
  */
 public class MinerGameTests {
-	private static final Block COPPER_CHEST = Blocks.COPPER_CHEST.weathering().unaffected();
+	static final Block COPPER_CHEST = Blocks.COPPER_CHEST.weathering().unaffected();
 	private static final BlockPos HOME = new BlockPos(1, 1, 7);
 	/** The middle beam of the scene's Mine Entrance; its opening is (4, 1..2, 6). */
 	private static final BlockPos BEAM = new BlockPos(4, 3, 6);
@@ -88,7 +88,7 @@ public class MinerGameTests {
 	}
 
 	/** Linked first, so the pickaxe makes it take the nearest mine right away. */
-	private static CopperGolem miner(GameTestHelper h, BlockPos start, BlockPos home) {
+	static CopperGolem miner(GameTestHelper h, BlockPos start, BlockPos home) {
 		CopperGolem golem = GameTests.golem(h, start);
 		GameTests.energize(golem);
 		Homes.set(golem, h.absolutePos(home));
@@ -103,7 +103,7 @@ public class MinerGameTests {
 		UseEntityCallback.EVENT.invoker().interact(player, h.getLevel(), InteractionHand.MAIN_HAND, golem, null);
 	}
 
-	private static void forceChunks(GameTestHelper h, BlockPos far) {
+	static void forceChunks(GameTestHelper h, BlockPos far) {
 		BlockPos near = h.absolutePos(BlockPos.ZERO);
 		BlockPos end = h.absolutePos(far);
 		for (int cx = Math.min(near.getX(), end.getX()) >> 4; cx <= Math.max(near.getX(), end.getX()) >> 4; cx++) {
@@ -450,7 +450,7 @@ public class MinerGameTests {
 		h.succeedWhen(() -> h.assertTrue(progress(h, s) > 0, "no progress yet"));
 	}
 
-	private static void fill(GameTestHelper h, BlockPos from, BlockPos to, Block block) {
+	static void fill(GameTestHelper h, BlockPos from, BlockPos to, Block block) {
 		BlockPos.betweenClosed(from, to).forEach(pos -> h.setBlock(pos, block));
 	}
 

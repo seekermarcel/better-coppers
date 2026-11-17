@@ -263,6 +263,9 @@ public final class HomeLinking {
 		if (miner == null || home == null || !(golem.level() instanceof ServerLevel level)) {
 			return null;
 		}
+		if (miner.isStuck()) {
+			return Component.translatable("status.bettercoppers.mine_stuck");
+		}
 		BlockPos beam = miner.mine();
 		Mines mines = Mines.get(level);
 		if (beam != null && mines.find(beam, miner.mineAxis()).filter(mine -> mines.isWaiting(level, mine, golem)).isPresent()) {

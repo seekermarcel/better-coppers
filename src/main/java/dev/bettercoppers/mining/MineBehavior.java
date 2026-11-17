@@ -1,6 +1,7 @@
 package dev.bettercoppers.mining;
 
 import com.google.common.collect.ImmutableMap;
+import dev.bettercoppers.BetterCoppers;
 import dev.bettercoppers.golem.Eyes;
 import dev.bettercoppers.golem.ChestVisit;
 import dev.bettercoppers.golem.Golems;
@@ -27,7 +28,11 @@ import net.fabricmc.fabric.api.tag.convention.v2.ConventionalBlockTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.TicketType;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
@@ -42,6 +47,7 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.animal.golem.CopperGolemState;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -75,6 +81,9 @@ import org.jspecify.annotations.Nullable;
  * <p>
  * A broken entrance frame, noticed when a section starts and after unloading at home, closes the mine for this miner:
  * it goes home and looks for another.
+ * <p>
+ * It walks out and home along the {@link MinePath Mine Path}, and keeps its chunks loaded only while a player is near
+ * the mine (ADR 0011).
  */
 public class MineBehavior extends Behavior<CopperGolem> {
 	/** Slower than a player with the same pickaxe. */
@@ -96,10 +105,50 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	/** How long it idles at home with nothing to do (no mine, or every tunnel has a miner) before it looks again. */
 	private static final int DONE_COOLDOWN = 100;
 
+	/** Loads and ticks the chunks around a miner, like a courier's (ADR 0011); expires two seconds after the last refresh. */
+	public static final TicketType TICKET = Registry.register(
+		BuiltInRegistries.TICKET_TYPE,
+		BetterCoppers.id("miner"),
+		new TicketType(40L, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION | TicketType.FLAG_KEEP_DIMENSION_ACTIVE)
+	);
+	private static final int TICKET_RADIUS = 3;
+	/** How far beyond the Mine Range a player still counts as near the mine. */
+	private static final int PLAYER_REACH = 32;
+
+	public static void init() {
+	}
+
+	/**
+	 * Keeps the chunks around {@code golem} loaded for two seconds, but only while a player (not a spectator) in its
+	 * dimension is within the Mine Range + {@link #PLAYER_REACH} of {@code beam}: a mine nobody watches is no ore farm.
+	 */
+	private static void keepLoaded(ServerLevel level, CopperGolem golem, BlockPos beam) {
+		if (isWatched(level.players(), beam, MineLimits.of(level).range())) {
+			level.getChunkSource().addTicketWithRadius(TICKET, ChunkPos.containing(golem.blockPosition()), TICKET_RADIUS);
+		}
+	}
+
+	/** A player who is not a spectator stands within {@code range} + {@link #PLAYER_REACH} of {@code beam}, horizontal Chebyshev. */
+	public static boolean isWatched(List<? extends Player> players, BlockPos beam, int range) {
+		return players.stream().anyMatch(player -> !player.isSpectator()
+			&& Math.max(Math.abs(player.getBlockX() - beam.getX()), Math.abs(player.getBlockZ() - beam.getZ())) <= range + PLAYER_REACH);
+	}
+
 	private enum Mode {
 		WORKING,
 		RETURNING
 	}
+
+	private enum Travel {
+		ARRIVED,
+		WALKING,
+		STUCK
+	}
+
+	/** Pathfinding reach on the Mine Path, as couriers have: a leg is at most 32 blocks, and tunnels wind. */
+	private static final float PATH_SEARCH = 64.0F;
+	/** How long it tries to get home, once stuck in the mine, before it shakes its head again. */
+	private static final int STUCK_RETRY = 100;
 
 	private Mines.@Nullable Section layoutSection;
 	private List<MineLayout.Step> steps = List.of();
@@ -132,6 +181,14 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	private MineLayout.@Nullable Needs checkedNeeds;
 	/** Extra digs (ores, blockers) the golem could not get to; not tried again. */
 	private final Set<BlockPos> unreachable = new HashSet<>();
+
+	/** What is left of the Mine Path it walks, out to its work or home. */
+	private final ArrayDeque<BlockPos> minePath = new ArrayDeque<>();
+	/** Where the Mine Path out leads (a section's start or an Open End); null on the way home. */
+	private Mines.@Nullable OpenEnd minePathTo;
+	private final TravelWatch pathWatch = new TravelWatch();
+	/** Work it got stuck on the way to: left out until it is home again. */
+	private final Set<Mines.OpenEnd> skipped = new HashSet<>();
 
 	public MineBehavior() {
 		super(ImmutableMap.of(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS, MemoryStatus.VALUE_ABSENT, MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT));
@@ -166,6 +223,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 
 	@Override
 	protected void start(ServerLevel level, CopperGolem golem, long timestamp) {
+		golem.getNavigation().setRequiredPathLength(PATH_SEARCH);
 		if (golem.getNavigation() instanceof GroundPathNavigation navigation) {
 			navigation.setCanPathToTargetsBelowSurface(true);
 		}
@@ -178,6 +236,13 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		}
 		this.work = null;
 		this.mode = Mode.WORKING;
+		this.minePath.clear();
+		this.minePathTo = null;
+		MinerData data = MinerData.get(golem);
+		if (data != null) {
+			data.setStuck(false);
+		}
+		golem.getNavigation().setRequiredPathLength(0.0F);
 		golem.clearOpenedChestPos();
 		golem.setState(CopperGolemState.IDLE);
 		golem.getNavigation().stop();
@@ -208,14 +273,17 @@ public class MineBehavior extends Behavior<CopperGolem> {
 
 	@Override
 	protected void tick(ServerLevel level, CopperGolem golem, long timestamp) {
+		MinerData data = MinerData.get(golem);
+		if (data == null) {
+			return;
+		}
+		if (level.getGameTime() % 10 == 0 && data.mine() != null) {
+			keepLoaded(level, golem, data.mine());
+		}
 		if (this.pauseTicks > 0) {
 			if (--this.pauseTicks == 0) {
 				golem.setState(CopperGolemState.IDLE);
 			}
-			return;
-		}
-		MinerData data = MinerData.get(golem);
-		if (data == null) {
 			return;
 		}
 		// Any tick renews its claim, also on trips home and while it waits for room in the chest.
@@ -272,14 +340,24 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		}
 
 		Mines mines = Mines.get(level);
-		int index = mines.pick(level, mine, golem);
+		int index = mines.pick(level, mine, golem, this.skipped);
 		if (index < 0) {
-			// Finished (the next look finds another one), nothing loaded, or every tunnel has a miner: wait at home.
+			Mines.OpenEnd far = mines.unloadedWork(level, mine, golem, this.skipped).orElse(null);
+			if (far != null) {
+				// Free work only in unloaded chunks: head that way without claiming it, and pick once it has loaded.
+				this.headFor(golem, mine, far, null);
+				if (this.followMinePath(golem) == Travel.STUCK) {
+					this.skip(far);
+				}
+				return false;
+			}
+			// Finished (the next look finds another one), or every tunnel has a miner: wait at home.
 			this.startReturn(golem, true);
 			return false;
 		}
 		mine = mines.find(mine.entrance(), mine.axis()).orElseThrow();
 		Mines.Section section = mine.sections().get(index);
+		this.headFor(golem, mine, section.start(), section);
 		if (section.progress() == 0 && this.leaveIfBroken(level, golem, data, mine)) {
 			return false;
 		}
@@ -318,6 +396,63 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		// Section done: the next choice grows the mine.
 		Mines.get(level).setProgress(mine, index, steps.size(), true);
 		return false;
+	}
+
+	// --- the Mine Path ---
+
+	/** Sets the Mine Path out to {@code target} unless it is set already or the golem is already in {@code section}. */
+	private void headFor(CopperGolem golem, Mines.Mine mine, Mines.OpenEnd target, Mines.@Nullable Section section) {
+		if (target.equals(this.minePathTo) || section != null && section.box().inflatedBy(1).isInside(golem.blockPosition())) {
+			return;
+		}
+		this.minePathTo = target;
+		this.setMinePath(golem, MinePath.to(mine, target));
+	}
+
+	/** Follows {@code path} from its point nearest the golem, or the next one if the golem is already past that. */
+	private void setMinePath(CopperGolem golem, List<BlockPos> path) {
+		this.minePath.clear();
+		this.pathWatch.reset();
+		int nearest = 0;
+		for (int i = 1; i < path.size(); i++) {
+			if (distanceSqr(golem, path.get(i)) < distanceSqr(golem, path.get(nearest))) {
+				nearest = i;
+			}
+		}
+		if (nearest + 1 < path.size() && distanceSqr(golem, path.get(nearest + 1)) < path.get(nearest).distSqr(path.get(nearest + 1))) {
+			nearest++;
+		}
+		this.minePath.addAll(path.subList(nearest, path.size()));
+	}
+
+	/** Walks the Mine Path leg by leg. Stuck on a leg, it drops the rest of it. */
+	private Travel followMinePath(CopperGolem golem) {
+		while (!this.minePath.isEmpty() && distanceSqr(golem, this.minePath.peek()) < 4.0) {
+			this.minePath.poll();
+			this.pathWatch.reset();
+		}
+		if (this.minePath.isEmpty()) {
+			return Travel.ARRIVED;
+		}
+		if (this.pathWatch.tick(golem, Vec3.atBottomCenterOf(this.minePath.peek())) > Golems.MAX_TRAVEL_TICKS) {
+			this.minePath.clear();
+			this.pathWatch.reset();
+			return Travel.STUCK;
+		}
+		BehaviorUtils.setWalkAndLookTargetMemories(golem, this.minePath.peek(), WALK_SPEED * RunningCosts.speed(golem), 1);
+		return Travel.WALKING;
+	}
+
+	/** Stuck on the way out: leaves {@code target} for this trip and lets go of its section, so the next pick finds other work. */
+	private void skip(Mines.OpenEnd target) {
+		this.skipped.add(target);
+		this.minePathTo = null;
+		this.minePath.clear();
+		this.work = null;
+	}
+
+	private static double distanceSqr(CopperGolem golem, BlockPos pos) {
+		return golem.position().distanceToSqr(Vec3.atBottomCenterOf(pos));
 	}
 
 	/** A broken frame closes the mine: forget it, go home, unload and look again. True if it was broken. */
@@ -480,6 +615,14 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	// --- doing it ---
 
 	private void tickWork(ServerLevel level, CopperGolem golem, MinerData data) {
+		if (!this.minePath.isEmpty()) {
+			if (this.followMinePath(golem) == Travel.STUCK && this.minePathTo != null) {
+				level.destroyBlockProgress(golem.getId(), this.work.pos(), -1);
+				Mines.release(golem);
+				this.skip(this.minePathTo);
+			}
+			return;
+		}
 		MineLayout.Step step = this.work;
 		BlockPos pos = step.pos();
 		// Sight only matters for digging, and only on the way: from its standing spot the block is always meant to be
@@ -833,10 +976,29 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		this.stopAfterReturn = stopAfter;
 		this.workTicks = 0;
 		golem.setState(CopperGolemState.IDLE);
+		this.minePathHome(golem);
+	}
+
+	/** The Mine Path back from the section the golem is in to the opening; none outside the mine. */
+	private void minePathHome(CopperGolem golem) {
+		this.minePathTo = null;
+		this.minePath.clear();
+		this.pathWatch.reset();
+		MinerData data = MinerData.get(golem);
+		Mines.Mine mine = data == null || data.mine() == null ? null
+			: Mines.get((ServerLevel) golem.level()).find(data.mine(), data.mineAxis()).orElse(null);
+		if (mine == null) {
+			return;
+		}
+		mine.sections().stream()
+			.filter(section -> section.box().inflatedBy(1).isInside(golem.blockPosition()))
+			.findFirst()
+			.ifPresent(section -> this.setMinePath(golem, MinePath.to(mine, section.start()).reversed()));
 	}
 
 	private void endReturn(CopperGolem golem) {
 		this.mode = Mode.WORKING;
+		this.skipped.clear();
 		golem.clearOpenedChestPos();
 		golem.setState(CopperGolemState.IDLE);
 		if (this.stopAfterReturn) {
@@ -846,6 +1008,24 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	}
 
 	private void tickReturn(ServerLevel level, CopperGolem golem, MinerData data, BlockPos home) {
+		if (!this.minePath.isEmpty() && this.followMinePath(golem) != Travel.ARRIVED) {
+			// Still on the Mine Path. Once stuck on it, it walks straight for home instead.
+			return;
+		}
+		if (!Golems.isInReach(golem, home) && this.pathWatch.tick(golem, Vec3.atCenterOf(home)) > (data.isStuck() ? STUCK_RETRY : Golems.MAX_TRAVEL_TICKS)) {
+			// Not even that works: it shakes its head, says so, and keeps trying, shaking its head again every 100 ticks.
+			data.setStuck(true);
+			this.pathWatch.reset();
+			Golems.stopInPlace(golem);
+			golem.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
+			golem.setState(CopperGolemState.GETTING_NO_ITEM);
+			golem.playSound(SoundEvents.COPPER_GOLEM_ITEM_NO_GET);
+			this.pauseTicks = 40;
+			return;
+		}
+		if (Golems.isInReach(golem, home)) {
+			data.setStuck(false);
+		}
 		Container chest = Homes.container(level, home);
 		// Hurrying when it has diamonds to show.
 		this.workTicks = JobBehavior.tickReturn(golem, home, chest, this.workTicks, WALK_SPEED * (isExcited(golem) ? 1.3F : 1.0F));
