@@ -155,6 +155,41 @@ public class MinePathGameTests {
 		h.succeedWhen(() -> h.assertValueEqual(golem.blockPosition(), h.absolutePos(pad.above()), "where the empty miner stands"));
 	}
 
+	/**
+	 * Out of energy 8 blocks under the pad by its home, at the end of a mine whose entrance is 30 blocks away: the way
+	 * out is too long for vanilla to find, which would take the miner to the spot closest to the pad, right under it.
+	 * It walks out along its tunnels first.
+	 */
+	@GameTest(maxTicks = 6000, padding = 64)
+	public void an_empty_miner_under_its_pad_walks_out_first(GameTestHelper h) {
+		ServerLevel level = h.getLevel();
+		// No clock set: an empty miner needs its rest by day or night, and other tests depend on the time of day.
+		MinerGameTests.forceChunks(h, new BlockPos(20, 0, 44));
+		MinerGameTests.fill(h, new BlockPos(0, 0, 0), new BlockPos(20, 14, 44), Blocks.STONE);
+		BlockPos home = new BlockPos(3, 15, 0);
+		BlockPos beam = GameTests.mineEntrance(h, new BlockPos(5, 17, 30));
+		Mines mines = Mines.get(level);
+		Mines.Mine mine = mines.start(mines.find(beam, Direction.Axis.X).orElseThrow(), Direction.NORTH, MineLayout.STAIRS_DOWN);
+		mine = mines.grow(mine, mine.ends().getFirst(), MineLayout.STAIRS_DOWN, false);
+		mine = mines.grow(mine, mine.ends().getFirst(), MineLayout.STRAIGHT, false);
+		mine = mines.grow(mine, mine.ends().getFirst(), MineLayout.STRAIGHT, false);
+		for (int i = 0; i < mine.sections().size(); i++) {
+			List<MineLayout.Step> steps = MineLayout.build(mine.sections().get(i));
+			steps.stream().filter(step -> step.action() == MineLayout.Action.DIG).forEach(step -> level.setBlockAndUpdate(step.pos(), Blocks.AIR.defaultBlockState()));
+			mines.setProgress(mine, i, steps.size(), true);
+		}
+		GameTests.chest(h, home, MinerGameTests.COPPER_CHEST);
+		CopperGolem golem = MinerGameTests.miner(h, home.offset(1, 0, 1), home);
+		// The test area may be rotated, so the far end and the pad above it are placed by absolute position.
+		Mines.OpenEnd far = mine.ends().getFirst();
+		BlockPos farEnd = far.pos().relative(far.facing().getOpposite(), 1);
+		BlockPos pad = new BlockPos(farEnd.getX(), h.absolutePos(home).getY() - 1, farEnd.getZ());
+		level.setBlockAndUpdate(pad, dev.bettercoppers.registry.ModBlocks.CHARGING_PAD.defaultBlockState());
+		golem.teleportTo(farEnd.getX() + 0.5, farEnd.getY(), farEnd.getZ() + 0.5);
+		dev.bettercoppers.runningcosts.RunningCosts.get(golem).setEnergy(0);
+		h.succeedWhen(() -> h.assertValueEqual(golem.blockPosition(), pad.above(), "where the empty miner stands"));
+	}
+
 	/** Walled in at the far end, it tries the Mine Path, then straight for home, then says it is stuck. */
 	@GameTest(maxTicks = 2400, padding = 48)
 	public void a_walled_in_miner_is_stuck_in_the_mine(GameTestHelper h) {

@@ -38,6 +38,11 @@ public final class RunningCosts {
 	}
 
 	/** Daytime, not recharging after running empty, not fully oxidized and not waxed, and not off on an errand. */
+	/** Night, or it ran empty and is not full yet: time for its charging pad. */
+	public static boolean needsRest(ServerLevel level, CopperGolem golem) {
+		return level.isDarkOutside() || get(golem).recharging();
+	}
+
 	public static boolean canWork(ServerLevel level, CopperGolem golem) {
 		return !level.isDarkOutside()
 			&& !Errands.isBusy(golem)
