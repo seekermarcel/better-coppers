@@ -47,6 +47,7 @@ import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.animal.golem.CopperGolemState;
 import net.minecraft.world.entity.player.Player;
@@ -231,6 +232,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	@Override
 	protected void start(ServerLevel level, CopperGolem golem, long timestamp) {
 		golem.getNavigation().setRequiredPathLength(PATH_SEARCH);
+		Golems.walkOverRails(golem, true);
 		if (golem.getNavigation() instanceof GroundPathNavigation navigation) {
 			navigation.setCanPathToTargetsBelowSurface(true);
 		}
@@ -670,6 +672,9 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			this.tickDig(level, golem, data, step);
 			return;
 		}
+		if (this.workTicks == 0 && this.isInTheWay(level, golem, step)) {
+			return;
+		}
 		if (++this.workTicks == 1) {
 			golem.setState(CopperGolemState.DROPPING_ITEM);
 		}
@@ -812,9 +817,10 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			BlockPos stand = floorBelow(level, open);
 			boolean ground = level.getBlockState(stand.below()).isFaceSturdy(level, stand.below(), Direction.UP)
 				&& level.getBlockState(stand).getCollisionShape(level, stand).isEmpty();
-			// It steps up one block at most: a stand higher than that waits until digging lowers it.
+			// It steps up one block at most (a stand higher than that waits until digging lowers it), and never down into a
+			// hole it might not climb out of, or would wall itself into when it patches the walkway.
 			if (ground && stand.getY() <= golem.getBlockY() + 1 && Golems.isInReach(golem.getDimensions(golem.getPose()).makeBoundingBox(Vec3.atBottomCenterOf(stand)), ore)
-				&& (best == null || stand.distToCenterSqr(golem.position()) < best.distToCenterSqr(golem.position()))) {
+				&& stand.getY() >= golem.getBlockY() && (best == null || stand.distToCenterSqr(golem.position()) < best.distToCenterSqr(golem.position()))) {
 				best = stand;
 			}
 		}
@@ -926,6 +932,27 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			Mines.get((ServerLevel) golem.level()).cutShort(mine, index, step, reason);
 			this.moveTo((ServerLevel) golem.level(), mine, index, step.resumeAt());
 		}
+	}
+
+	/**
+	 * A golem stands where {@code step} puts a solid block: the miner never builds into it, but waits a moment, stepping
+	 * back to its stand if it is in its own way. Fence posts only fill the middle of their block, so only that counts.
+	 */
+	private boolean isInTheWay(ServerLevel level, CopperGolem golem, MineLayout.Step step) {
+		MineLayout.Action action = step.action();
+		if (action == MineLayout.Action.TORCH || action == MineLayout.Action.RAIL || action == MineLayout.Action.SIGN) {
+			return false;
+		}
+		BlockState placed = action == MineLayout.Action.FENCE ? Blocks.OAK_FENCE.defaultBlockState() : Blocks.OAK_PLANKS.defaultBlockState();
+		AABB shape = placed.getCollisionShape(level, step.pos()).bounds().move(step.pos());
+		if (level.getEntitiesOfClass(LivingEntity.class, shape).isEmpty()) {
+			return false;
+		}
+		if (golem.getBoundingBox().intersects(shape)) {
+			BehaviorUtils.setWalkAndLookTargetMemories(golem, step.stand(), WALK_SPEED * RunningCosts.speed(golem), 0);
+		}
+		this.pauseTicks = 20;
+		return true;
 	}
 
 	private void build(ServerLevel level, CopperGolem golem, MineLayout.Step step) {

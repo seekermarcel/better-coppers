@@ -5,6 +5,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.animal.golem.CopperGolemState;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.AABB;
 
 /** Movement helpers and numbers shared by the mod's golem behaviours. */
@@ -37,6 +38,14 @@ public final class Golems {
 	/** Whether a golem with this bounding box reaches {@code pos}: a block around it, and 2 above or below its feet. */
 	public static boolean isInReach(AABB golem, BlockPos pos) {
 		return new AABB(pos).inflate(1.0, 1.5, 1.0).intersects(golem);
+	}
+
+	/**
+	 * Lets a golem with a job path over rails, or puts vanilla back. Vanilla keeps a mob that stands off a rail from
+	 * stepping onto one, so without this a miner could never walk back into a tunnel it laid rails in.
+	 */
+	public static void walkOverRails(CopperGolem golem, boolean allowed) {
+		golem.setPathfindingMalus(PathType.UNPASSABLE_RAIL, allowed ? 0.0F : PathType.UNPASSABLE_RAIL.getMalus());
 	}
 
 	public static void stopInPlace(CopperGolem golem) {

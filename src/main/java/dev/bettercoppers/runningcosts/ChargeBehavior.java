@@ -81,6 +81,12 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 	}
 
 	@Override
+	protected void start(ServerLevel level, CopperGolem golem, long timestamp) {
+		// A miner may have to walk out of a tunnel it laid rails in.
+		Golems.walkOverRails(golem, true);
+	}
+
+	@Override
 	protected void stop(ServerLevel level, CopperGolem golem, long timestamp) {
 		this.pad = null;
 		this.deadTicks = 0;
