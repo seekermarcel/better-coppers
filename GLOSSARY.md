@@ -128,22 +128,72 @@ Removing one rust stage with an axe, by hand or from a dispenser.
 
 ## Mining
 
-**Mineshaft Plan**:
-The item that holds a mine's Mine Pattern, entrance, direction, size and progress.
-_Avoid_: Plan, on its own
+**Mine Entrance**:
+The frame a player builds near a miner's home: two wooden fence posts, 2 high, with a beam of 3 planks across their tops, exactly like a mineshaft support. A mine grows from it, into the hill.
+_Avoid_: Entry, mine door, portal, frame (on its own)
 
-**Mine Pattern**:
-The shape of mine a Mineshaft Plan describes, such as a mineshaft or a strip mine.
-_Avoid_: Mine mode, layout
+**Mine**:
+Everything miners have dug from one Mine Entrance, shared by all of them and kept with the world.
+_Avoid_: Mineshaft (that is vanilla's structure), dig site
 
 **Mine Section**:
-One piece a miner digs at a time, such as a crossing, a straight, a small hall, a corner, or stairs down or up. A mine grows section by section.
+One piece a miner digs at a time, such as a crossing, a straight, a small hall, a corner, stairs down or up, or a dead end. A mine grows section by section.
 
-**Survey Table**:
-The block that makes Mineshaft Plans.
+**Section Kind**:
+One sort of Mine Section, with its own Section Weight: Straight, Corner, Crossing, Small Hall, Stairs Down, Stairs Up, Dead End, or one an add-on registered.
+_Avoid_: Section type, variant, piece; junction, corridor, room, ramp (for the built-in kinds)
 
-**Mark**:
-Fixing a Mineshaft Plan's entrance by using it on the ground or a wall.
+**Section Template**:
+The cells, supports, torches, rails and Open Ends of a Section Kind, relative to the Open End it grows from.
+_Avoid_: Schematic, blueprint, structure (that is vanilla's)
+
+**Section Weight**:
+How likely a Section Kind is when a miner rolls the next section for an Open End.
+_Avoid_: Chance, rarity, frequency
+
+**Open End**:
+The spot at the edge of a Mine Section where the next section can start, with the way it faces.
+_Avoid_: Exit, socket, connector
+
+**Dead End**:
+A Mine Section with no Open End, which ends a branch on purpose.
+_Avoid_: Stub, cap
+
+**Blocked**:
+Of a Mine Section: it can't be dug where it was rolled, because of lava, water, a cave, the surface, another tunnel, a structure, hard rock or the mine's limits.
+_Avoid_: Obstructed, invalid
+
+**Closed End**:
+An Open End no miner will grow from again, marked by a Barrier. A miner closes it when no Mine Section fits, a player closes it with a fence.
+_Avoid_: Blocked end, sealed end, cap
+
+**Barrier**:
+The fence posts, and the sign if the miner has one, set across a Closed End. Breaking its middle fence opens the end again.
+_Avoid_: Wall, blocker
+
+**Claim**:
+A miner's hold on the one Mine Section it is digging, so that no other miner digs it. It lapses when the miner leaves, quits or stops working for a while.
+_Avoid_: Lock, reservation, assignment
+
+**Mine Path**:
+The way a miner walks through its mine's finished sections, from the Mine Entrance to the section it works on and back.
+_Avoid_: Route, trail (both are courier terms), path (on its own)
+
+**Ore Vein**:
+Ore blocks touching face to face, which a miner digs out once it has dug next to one of them.
+_Avoid_: Cluster, deposit, ore body
+
+**Mine Range**:
+How far, horizontally, from its Mine Entrance a mine may grow; a game rule.
+_Avoid_: Reach (that is the Ore Vein's), radius, max distance, mine size
+
+**Depth Floor**:
+The lowest height a miner digs to; a game rule.
+_Avoid_: Min depth, bottom, depth limit
+
+**Entrance Search Radius**:
+How far from its home chest a miner looks for a Mine Entrance; a game rule.
+_Avoid_: Search range, entrance range
 
 ## Danger and protection
 
