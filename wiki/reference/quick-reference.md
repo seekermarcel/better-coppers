@@ -89,7 +89,7 @@ Radii are measured in blocks. [Eyes](/golem/eyes) multiply them; heights are not
 | Fisher | Water around the home | 4 down, 2 up | 10 | 15 | 20 | 30 |
 | Animal keeper | Animals around the home | 4 up or down | 10 | 15 | 20 | 30 |
 | Beekeeper | Hives around the home | 4 up or down | 10 | 15 | 20 | 30 |
-| Miner | Ore blocks followed per vein (a count, not blocks of distance) | n/a | 16 | 24 | 32 | 48 |
+| Miner | How far a vein is followed from the tunnel (at most 64 ores) | same | 8 | 12 | 16 | 24 |
 | Operator | Chests holding spare parts, around the machine | n/a | 8 | 12 | 16 | 24 |
 
 ### Jobs

@@ -30,7 +30,7 @@ The golem's status message shows the eyes as a percentage.
 | [Animal keeper](/jobs/animal-keeper) animals | 10 | 15 | 20 | 30 |
 | [Beekeeper](/jobs/beekeeper) hives | 10 | 15 | 20 | 30 |
 | [Sorter](/jobs/sorter) containers | 32 | 48 | 64 | 96 |
-| [Miner](/jobs/miner) vein budget (ore blocks per vein) | 16 | 24 | 32 | 48 |
+| [Miner](/jobs/miner) vein reach from the tunnel (at most 64 ores) | 8 | 12 | 16 | 24 |
 | [Operator](/jobs/operator) spare parts (add-on) | 8 | 12 | 16 | 24 |
 
 Vertical reach is not widened: it stays at 3 blocks for a farmer, 6 for a forester and 8 for a sorter. Eyes do not change the range of charging, tool fetching or repairs.

@@ -17,9 +17,12 @@ import dev.bettercoppers.registry.ModTags;
 import dev.bettercoppers.runningcosts.RunningCosts;
 import java.util.ArrayDeque;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalBlockTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -50,6 +53,7 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.WallTorchBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -64,8 +68,10 @@ import org.jspecify.annotations.Nullable;
  * cart; when full (or out of supplies) it walks back to its home chest, unloads, and restocks torches, wood and rails. Progress is saved with the section in {@link Mines}.
  * <p>
  * Golems are not good at this: they dig slowly, sometimes stop to scratch their heads, and give up on blocks they
- * cannot reach. Water and lava are sealed off with filler blocks before they can flood the tunnel; with no filler the golem gives up
- * that Mine Section and carries on.
+ * cannot reach. An ore it digs next to starts an Ore Vein: face-connected ores, up to 64 and 8 blocks (more with Eyes)
+ * from the section, dug before the section goes on; outside the section it breaks only ore. Water and lava are sealed
+ * off with filler blocks before they can flood the tunnel; with no filler the golem gives up that Mine Section and
+ * carries on.
  * <p>
  * A broken entrance frame, noticed when a section starts and after unloading at home, closes the mine for this miner:
  * it goes home and looks for another.
@@ -76,7 +82,10 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	private static final int MIN_DIG_TICKS = 10;
 	private static final int MAX_DIG_TICKS = 400;
 	private static final int PLACE_TICKS = 20;
-	private static final int ORE_BUDGET = 16;
+	/** Ores a vein gives at most; Eyes don't change it. */
+	private static final int VEIN_CAP = 64;
+	/** How far, Chebyshev, a vein is followed from its section's box; Eyes scale it. */
+	private static final int VEIN_REACH = 8;
 	private static final int RECENT_DIGS = 32;
 	private static final int FILLER_RESERVE = 16;
 	private static final float WALK_SPEED = 0.9F;
@@ -108,8 +117,16 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	private int digTicks;
 	private int pauseTicks;
 
-	private final ArrayDeque<MineLayout.Step> oreDigs = new ArrayDeque<>();
-	private int oreBudget = ORE_BUDGET;
+	/** Vein ores to dig, nearest first. */
+	private final ArrayDeque<BlockPos> oreDigs = new ArrayDeque<>();
+	/** Every ore of a vein already found in this section, so touching it again doesn't start a new vein. */
+	private final Set<BlockPos> veinOres = new HashSet<>();
+	/** Walkway floor cells a vein went through: filled once the vein is out. */
+	private final ArrayDeque<BlockPos> walkwayHoles = new ArrayDeque<>();
+	/** The section's own cells to dig, its floor steps by cell, and its saved box (footprint and floor layer). */
+	private Set<BlockPos> sectionDigs = Set.of();
+	private Map<BlockPos, MineLayout.Step> sectionFloors = Map.of();
+	private @Nullable BoundingBox sectionBox;
 	private final ArrayDeque<MineLayout.Step> recentDigs = new ArrayDeque<>();
 	/** The needs last found in the pouch; digs sharing them are not checked again as supplies get used up. */
 	private MineLayout.@Nullable Needs checkedNeeds;
@@ -175,7 +192,13 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		if (!key.equals(this.layoutSection)) {
 			this.layoutSection = key;
 			this.steps = MineLayout.build(section);
+			this.sectionDigs = this.steps.stream().filter(step -> step.action() == MineLayout.Action.DIG).map(MineLayout.Step::pos).collect(Collectors.toSet());
+			this.sectionFloors = this.steps.stream().filter(step -> step.action() == MineLayout.Action.FLOOR)
+				.collect(Collectors.toMap(MineLayout.Step::pos, step -> step, (a, b) -> a));
+			this.sectionBox = section.box();
 			this.oreDigs.clear();
+			this.veinOres.clear();
+			this.walkwayHoles.clear();
 			this.recentDigs.clear();
 			this.checkedNeeds = null;
 			this.unreachable.clear();
@@ -229,7 +252,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			if (level.getGameTime() % 10 == 0) {
 				level.sendParticles(ParticleTypes.WAX_ON, golem.getX(), golem.getY() + 1.3, golem.getZ(), 1, 0.1, 0.1, 0.1, 0.0);
 			}
-			if (this.work == null && this.oreDigs.stream().noneMatch(ore -> isDiamond(level.getBlockState(ore.pos())))) {
+			if (this.work == null && this.oreDigs.stream().noneMatch(ore -> isDiamond(level.getBlockState(ore)))) {
 				// The whole vein is out: off home to show the diamonds.
 				this.startReturn(golem, false);
 				return;
@@ -247,7 +270,6 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		if (this.nextExtraDig(level, golem)) {
 			return this.work != null;
 		}
-		this.oreBudget = Eyes.radius(golem, ORE_BUDGET);
 
 		Mines mines = Mines.get(level);
 		int index = mines.pick(level, mine, golem);
@@ -334,15 +356,30 @@ public class MineBehavior extends Behavior<CopperGolem> {
 				return true;
 			}
 		}
-		while (!this.oreDigs.isEmpty()) {
-			MineLayout.Step ore = this.oreDigs.poll();
-			if (level.isLoaded(ore.pos()) && isOre(level.getBlockState(ore.pos())) && this.canDig(level, golem, ore.pos())) {
-				if (Load.of(golem).isFull(Golems.POUCH_LIMIT)) {
-					this.oreDigs.addFirst(ore);
-					this.startReturn(golem, false);
-				} else {
-					this.setWork(ore, true);
-				}
+		// The first ore it can stand next to, nearest first. The others wait until digging opens a way to them, or stay.
+		for (Iterator<BlockPos> ores = this.oreDigs.iterator(); ores.hasNext(); ) {
+			BlockPos ore = ores.next();
+			if (!level.isLoaded(ore) || !isOre(level.getBlockState(ore)) || this.unreachable.contains(ore) || !this.canDig(level, golem, ore)) {
+				ores.remove();
+				continue;
+			}
+			BlockPos stand = standNextTo(level, golem, ore);
+			if (stand == null) {
+				continue;
+			}
+			if (Load.of(golem).isFull(Golems.POUCH_LIMIT)) {
+				this.startReturn(golem, false);
+			} else {
+				ores.remove();
+				this.setWork(MineLayout.Step.extra(MineLayout.Action.DIG, ore, stand), true);
+			}
+			return true;
+		}
+		// No ore to get at: patch the holes the vein left in the walkway. Holes elsewhere stay open.
+		while (!this.walkwayHoles.isEmpty()) {
+			MineLayout.Step floor = this.sectionFloors.get(this.walkwayHoles.poll());
+			if (level.isLoaded(floor.pos()) && !this.isDone(level, golem, floor) && !Load.of(golem).find(this.materialFor(MineLayout.Action.FLOOR)).isEmpty()) {
+				this.setWork(floor, true);
 				return true;
 			}
 		}
@@ -557,16 +594,82 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		if (this.recentDigs.size() > RECENT_DIGS) {
 			this.recentDigs.removeFirst();
 		}
-		// Ores it can now see get dug out too, a few blocks into the vein, standing in the hole it just made.
-		BlockPos stand = floorBelow(level, pos);
+		if (this.sectionFloors.containsKey(pos)) {
+			this.walkwayHoles.add(pos);
+		}
+		// An ore it can now see starts a vein, dug out before the section goes on.
 		for (Direction direction : Direction.values()) {
 			BlockPos next = pos.relative(direction);
-			boolean queued = this.oreDigs.stream().anyMatch(ore -> ore.pos().equals(next));
-			if (this.oreBudget > 0 && !queued && level.isLoaded(next) && isOre(level.getBlockState(next))) {
-				this.oreDigs.add(MineLayout.Step.extra(MineLayout.Action.DIG, next, stand));
-				this.oreBudget--;
+			if (!this.veinOres.contains(next) && !this.sectionDigs.contains(next) && level.isLoaded(next) && isOre(level.getBlockState(next))) {
+				this.followVein(level, golem, next);
 			}
 		}
+	}
+
+	/**
+	 * Finds the vein of face-connected ores at {@code seed}, which touches a block just dug, and queues up to
+	 * {@link #VEIN_CAP} of them nearest first. Only ores outside the section, within its reach and the mine's limits count.
+	 * The rest of the vein is remembered too, so digging next to it later doesn't start it again.
+	 */
+	private void followVein(ServerLevel level, CopperGolem golem, BlockPos seed) {
+		Mines.Mine mine = mine(golem);
+		if (mine == null || this.sectionBox == null) {
+			return;
+		}
+		int reach = Eyes.radius(golem, VEIN_REACH);
+		MineLimits limits = MineLimits.of(level);
+		int queued = 0;
+		ArrayDeque<BlockPos> open = new ArrayDeque<>();
+		open.add(seed.immutable());
+		this.veinOres.add(seed.immutable());
+		while (!open.isEmpty()) {
+			BlockPos pos = open.poll();
+			if (chebyshev(this.sectionBox, pos) > reach || !limits.inRange(mine.entrance(), pos) || !limits.aboveFloor(pos)) {
+				continue;
+			}
+			if (queued < VEIN_CAP) {
+				this.oreDigs.add(pos);
+				queued++;
+			}
+			for (Direction direction : Direction.values()) {
+				BlockPos touching = pos.relative(direction);
+				if (!this.veinOres.contains(touching) && !this.sectionDigs.contains(touching) && level.isLoaded(touching) && isOre(level.getBlockState(touching))) {
+					this.veinOres.add(touching);
+					open.add(touching);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Where the golem stands to dig {@code ore}: on solid ground in an open block beside it, the one nearest to the
+	 * golem. Null if there is none yet.
+	 */
+	private static @Nullable BlockPos standNextTo(ServerLevel level, CopperGolem golem, BlockPos ore) {
+		BlockPos best = null;
+		for (Direction direction : Direction.values()) {
+			BlockPos open = ore.relative(direction);
+			if (!level.isLoaded(open) || !level.getBlockState(open).getCollisionShape(level, open).isEmpty() || !level.getFluidState(open).isEmpty()) {
+				continue;
+			}
+			BlockPos stand = floorBelow(level, open);
+			boolean ground = level.getBlockState(stand.below()).isFaceSturdy(level, stand.below(), Direction.UP)
+				&& level.getBlockState(stand).getCollisionShape(level, stand).isEmpty();
+			// It steps up one block at most: a stand higher than that waits until digging lowers it.
+			if (ground && stand.getY() <= golem.getBlockY() + 1 && Golems.isInReach(golem.getDimensions(golem.getPose()).makeBoundingBox(Vec3.atBottomCenterOf(stand)), ore)
+				&& (best == null || stand.distToCenterSqr(golem.position()) < best.distToCenterSqr(golem.position()))) {
+				best = stand;
+			}
+		}
+		return best;
+	}
+
+	/** How many blocks {@code pos} lies outside {@code box}, along the farthest axis. */
+	private static int chebyshev(BoundingBox box, BlockPos pos) {
+		int x = Math.max(0, Math.max(box.minX() - pos.getX(), pos.getX() - box.maxX()));
+		int y = Math.max(0, Math.max(box.minY() - pos.getY(), pos.getY() - box.maxY()));
+		int z = Math.max(0, Math.max(box.minZ() - pos.getZ(), pos.getZ() - box.maxZ()));
+		return Math.max(x, Math.max(y, z));
 	}
 
 	/**

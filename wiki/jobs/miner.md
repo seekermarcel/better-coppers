@@ -269,7 +269,9 @@ Drops use the tool, so Fortune and Silk Touch work. The pickaxe loses 1 durabili
 
 ### Ores
 
-After each block it digs, the golem queues every ore touching that block, on all six sides, and digs those too. Ores are the `c:ores` block tag. Each vein has a budget of 16 ores, or 24, 32 or 48 with iron, gold or diamond [eyes](/golem/eyes). A new budget starts once the queue of ores is empty.
+An ore touching a block the golem digs starts a vein: every `c:ores` block connected to it face to face, mixed ores included. The golem digs out the vein, nearest ores first, before it carries on with the section. A vein gives at most 64 ores, and only ores up to 8 blocks from the section (counted along the farthest axis) belong to it, or 12, 16 or 24 with iron, gold or diamond [eyes](/golem/eyes). Eyes widen the reach, not the count. It also stays within the Mine Range and above the Depth Floor (see [Settings](#settings)).
+
+Outside its section the golem breaks only ore, never stone, and it digs each ore from the hole the one before it left. An ore it cannot stand next to stays. Holes the vein leaves in the section's floor get filled; holes elsewhere stay open. With a full pouch mid-vein it goes home and finishes the vein first.
 
 A miner can harvest diamond, gold, redstone and emerald ore with its copper pickaxe, although a player could not. Other blocks that need a better pickaxe stay in the wall, such as ancient debris and obsidian.
 
