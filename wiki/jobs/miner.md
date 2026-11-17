@@ -353,7 +353,7 @@ Digging a diamond ore block excites a miner: it plays a chime and sends out part
 | Digging a block | 2 |
 | Placing a block (floor, support, rail, torch, plug) | 1 |
 
-A full charge of 1000 energy is 500 digs. Miners stop at night. See [Running costs](/golem/running-costs).
+A full charge of 1000 energy is 500 digs. Miners stop at night. Once a miner runs empty, or night falls while it is in its mine, it first walks out along its tunnels, then goes to a charging pad near its home chest. Without one, an empty miner waits outside its mine. See [Running costs](/golem/running-costs).
 
 When the pickaxe breaks, the golem keeps its job, brings its load home and looks for a new copper pickaxe. See [Tools](/golem/tools).
 

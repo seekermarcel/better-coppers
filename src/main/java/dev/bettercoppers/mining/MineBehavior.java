@@ -204,12 +204,27 @@ public class MineBehavior extends Behavior<CopperGolem> {
 
 	@Override
 	protected boolean checkExtraStartConditions(ServerLevel level, CopperGolem golem) {
-		return this.hasWork(level, golem) && RunningCosts.canWork(level, golem);
+		return this.hasWork(level, golem) && (RunningCosts.canWork(level, golem) || walksOutToRest(level, golem));
 	}
 
 	@Override
 	protected boolean canStillUse(ServerLevel level, CopperGolem golem, long timestamp) {
-		return golem.getBrain().getMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS).isEmpty() && !golem.isPanicking() && this.hasWork(level, golem) && RunningCosts.canWork(level, golem);
+		return golem.getBrain().getMemory(MemoryModuleType.TRANSPORT_ITEMS_COOLDOWN_TICKS).isEmpty() && !golem.isPanicking() && this.hasWork(level, golem)
+			&& (RunningCosts.canWork(level, golem) || walksOutToRest(level, golem));
+	}
+
+	/**
+	 * Empty, or night, while still in one of its mine's sections: the miner walks out along the Mine Path before its
+	 * charging pad takes over, since heading straight for the pad would only take it to the rock in between.
+	 */
+	public static boolean walksOutToRest(ServerLevel level, CopperGolem golem) {
+		if (Jobs.of(golem) != Jobs.JobKind.MINER || Homes.get(golem) == null || !RunningCosts.needsRest(level, golem)) {
+			return false;
+		}
+		// Only the mine it has: looking for a new one is the job of its work, not of a rest.
+		MinerData data = MinerData.get(golem);
+		Mines.Mine mine = data == null || data.mine() == null ? null : Mines.get(level).find(data.mine(), data.mineAxis()).orElse(null);
+		return mine != null && mine.sections().stream().anyMatch(section -> section.box().inflatedBy(1).isInside(golem.blockPosition()));
 	}
 
 	private boolean hasWork(ServerLevel level, CopperGolem golem) {
@@ -309,6 +324,14 @@ public class MineBehavior extends Behavior<CopperGolem> {
 				this.startReturn(golem, false);
 			}
 			return;
+		}
+		if (this.mode != Mode.RETURNING && !RunningCosts.canWork(level, golem)) {
+			// Only still running to walk out of the mine for a rest.
+			if (this.work != null) {
+				level.destroyBlockProgress(golem.getId(), this.work.pos(), -1);
+				this.work = null;
+			}
+			this.startReturn(golem, true);
 		}
 		if (this.mode == Mode.RETURNING) {
 			this.tickReturn(level, golem, data, home);

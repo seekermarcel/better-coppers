@@ -7,6 +7,7 @@ import dev.bettercoppers.api.TravelWatch;
 import dev.bettercoppers.block.ChargingPadBlock;
 import dev.bettercoppers.golem.Errands;
 import dev.bettercoppers.golem.Golems;
+import dev.bettercoppers.mining.MineBehavior;
 import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.job.Jobs;
 import dev.bettercoppers.registry.ModBlocks;
@@ -77,7 +78,7 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 		}
 		// At night it rests on its pad even when full, like going to bed. Once it ran empty it stays until it is full,
 		// not just until it has a spark.
-		return level.isDarkOutside() || RunningCosts.get(golem).recharging();
+		return RunningCosts.needsRest(level, golem);
 	}
 
 	@Override
@@ -121,6 +122,12 @@ public class ChargeBehavior extends Behavior<CopperGolem> {
 			return;
 		}
 		BlockPos standOn = this.pad.above();
+		if (MineBehavior.walksOutToRest(level, golem)) {
+			// A miner first walks out of its mine along its tunnels: heading straight for the pad would only take it to
+			// the rock in between. Without a pad it stopped recharging above and carries on working.
+			this.travel.reset();
+			return;
+		}
 		if (!golem.blockPosition().equals(standOn)) {
 			if (this.travel.tick(golem, Vec3.atBottomCenterOf(standOn)) > Golems.MAX_TRAVEL_TICKS) {
 				// Cannot get there; try another one later.
