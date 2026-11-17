@@ -14,6 +14,7 @@ import dev.bettercoppers.mining.MinerInteractions;
 import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.registry.ModBlocks;
 import dev.bettercoppers.registry.ModEntities;
+import dev.bettercoppers.registry.ModGameRules;
 import dev.bettercoppers.registry.ModItems;
 import dev.bettercoppers.trim.GolemTrims;
 import dev.bettercoppers.runningcosts.AxeDispenseBehavior;
@@ -43,6 +44,7 @@ public class BetterCoppers implements ModInitializer {
 		ModEntities.init();
 		ModBlocks.init();
 		ModItems.init();
+		ModGameRules.init();
 		Couriers.init();
 		// In a phase of its own, as an add-on's handlers can register before these: mod load order varies.
 		Identifier handoverPress = id("handover_press");

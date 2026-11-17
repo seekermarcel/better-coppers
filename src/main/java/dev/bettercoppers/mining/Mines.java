@@ -14,6 +14,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.level.BlockGetter;
@@ -29,9 +30,6 @@ public final class Mines extends SavedData {
 	/** The saved format. A newer one is logged and left alone; an older one goes through {@link #migrate}. */
 	static final int FORMAT = 1;
 
-	/** How far from its home chest, in a straight line to the middle beam, a miner looks for a Mine Entrance. */
-	// shortcut: a constant, until the mine_entrance_search_radius game rule (#45) replaces it.
-	public static final int ENTRANCE_SEARCH_RADIUS = 32;
 	/** How often a miner without a mine looks again. */
 	private static final int LOOK_INTERVAL = 100;
 
@@ -136,11 +134,11 @@ public final class Mines extends SavedData {
 	}
 
 	/**
-	 * The nearest registered, intact Mine Entrance whose mine is not finished, within {@link #ENTRANCE_SEARCH_RADIUS} of
+	 * The nearest registered, intact Mine Entrance whose mine is not finished, within the Entrance Search Radius of
 	 * {@code home}; ties go to the lowest position. Entrances in unloaded chunks are left out.
 	 */
 	public Optional<Mine> nearestOpen(ServerLevel level, BlockPos home) {
-		double radius = ENTRANCE_SEARCH_RADIUS * ENTRANCE_SEARCH_RADIUS;
+		double radius = Mth.square(MineLimits.of(level).entranceSearchRadius());
 		return mines.stream()
 			.filter(mine -> !mine.isFinished() && mine.entrance().distSqr(home) <= radius && level.isLoaded(mine.entrance())
 				&& MineEntrance.isIntact(level, mine.entrance(), mine.axis()))
@@ -152,8 +150,12 @@ public final class Mines extends SavedData {
 	 * opening. Returns the mine as saved now.
 	 */
 	public Mine start(Mine mine, Direction facing, Identifier kind) {
-		OpenEnd end = new OpenEnd(mine.entrance().below(2).relative(facing), facing);
-		return replace(mine, new Mine(mine.entrance(), mine.axis(), Optional.of(facing), List.of(new Section(kind, end, false, -1, 0, false))));
+		return replace(mine, new Mine(mine.entrance(), mine.axis(), Optional.of(facing), List.of(new Section(kind, firstEnd(mine, facing), false, -1, 0, false))));
+	}
+
+	/** The Open End of the first section: in front of the opening, along {@code facing}. */
+	static OpenEnd firstEnd(Mine mine, Direction facing) {
+		return new OpenEnd(mine.entrance().below(2).relative(facing), facing);
 	}
 
 	/** Saves how far section {@code index} of {@code mine} got. */
@@ -200,7 +202,12 @@ public final class Mines extends SavedData {
 		if (found.sections().isEmpty()) {
 			Direction facing = found.facing().orElse(facing(level, found.entrance(), found.axis(), home));
 			// Not rolled: into a hill it is a Straight, on open ground Stairs Down.
-			found = mines.start(found, facing, isSolid(level, found.entrance().below().relative(facing)) ? MineLayout.STRAIGHT : MineLayout.STAIRS_DOWN);
+			Identifier kind = isSolid(level, found.entrance().below().relative(facing)) ? MineLayout.STRAIGHT : MineLayout.STAIRS_DOWN;
+			// shortcut: past the Mine Range or the Depth Floor it is just not dug and the miner keeps looking; #42 closes it with a Barrier.
+			if (!MineLimits.of(level).allows(found.entrance(), MineLayout.build(kind, firstEnd(found, facing)))) {
+				return null;
+			}
+			found = mines.start(found, facing, kind);
 		}
 		data.setMine(found.entrance(), found.axis());
 		return found;
