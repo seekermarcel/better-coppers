@@ -28,7 +28,7 @@ Iron Sheets have no gear. The Press and Saw work on the whole stack at once, so 
 | <Icon id="cart_extension" /> [Cart Extension](/items/cart_extension) | 4 Copper Sheets, a wooden chest | 4 copper | [Copper Chest Minecart](/items/copper_chest_minecart) |
 | New [copper golem](/golem/copper-golem) | 4 Copper Sheets, 2 Copper Gears, Carved Pumpkin, Redstone Dust | 6 copper | [Golem Assembler](/items/golem_assembler) |
 | Rails | 4 Iron Sheets, a Stick | 4 iron | 16 rails, for a [miner](/jobs/miner) |
-| Paper | Sugar Cane | None | [Mineshaft Plans](/items/mineshaft_plan) |
+| Paper | Sugar Cane | None | Crafting, such as [Quota Slips](/items/quota_slip) |
 | Fences, slabs, stairs | Planks, with a [Saw](/items/saw) filter | None | [Miner](/jobs/miner) supports and building |
 
 The recipe for rails:

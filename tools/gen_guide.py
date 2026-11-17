@@ -62,9 +62,8 @@ MAIN_TREE = [
     ("farmer", "home", "minecraft:copper_hoe", done(), "task", True),
     ("odd_jobs", "home", "minecraft:copper_axe", {job: {"trigger": "minecraft:impossible"} for job in ["forester", "fisher", "keeper", "beekeeper", "crafter"]}, "task", True),
     ("full_employment", "odd_jobs", "minecraft:bell", {job: {"trigger": "minecraft:impossible"} for job in JOBS}, "challenge", False),
-    ("survey", "home", f"{MAIN}:survey_table", has(f"{MAIN}:mineshaft_plan"), "task", True),
     ("mine_entrance", "home", "minecraft:oak_fence", done(), "task", True),
-    ("miner", "survey", "minecraft:copper_pickaxe", done(), "task", True),
+    ("miner", "mine_entrance", "minecraft:copper_pickaxe", done(), "task", True),
     ("diamonds", "miner", "minecraft:diamond", done(), "goal", True),
     ("eyes", "home", "minecraft:gold_block", done(), "task", True),
     ("courier", "home", "minecraft:barrel", done(), "task", True),
@@ -111,12 +110,10 @@ MAIN_ADV = {
                  ("Mädchen für alles", "Schleichen + Rechtsklick auf einen Golem mit einer Kupferaxt, einer Angel, einer Schere, einem Pinsel oder einer Werkbank")),
     "full_employment": (("Full Employment", "Give golems every job: sorter, miner, farmer, forester, fisher, animal keeper, beekeeper, crafter and courier"),
                         ("Vollbeschäftigung", "Gib Golems jeden Beruf: Sortierer, Bergmann, Bauer, Förster, Fischer, Tierpfleger, Imker, Handwerker und Kurier")),
-    "survey": (("Surveyor", "Make a mineshaft plan at a Survey Table"),
-               ("Vermesser", "Erstelle an einem Vermessungstisch einen Stollenplan")),
     "mine_entrance": (("Into the Hill", "Build a Mine Entrance: two fence posts 2 high and 1 apart, with 3 planks across their tops"),
                       ("Ab in den Berg", "Baue einen Mineneingang: zwei Zaunpfosten, 2 hoch und 1 Block auseinander, mit 3 Brettern quer darüber")),
-    "miner": (("Down the Shaft", "Sneak + right-click a golem with a copper pickaxe, then with a mineshaft plan"),
-              ("Ab in den Stollen", "Schleichen + Rechtsklick auf einen Golem mit einer Kupferspitzhacke, dann mit einem Stollenplan")),
+    "miner": (("Down the Shaft", "Sneak + right-click a golem with a copper pickaxe"),
+              ("Ab in den Stollen", "Schleichen + Rechtsklick auf einen Golem mit einer Kupferspitzhacke")),
     "diamonds": (("Shiny!", "Watch a miner find diamonds and hurry home with its antenna blinking"),
                  ("Glitzer!", "Sieh zu, wie ein Bergmann Diamanten findet und mit blinkender Antenne heimeilt")),
     "eyes": (("Eagle Eyes", "Sneak + right-click a golem with a block of iron, gold or diamond to widen its work radius"),
@@ -220,7 +217,7 @@ While you sneak, copper particles run from every golem near you to its home. A g
 With nothing to do, a golem with a home strolls about and walks back once it is more than 6 blocks from its chest.
 
 # Ending a job
-Sneak + right-click a golem twice with an empty hand, within 5 seconds. You get its tool or bundle, its plan and everything it carries; what does not fit lands at your feet. A chained cart unchains and stays where it is, still loaded. Home, eyes and trim stay with the golem.
+Sneak + right-click a golem twice with an empty hand, within 5 seconds. You get its tool or bundle and everything it carries; what does not fit lands at your feet. A chained cart unchains and stays where it is, still loaded. Home, eyes and trim stay with the golem.
 
 # Changing jobs
 Sneak + right-click it with a different job item. You get the old tool and everything it carries, and a chained cart stays chained. A new tool for the same job only swaps the tools."""),
@@ -242,7 +239,7 @@ Solange du schleichst, laufen Kupferpartikel von jedem Golem in deiner Nähe zu 
 Hat er nichts zu tun, schlendert ein Golem mit Zuhause umher und geht zurück, sobald er mehr als 6 Blöcke von seiner Truhe entfernt ist.
 
 # Beruf beenden
-Zweimal Schleichen + Rechtsklick mit leerer Hand auf den Golem, innerhalb von 5 Sekunden. Du bekommst sein Werkzeug oder Bündel, seinen Plan und alles, was er trägt; was nicht passt, landet vor deinen Füßen. Eine angekettete Lore wird gelöst und bleibt beladen stehen. Zuhause, Augen und Besatz bleiben beim Golem.
+Zweimal Schleichen + Rechtsklick mit leerer Hand auf den Golem, innerhalb von 5 Sekunden. Du bekommst sein Werkzeug oder Bündel und alles, was er trägt; was nicht passt, landet vor deinen Füßen. Eine angekettete Lore wird gelöst und bleibt beladen stehen. Zuhause, Augen und Besatz bleiben beim Golem.
 
 # Beruf wechseln
 Schleichen + Rechtsklick mit einem anderen Arbeitsgegenstand auf ihn. Du bekommst das alte Werkzeug und alles, was er trägt, und eine angekettete Lore bleibt angekettet. Ein neues Werkzeug für denselben Beruf tauscht nur das Werkzeug.""")),
@@ -364,85 +361,57 @@ Rechtsklicke die Lore mit einer Eisen- oder Kupferkette, damit sie dir folgt, da
 Ein Sortierer lädt alles, was mit dem ersten Gegenstand verwandt ist: Stein bringt auch Steinstufen, -treppen und -ziegel mit, aber keine Eichenstämme. Dann liefert er alles in einem Gang aus.
 
 Andere Berufe füllen erst die Lore, dann ihren Beutel.""")),
-    "miner": (("Miner", """Miners dig a vanilla-style 3x3 mineshaft with plank floors, supports, torches and rails, a Staircase straight down, a Strip Mine, a wide Room and Pillar hall, or a Multilevel Mine of stacked tunnels.
-
-# The plan
-Craft a Survey Table: 2 paper over 2 copper ingots over 2 planks. Put paper in, choose a Mine Pattern (Mineshaft, Staircase, Strip Mine, Room and Pillar or Multilevel Mine) and a length (8 to 128, up to 64 for Room and Pillar) and take out the mineshaft plan.
-
-Use the plan on the ground where the mine should start. The tunnel heads the way you look.
-
-# Strip Mine
-A 3x3 corridor with narrow branches to both sides every 3 blocks, to find as much ore as possible. Choose the branch length (4 to 32) at the table. It needs no rails, fences or supports, only torches if you want light.
-
-# The golem
-Sneak + right-click it with a copper pickaxe first, then with the plan: without a pickaxe in hand it refuses the plan. Then link it to a copper chest near the entrance.
-
-# Supplies
-In a mineshaft, without planks, fences and rails it does not dig. Keep those and torches in its chest; it fetches them when it needs them. Without torches it digs on and leaves them out.
-
-# Staircase
-A Staircase goes down one block for every block forward, one wide and 4 high so you can walk it too, with the plan's length as its depth. It stops above the bedrock. It takes no planks, fences or rails: only blocks to patch holes in the floor, and torches if you have them.
-
-# On the job
-It digs out ores touching what it digs and follows each vein for up to 16 ores, diamond, gold, redstone and emerald included. It plugs water and lava with filler it dug itself, such as cobblestone, stone or dirt, and walks home with up to 64 items. Link a sorter to the same chest to sort the loot.
-
-Out of filler at water or lava, it gives up that part of the mine: the rest of a mineshaft's tunnel (it still lays its rails in the part it dug), the rest of a Staircase, one branch of a strip mine, or the rest of a strip mine's corridor. The plan and its status show where it gave up. Mark the plan again at the same spot to have that part dug: finished steps skip themselves.
-
-Ending its job gives you the pickaxe and plan back. The plan keeps its progress.
-
-# Room and Pillar
-A wide hall, 3 high, 9 or 17 wide (the setting at the Survey Table), that starts right at the entrance. Every fourth row keeps pillars of rock standing, and every other row of pillars gets torches. It takes no rails, fences or planks; torches are optional.
-
-Out of filler at water or lava, it gives up the outer part of that half-row and digs on. In the centre column it gives up the rest of the hall.
-
-# Multilevel Mine
-Mineshafts of the plan's length stacked straight down, 6 blocks apart: 2 to 8 levels (the setting at the Survey Table). Levels that would reach the bedrock are left out. Carved stairs join them just behind the entrance, turning off to the right, so keep that ground free. Each level takes planks, fences and rails like a mineshaft, and is finished, rails included, before the next. Every trip goes to the one chest at the top.
-
-Out of filler at water or lava in a tunnel, it gives up the rest of that level, lays its rails in the part it dug and goes on to the next level. On the stairs it gives up everything below.
+    "miner": (("Miner", """Miners dig a vanilla-style mine, 3 wide and 3 high, with plank floors, supports, torches and rails, from a Mine Entrance you build.
 
 # Mine Entrance
 Build a Mine Entrance like the supports in a vanilla mineshaft: two wooden fence posts, each 2 high on a solid block with 1 block between them, and 3 planks across their tops. Any woods will do. Placing its last block shows "Mine Entrance built". A frame you didn't build yourself, such as one in a mineshaft, counts once you rebuild one of its blocks.
 
+Build it within 32 blocks of a copper chest, against a hillside if you can: the mine runs into the hill. On flat ground it runs away from the chest.
+
+# The golem
+Sneak + right-click it with a copper pickaxe, then link it to that copper chest. The other way round works just the same. It walks to the nearest open Mine Entrance within 32 blocks of its chest and starts digging. A plain click shows which mine it works in.
+
+# Mine Sections
+A mine grows one Mine Section at a time. The first one goes straight into the hill: 8 blocks long, with two supports and a torch. On flat ground the first section is Stairs Down instead: 4 steps down, each 4 high so you can walk them, and a landing 4 blocks lower. For now the mine stops after its first section, and the miner moves on to the next open Mine Entrance.
+
+# Supplies
+Supports take fences and planks: without them it doesn't dig on. Keep those and torches in its chest; it fetches them when it needs them. Without torches it digs on and leaves them out. Rails are optional: it lays them last, from the far end back, only if it carries some.
+
+# On the job
+It digs out ores touching what it digs and follows each vein for up to 16 ores, diamond, gold, redstone and emerald included. It plugs water and lava with filler it dug itself, such as cobblestone, stone or dirt, and walks home with up to 64 items. Link a sorter to the same chest to sort the loot.
+
+Out of filler at water or lava, it cuts that section short and still lays its rails in the part it dug.
+
+Breaking the entrance frame closes the mine: the miner goes home and looks for another entrance. Linking it to another chest makes it look again too.
+
+Ending its job gives you the pickaxe and everything it carries. What it dug stays in the mine.
+
 # Diamonds!
 When it finds diamonds, it digs out the whole vein and then hurries home with its antenna blinking, to show you."""),
-              ("Bergmann", """Bergleute graben einen 3x3-Stollen wie in Vanilla, mit Bretterboden, Stützen, Fackeln und Schienen, eine Treppe gerade nach unten, einen Streifenabbau, eine breite Halle im Kammerpfeilerbau oder eine Mehrebenenmine aus übereinanderliegenden Stollen.
+              ("Bergmann", """Bergleute graben eine Mine wie in Vanilla, 3 breit und 3 hoch, mit Bretterboden, Stützen, Fackeln und Schienen, von einem Mineneingang aus, den du baust.
 
-# Der Plan
-Stelle einen Vermessungstisch her: 2 Papier über 2 Kupferbarren über 2 Bretter. Lege Papier hinein, wähle eine Minenform (Minenschacht, Treppe, Streifenabbau, Kammerpfeilerbau oder Mehrebenenmine) und eine Länge (8 bis 128, beim Kammerpfeilerbau bis 64) und nimm den Stollenplan heraus.
+# Mineneingang
+Baue einen Mineneingang wie die Stützen in einem Vanilla-Minenschacht: zwei Holzzaunpfosten, jeder 2 hoch auf einem festen Block und mit 1 Block Abstand, und 3 Bretter quer darüber. Die Holzarten dürfen gemischt sein. Setzt du seinen letzten Block, erscheint „Mineneingang gebaut“. Ein Rahmen, den du nicht selbst gebaut hast, etwa in einem Minenschacht, zählt, sobald du einen seiner Blöcke neu setzt.
 
-Benutze den Plan auf dem Boden, wo der Stollen beginnen soll. Er führt in deine Blickrichtung.
-
-# Streifenabbau
-Ein 3x3-Gang mit schmalen Seitenstollen zu beiden Seiten alle 3 Blöcke, um möglichst viel Erz zu finden. Die Länge der Seitenstollen (4 bis 32) wählst du am Tisch. Er braucht keine Schienen, Zäune oder Stützen, nur Fackeln, wenn du Licht willst.
+Baue ihn höchstens 32 Blöcke von einer Kupfertruhe entfernt, am besten an einen Hang: Die Mine führt in den Berg. Auf flachem Boden führt sie von der Truhe weg.
 
 # Der Golem
-Schleichen + Rechtsklick auf ihn, erst mit einer Kupferspitzhacke, dann mit dem Plan: Ohne Spitzhacke in der Hand lehnt er den Plan ab. Verbinde ihn dann mit einer Kupfertruhe nahe am Eingang.
+Schleichen + Rechtsklick auf ihn mit einer Kupferspitzhacke, dann verbinde ihn mit dieser Kupfertruhe. Andersherum geht es genauso. Er geht zum nächsten offenen Mineneingang höchstens 32 Blöcke von seiner Truhe und fängt an zu graben. Ein einfacher Klick zeigt, in welcher Mine er arbeitet.
+
+# Minenabschnitte
+Eine Mine wächst Abschnitt für Abschnitt. Der erste führt gerade in den Berg: 8 Blöcke lang, mit zwei Stützen und einer Fackel. Auf flachem Boden ist der erste Abschnitt stattdessen eine Treppe nach unten: 4 Stufen, jede 4 hoch, sodass du sie begehen kannst, und ein Absatz 4 Blöcke tiefer. Vorerst endet die Mine nach ihrem ersten Abschnitt, und der Bergmann zieht zum nächsten offenen Mineneingang weiter.
 
 # Nachschub
-In einem Stollen wird ohne Bretter, Zäune und Schienen nicht gegraben. Lege sie und Fackeln in seine Truhe; er holt sie, wenn er sie braucht. Ohne Fackeln gräbt er weiter und lässt sie weg.
-
-# Treppe
-Eine Treppe führt mit jedem Block nach vorn einen Block tiefer, einen Block breit und 4 Blöcke hoch, sodass du sie auch selbst begehen kannst, und die Länge des Plans ist ihre Tiefe. Sie endet über dem Grundgestein. Sie braucht keine Bretter, Zäune oder Schienen: nur Blöcke, um Löcher im Boden zu flicken, und Fackeln, wenn du welche hast.
+Stützen brauchen Zäune und Bretter: Ohne sie gräbt er nicht weiter. Lege sie und Fackeln in seine Truhe; er holt sie, wenn er sie braucht. Ohne Fackeln gräbt er weiter und lässt sie weg. Schienen sind freiwillig: Er legt sie zuletzt, vom hinteren Ende zurück, nur wenn er welche dabeihat.
 
 # Bei der Arbeit
 Er baut Erze ab, die an das grenzen, was er gräbt, und folgt jeder Ader für bis zu 16 Erze, auch bei Diamant-, Gold-, Redstone- und Smaragderz. Wasser und Lava stopft er mit selbst gegrabenem Füllmaterial wie Bruchstein, Stein oder Erde zu und geht mit bis zu 64 Gegenständen nach Hause. Ein Sortierer an derselben Truhe sortiert die Beute.
 
-Ohne Füllmaterial an Wasser oder Lava gibt er diesen Teil der Mine auf: den Rest eines Stollens (im gegrabenen Teil legt er noch seine Schienen), den Rest einer Treppe, einen Seitenstollen eines Streifenabbaus oder den Rest seines Hauptgangs. Plan und Status zeigen, wo er aufgegeben hat. Markiere den Plan erneut an derselben Stelle, damit dieser Teil gegraben wird: Fertige Schritte überspringt er.
+Ohne Füllmaterial an Wasser oder Lava bricht er diesen Abschnitt ab und legt im gegrabenen Teil noch seine Schienen.
 
-Beendest du seinen Beruf, bekommst du Spitzhacke und Plan zurück. Der Plan merkt sich den Fortschritt.
+Zerstörst du den Rahmen des Eingangs, ist die Mine geschlossen: Der Bergmann geht nach Hause und sucht einen anderen Eingang. Verbindest du ihn mit einer anderen Truhe, sucht er ebenfalls neu.
 
-# Kammerpfeilerbau
-Eine breite Halle, 3 hoch und 9 oder 17 breit (einstellbar am Vermessungstisch), die direkt am Eingang beginnt. In jeder vierten Reihe bleiben Felspfeiler stehen, und jede zweite Pfeilerreihe bekommt Fackeln. Schienen, Zäune und Bretter braucht er dafür nicht, Fackeln sind freiwillig.
-
-Ohne Füllmaterial an Wasser oder Lava gibt er den äußeren Teil dieser halben Reihe auf und gräbt weiter. In der mittleren Spalte gibt er den Rest der Halle auf.
-
-# Mehrebenenmine
-Stollen in der Länge des Plans, gerade übereinander und 6 Blöcke voneinander entfernt: 2 bis 8 Ebenen (einstellbar am Vermessungstisch). Ebenen, die bis zum Grundgestein reichen würden, entfallen. Gegrabene Treppen verbinden sie direkt hinter dem Eingang und biegen nach rechts ab, also halte diesen Boden frei. Jede Ebene braucht Bretter, Zäune und Schienen wie ein Stollen und wird samt Schienen fertiggestellt, bevor die nächste beginnt. Jeder Weg führt zu der einen Truhe oben.
-
-Ohne Füllmaterial an Wasser oder Lava gibt er in einem Stollen den Rest dieser Ebene auf, legt im gegrabenen Teil seine Schienen und macht auf der nächsten Ebene weiter. Auf der Treppe gibt er alles darunter auf.
-
-# Mineneingang
-Baue einen Mineneingang wie die Stützen in einem Vanilla-Minenschacht: zwei Holzzaunpfosten, jeder 2 hoch auf einem festen Block und mit 1 Block Abstand, und 3 Bretter quer darüber. Die Holzarten dürfen gemischt sein. Setzt du seinen letzten Block, erscheint „Mineneingang gebaut“. Ein Rahmen, den du nicht selbst gebaut hast, etwa in einem Minenschacht, zählt, sobald du einen seiner Blöcke neu setzt.
+Beendest du seinen Beruf, bekommst du die Spitzhacke und alles, was er trägt. Was er gegraben hat, bleibt in der Mine.
 
 # Diamanten!
 Findet er Diamanten, baut er die ganze Ader ab und eilt dann mit blinkender Antenne nach Hause, um sie dir zu zeigen.""")),
@@ -627,7 +596,7 @@ Schleichen + Rechtsklick auf einen Golem mit einer Schmiedevorlage, dann mit ein
 Eine neue Vorlage oder ein neues Material ändert den Besatz. Schleichen + Rechtsklick mit einer Schere nimmt ihn ab und gibt dir die Vorlage zurück. Trägt er eine Blume, kommt zuerst die Blume ab. Ohne beides macht ihn die Schere zum Imker.""")),
     "reference": (("Quick Reference", """# Job items
 Bundle: sorter
-Copper pickaxe + plan: miner
+Copper pickaxe: miner
 Copper hoe: farmer
 Copper axe: forester
 Fishing rod: fisher
@@ -656,7 +625,7 @@ Iron / gold / diamond block: 1.5x / 2x / 3x radius
 Lost this book? Craft a new one from a book and a copper ingot."""),
                   ("Kurzübersicht", """# Arbeitsgegenstände
 Bündel: Sortierer
-Kupferspitzhacke + Plan: Bergmann
+Kupferspitzhacke: Bergmann
 Kupferhacke: Bauer
 Kupferaxt: Förster
 Angel: Fischer
@@ -821,7 +790,7 @@ Builds new copper golems. Fill its 9 slots by hand or with hoppers, funnels or a
 A charging pad that needs no redstone clock and charges twice as fast as a Charging Pad on the fastest clock. Put it within 16 blocks of a golem's home, or of the machine for an operator.
 
 # Supplies
-4 iron sheets and a stick make 16 rails. The saw makes fences and slabs for miners, and the press makes paper for plans."""),
+4 iron sheets and a stick make 16 rails. The saw makes fences and slabs for miners, and the press makes paper."""),
                   ("Montagewerk und Laden", """# Golem-Montagewerk
 Baut neue Kupfergolems. Fülle seine 9 Plätze von Hand oder mit Trichtern, Kupfertrichtern oder einem Arm. Ein Golem braucht 4 Kupferbleche, 2 Kupferzahnräder, einen geschnitzten Kürbis und Redstone-Staub. Ist vorne Platz, kurbelt sein Maschinist 20 Sekunden und ein neuer Golem tritt heraus.
 
@@ -829,7 +798,7 @@ Baut neue Kupfergolems. Fülle seine 9 Plätze von Hand oder mit Trichtern, Kupf
 Ein Ladefeld, das keinen Taktgeber braucht und doppelt so schnell lädt wie ein normales Ladefeld am schnellsten Takt. Stelle es höchstens 16 Blöcke vom Zuhause eines Golems auf, bei einem Maschinisten von seiner Maschine.
 
 # Nachschub
-4 Eisenbleche und ein Stock ergeben 16 Schienen. Die Säge macht Zäune und Stufen für Bergleute, die Presse Papier für Pläne.""")),
+4 Eisenbleche und ein Stock ergeben 16 Schienen. Die Säge macht Zäune und Stufen für Bergleute, die Presse Papier.""")),
 }
 
 AUTO_CHAPTERS = list(AUTO_BOOK)
@@ -847,6 +816,9 @@ MESSAGES = [
     ("item.bettercoppers.quota_slip", "Quota Slip", "Mengenzettel"),
     ("message.bettercoppers.quota_recorded", "The slip now lists what this chest holds.", "Der Zettel listet jetzt, was diese Truhe enthält."),
     ("message.bettercoppers.mine_entrance_built", "Mine Entrance built", "Mineneingang gebaut"),
+    ("message.bettercoppers.miner_needs_home", "Now link it to a copper chest within %s blocks of a Mine Entrance", "Verbinde ihn jetzt mit einer Kupfertruhe höchstens %s Blöcke von einem Mineneingang"),
+    ("status.bettercoppers.no_mine_entrance", "No open Mine Entrance within %s blocks of its home chest", "Kein offener Mineneingang höchstens %s Blöcke von seiner Heimattruhe"),
+    ("status.bettercoppers.mine", "Mine at %s %s %s", "Mine bei %s %s %s"),
     ("message.bettercoppers.quota_cleared", "The slip is blank again.", "Der Zettel ist wieder leer."),
 ]
 

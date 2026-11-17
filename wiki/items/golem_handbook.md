@@ -33,7 +33,7 @@ Use the book to open it. It opens in the vanilla book screen with a contents pag
 | 2 | Homes and Status | Linking, status, ending and changing jobs |
 | 3 | Sorter | Where items go, item frames, working stock |
 | 4 | Copper Chest Minecart | Chaining and related items |
-| 5 | Miner | Mineshaft Plans, supplies |
+| 5 | Miner | Mine Entrance, Mine Sections, supplies |
 | 6 | Farmer | Fields and seeds |
 | 7 | Forester, Fisher, Keeper, Crafter | Those four jobs |
 | 8 | Courier | Routes |

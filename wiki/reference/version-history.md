@@ -44,7 +44,7 @@ New:
 
 - The [beekeeper](/jobs/beekeeper) job: shears make a golem take honey from smoked hives.
 - [Animal keepers](/jobs/animal-keeper) shear sheep and milk cows, goats and mooshrooms, and get stew from mooshrooms, if their home chest holds shears, empty buckets or bowls.
-- Four new Mine Patterns for the [miner](/jobs/miner), chosen at the [Survey Table](/items/survey_table): Staircase, Strip Mine, Room and Pillar, and Multilevel Mine.
+- Four new Mine Patterns for the [miner](/jobs/miner), chosen at the Survey Table: Staircase, Strip Mine, Room and Pillar, and Multilevel Mine.
 - The [Quota Slip](/items/quota_slip) keeps a set amount of an item in a chest.
 - [Farmers](/jobs/farmer) also harvest cocoa, sweet berries, glow berries, torchflowers, cactus and mushrooms, and take spent chorus plants and plant a new flower.
 
@@ -76,7 +76,7 @@ The first release. Both mods need [Fabric API](https://modrinth.com/mod/fabric-a
 - [Monsters](/golem/monsters) that hunt golems with a job, iron golem [guards and repairs](/golem/guards-and-repairs).
 - [Running costs](/golem/running-costs) and the [Charging Pad](/items/charging_pad), [tools](/golem/tools) that wear out and are fetched again.
 - [Eyes](/golem/eyes) that widen the work radius, and [armour trims](/golem/trims).
-- The [Survey Table](/items/survey_table) and [Mineshaft Plan](/items/mineshaft_plan).
+- The Survey Table and Mineshaft Plan.
 - The [Golem Handbook](/items/golem_handbook) and the guide [advancements](/reference/advancements), in English and German.
 
 ### Automatisation

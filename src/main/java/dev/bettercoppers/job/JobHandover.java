@@ -7,8 +7,6 @@ import dev.bettercoppers.entity.CopperChestMinecart;
 import dev.bettercoppers.golem.CartChaining;
 import dev.bettercoppers.golem.Inventories;
 import dev.bettercoppers.home.HomeLinking;
-import dev.bettercoppers.mining.MinerData;
-import dev.bettercoppers.mining.MinerInteractions;
 import dev.bettercoppers.registry.ModAttachments;
 import dev.bettercoppers.repair.RepairBehavior;
 import net.minecraft.sounds.SoundEvents;
@@ -52,10 +50,6 @@ public final class JobHandover {
 		giveBack(player, golem, EquipmentSlot.OFFHAND);
 		Load.of(golem).handOver(stack -> Inventories.giveOrDrop(player, stack));
 		RepairBehavior.giveCarried(player, golem);
-		MinerData miner = golem.getAttached(ModAttachments.MINER);
-		if (miner != null && miner.plan() != null) {
-			MinerInteractions.returnPlan(player, golem, miner);
-		}
 		golem.removeAttached(ModAttachments.MINER);
 		golem.removeAttached(ModAttachments.WORKER);
 		golem.removeAttached(ModAttachments.LOST_TOOL);

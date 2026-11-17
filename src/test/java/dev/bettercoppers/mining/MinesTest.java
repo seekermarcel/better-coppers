@@ -29,8 +29,32 @@ class MinesTest {
 		mines.register(new BlockPos(-7, 12, 40), Direction.Axis.Z);
 		Mines loaded = load(save(mines));
 		assertEquals(List.of(
-			new Mines.Mine(new BlockPos(10, 64, -3), Direction.Axis.X, Optional.empty()),
-			new Mines.Mine(new BlockPos(-7, 12, 40), Direction.Axis.Z, Optional.empty())), loaded.all());
+			new Mines.Mine(new BlockPos(10, 64, -3), Direction.Axis.X, Optional.empty(), List.of()),
+			new Mines.Mine(new BlockPos(-7, 12, 40), Direction.Axis.Z, Optional.empty(), List.of())), loaded.all());
+	}
+
+	@Test
+	void sections_and_their_progress_survive_a_save_and_load() {
+		Mines mines = new Mines();
+		BlockPos beam = new BlockPos(3, 70, 3);
+		mines.register(beam, Direction.Axis.X);
+		Mines.Mine mine = mines.start(mines.find(beam, Direction.Axis.X).orElseThrow(), Direction.SOUTH, MineLayout.STAIRS_DOWN);
+		mines.setProgress(mine, 0, 12, false);
+		Mines.Mine loaded = load(save(mines)).find(beam, Direction.Axis.X).orElseThrow();
+		assertEquals(Optional.of(Direction.SOUTH), loaded.facing());
+		assertEquals(List.of(new Mines.Section(MineLayout.STAIRS_DOWN, new Mines.OpenEnd(new BlockPos(3, 68, 4), Direction.SOUTH), false, -1, 12, false)), loaded.sections());
+	}
+
+	@Test
+	void a_mine_is_finished_once_its_first_section_is_done() {
+		Mines mines = new Mines();
+		mines.register(BlockPos.ZERO, Direction.Axis.Z);
+		Mines.Mine mine = mines.find(BlockPos.ZERO, Direction.Axis.Z).orElseThrow();
+		assertFalse(mine.isFinished(), "nothing dug yet");
+		mine = mines.start(mine, Direction.EAST, MineLayout.STRAIGHT);
+		assertFalse(mine.isFinished());
+		mines.setProgress(mine, 0, 100, true);
+		assertTrue(mines.find(BlockPos.ZERO, Direction.Axis.Z).orElseThrow().isFinished());
 	}
 
 	@Test

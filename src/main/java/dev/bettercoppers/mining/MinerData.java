@@ -5,27 +5,34 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.bettercoppers.job.Load;
 import dev.bettercoppers.registry.ModAttachments;
 import java.util.Optional;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.item.Items;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Says a player made this golem a miner, and holds the plan it follows. Stored on the golem as a Fabric attachment;
- * what it carries is its {@link Load}.
+ * Says a player made this golem a miner, and which mine it works in (its entrance's middle beam and axis, see
+ * {@link Mines}). Stored on the golem as a Fabric attachment; what it carries is its {@link Load}. Fields of older
+ * versions, such as a plan, are dropped on load.
  */
 public final class MinerData {
 	public static final Codec<MinerData> CODEC = RecordCodecBuilder.create(
 		instance -> instance.group(
-				MinePlan.CODEC.optionalFieldOf("plan").forGetter(data -> Optional.ofNullable(data.plan))
+				BlockPos.CODEC.optionalFieldOf("mine").forGetter(data -> Optional.ofNullable(data.mine)),
+				Direction.Axis.CODEC.optionalFieldOf("mine_axis").forGetter(data -> Optional.ofNullable(data.mineAxis))
 			)
-			.apply(instance, plan -> {
+			.apply(instance, (mine, axis) -> {
 				MinerData data = new MinerData();
-				data.plan = plan.orElse(null);
+				if (mine.isPresent() && axis.isPresent()) {
+					data.setMine(mine.get(), axis.get());
+				}
 				return data;
 			})
 	);
 
-	private @Nullable MinePlan plan;
+	private @Nullable BlockPos mine;
+	private Direction.@Nullable Axis mineAxis;
 
 	public static @Nullable MinerData get(CopperGolem golem) {
 		return golem.getAttached(ModAttachments.MINER);
@@ -39,11 +46,22 @@ public final class MinerData {
 		return golem.getMainHandItem().is(Items.COPPER_PICKAXE);
 	}
 
-	public @Nullable MinePlan plan() {
-		return this.plan;
+	/** The middle beam of its mine's entrance, or null without a mine. */
+	public @Nullable BlockPos mine() {
+		return this.mine;
 	}
 
-	public void setPlan(@Nullable MinePlan plan) {
-		this.plan = plan;
+	public Direction.@Nullable Axis mineAxis() {
+		return this.mineAxis;
+	}
+
+	public void setMine(BlockPos entrance, Direction.Axis axis) {
+		this.mine = entrance.immutable();
+		this.mineAxis = axis;
+	}
+
+	public void clearMine() {
+		this.mine = null;
+		this.mineAxis = null;
 	}
 }

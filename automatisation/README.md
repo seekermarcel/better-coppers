@@ -22,7 +22,7 @@ What the factory makes goes back into the colony:
 | **Charging Station** | gold sheets + redstone block + copper | Golems recharge without a redstone clock, twice as fast as a pad on the fastest clock |
 | **Rails** | 4 iron sheets + a stick → 16 rails | Cheap rails for mining golems (by hand: 6 ingots) |
 | **Fences, slabs, stairs** | planks through the saw | Supports for mining golems, building material |
-| **Paper** | sugar cane through the press | Mineshaft plans |
+| **Paper** | sugar cane through the press | Crafting, such as Quota Slips |
 | **New copper golems** | the **Golem Assembler** | A growing workforce |
 
 The machines themselves wear out and are repaired with sheets, so every factory also has to feed itself.

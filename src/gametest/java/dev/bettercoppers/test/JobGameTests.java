@@ -27,12 +27,8 @@ import dev.bettercoppers.job.Tools;
 import dev.bettercoppers.job.WorkerData;
 import dev.bettercoppers.menu.QuotaSlipMenu;
 import dev.bettercoppers.mining.MineBehavior;
-import dev.bettercoppers.mining.MineLayout;
-import dev.bettercoppers.mining.MinePattern;
-import dev.bettercoppers.mining.MinePlan;
 import dev.bettercoppers.mining.MinerData;
 import dev.bettercoppers.registry.ModAttachments;
-import dev.bettercoppers.registry.ModComponents;
 import dev.bettercoppers.registry.ModEntities;
 import dev.bettercoppers.registry.ModItems;
 import java.util.HashMap;
@@ -693,23 +689,14 @@ public class JobGameTests {
 		supplies.setItem(1, new ItemStack(Items.OAK_PLANKS, 32));
 		supplies.setItem(2, new ItemStack(Items.OAK_FENCE, 16));
 		supplies.setItem(3, new ItemStack(Items.TORCH, 16));
+		// The opening is right in front of the stone, so the mine runs north into it.
+		GameTests.mineEntrance(h, new BlockPos(4, 3, 6));
 		CopperGolem golem = GameTests.golem(h, new BlockPos(4, 1, 6));
 		GameTests.energize(golem);
-		MinePlan plan = MinePlan.blank(MinePattern.MINESHAFT, 16).marked(h.absolutePos(new BlockPos(4, 1, 5)), Direction.NORTH);
-		ItemStack planStack = new ItemStack(ModItems.MINESHAFT_PLAN);
-		planStack.set(ModComponents.MINE_PLAN, plan);
-		give(h, golem, new ItemStack(Items.COPPER_PICKAXE));
-		give(h, golem, planStack);
 		Homes.set(golem, h.absolutePos(home));
-		var firstSlice = MineLayout.build(plan, h.getLevel().getMinY()).stream()
-			.filter(step -> step.action() == MineLayout.Action.DIG)
-			.limit(9)
-			.toList();
-		h.succeedWhen(() -> {
-			for (var step : firstSlice) {
-				h.assertTrue(h.getLevel().getBlockState(step.pos()).isAir(), "not dug yet: " + step.pos());
-			}
-		});
+		give(h, golem, new ItemStack(Items.COPPER_PICKAXE));
+		h.succeedWhen(() -> BlockPos.betweenClosed(new BlockPos(3, 1, 5), new BlockPos(5, 3, 5))
+			.forEach(pos -> h.assertTrue(h.getBlockState(pos).isAir(), "not dug yet: " + pos)));
 	}
 
 	@GameTest(maxTicks = 1200)

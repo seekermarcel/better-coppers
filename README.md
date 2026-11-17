@@ -17,7 +17,7 @@ Everything is meant to feel vanilla: golems are slow, sometimes shake their head
 | Give the golem… | It becomes a… | What it does |
 |---|---|---|
 | a **bundle** | Sorter | Empties its copper chest and puts every item where it belongs |
-| a **copper pickaxe** + **mineshaft plan** | Miner | Digs a vanilla-style mineshaft, a staircase, a strip mine, a Room and Pillar hall or a Multilevel Mine, follows ores, brings the loot home |
+| a **copper pickaxe** | Miner | Digs a vanilla-style mine from a Mine Entrance you build, follows ores, brings the loot home |
 | a **copper hoe** | Farmer | Harvests and replants the fields around its chest |
 | a **copper axe** | Forester | Fells natural trees and replants them |
 | a **fishing rod** | Fisher | Casts its line from the shore and brings the catch home |
@@ -73,28 +73,19 @@ To move a golem to another chest, link it again.
 - To take the bundle back, end its job: sneak + right-click it twice with an empty hand, within 5 seconds.
 
 ### Miner
-1. Make a **Survey Table** (2 paper / 2 copper ingots / 2 planks, stacked in that order).
-2. Put paper in, choose a Mine Pattern and a length (8–128, up to 64 for Room and Pillar) and take out the **mineshaft plan**.
-3. Mark the entrance by using the plan on the ground (or on a wall). The tunnel heads the way you look.
-4. Sneak + right-click the golem with a **copper pickaxe**, then with the plan, then link it to a copper chest near the entrance.
+1. Build a **Mine Entrance** within 32 blocks of a copper chest, against a hillside if you can: two wooden fence posts, each 2 high with 1 block between them, and 3 planks across their tops, like a vanilla mineshaft support. Placing its last block shows "Mine Entrance built".
+2. Sneak + right-click the golem with a **copper pickaxe** and link it to that chest, in either order.
 
-The **Mineshaft** pattern is a **3×3 vanilla-style mineshaft**: plank floor over gaps, a support every 4 blocks (fence posts and a plank beam), torches on the beams, and rails laid at the end.
+The miner walks to the nearest open Mine Entrance and digs a **3×3 vanilla-style mine** into the hill, one Mine Section at a time: plank floor over gaps, supports of fence posts and a plank beam, torches, and rails laid last if it carries any. Into a hill the first section is a Straight, on flat ground it is Stairs Down. For now a mine stops after its first section, and the miner moves on to the next open entrance.
 
-The **Staircase** pattern is a walkable stairway one block wide and four high, going down one block per block forward, with the plan's length as its depth. It stops above the bedrock and needs no rails, fences or planks, only filler or planks for holes in the floor, and torches if there are any.
-
-A **Strip Mine** is a 3×3 corridor with 1-wide, 2-high branches to both sides every 3 blocks; the branch length (4–32) is chosen at the table. It needs only torches, and those are optional.
-
-**Room and Pillar** is a Mine Pattern for a wide 3-high hall instead: 9 or 17 wide, starting right at the entrance, with 1×1 rock pillars left in every fourth row. It takes no rails, fences or planks, and torches on every other row of pillars are optional.
-
-A **Multilevel Mine** stacks Mineshafts of the plan's length straight down, 6 blocks apart: 2 to 8 levels, chosen at the table. Levels that would reach the bedrock are left out. Carved stairs join them just behind the entrance, turning off to the right, so keep that ground free. Each level takes rails, fences and planks like a Mineshaft and is finished, rails included, before the next; every trip goes to the one chest at the top.
-
-- **No supplies, no digging.** In a Mineshaft it must carry the rails, fences and planks for what it digs. It fetches them from its chest, or waits there until you restock. Torches come from the chest too, but without them it digs on and leaves them out.
+- **Supplies:** supports take fences and planks. It fetches them from its chest, or waits there until you restock. Torches come from the chest too, but without them it digs on and leaves them out. Rails are optional.
 - **Ores:** it digs out ores touching what it digs and follows each vein for up to 16 ores, diamond, gold, redstone and emerald included.
 - **Diamonds:** when it finds diamonds, it digs out the whole vein and hurries home with its antenna blinking.
-- **Safety:** it plugs water and lava with filler it dug itself (cobblestone, stone, dirt and the like) and clears gravel and sand that falls in. Out of filler, it gives up the rest of the tunnel, lays its rails in the part it dug, and the plan shows where it stopped; a Staircase simply ends there, a Strip Mine loses only that branch, or in its corridor the rest of the mine, and a Room and Pillar hall loses only the outer part of that half-row, or from its centre column the rest of the hall. In a Multilevel Mine a tunnel loses only the rest of that level, and the stairs everything below them.
+- **Safety:** it plugs water and lava with filler it dug itself (cobblestone, stone, dirt and the like) and clears gravel and sand that falls in. Out of filler, it cuts that section short and lays its rails in the part it dug.
+- **Broken frame:** breaking the entrance frame closes the mine, and the miner looks for another entrance.
 - **Slow and clumsy:** it digs two to three times slower than a player and skips blocks it can't reach.
 - **Loot:** it carries 64 items (more with a cart), then walks home. Link a sorter to the same chest and it sorts the loot, leaving the mining supplies alone.
-- **Getting things back:** end its job to get the pickaxe and the plan back. The plan keeps its progress. It takes the pickaxe first, then the plan.
+- **Getting things back:** end its job to get the pickaxe and everything it carries back. What it dug stays in the mine, so the next miner carries on.
 
 ### Farmer
 - Sneak + right-click it with a **copper hoe**. Its field is everything within 8 blocks of its home chest.
@@ -242,18 +233,18 @@ src/main/java/dev/bettercoppers/
   combat/    GolemGuards (monsters hunt copper golems with a job, iron golems guard them) and the iron golem goals
   repair/    RepairBehavior (iron golem repairs)
   trim/      GolemTrims (trim templates and materials)
-  mining/    MineBehavior (mining AI), MineLayout, MinePlan, MinerData, MinerInteractions
+  mining/    MineBehavior (mining AI), MineLayout (section templates), Mines (saved mines), MineEntrance, MinerData, MinerInteractions
   job/       JobBehavior (shared home-chest routine), Farm-/Forest-/Fish-/Keeper-/CraftBehavior, WorkerData
   runningcosts/    RunningCosts (energy, rust, scraping), ChargeBehavior, AxeDispenseBehavior
   home/      Homes, HomeLinking (linking homes and routes), HomeDisplay (particle lines)
-  block/, menu/  Survey Table and its menu
+  block/, menu/  Charging Pad, Quota Slip menu
   entity/, item/  Copper Chest Minecart
   api/       hooks for add-ons: jobs, brain behaviours, link targets, upgrades, charging spots, handbook
   mixin/     adds the mod's behaviours in front of vanilla's golem AI (vanilla AI kept), goal accessors
 src/client/java/dev/bettercoppers/client/
   render/    cart renderer with its chain, GolemTrimLayer, GolemAntennaLayer, GolemFloatRenderer
 automatisation/  the Automatisation add-on (its own Gradle subproject)
-tools/       TrimGen.java (golem trim textures from the vanilla armour trims), SurveyGen.java (Survey Table textures),
+tools/       TrimGen.java (golem trim textures from the vanilla armour trims),
              PadGen.java (Charging Pad), HandbookGen.java (handbook icon), GolemEyesGen.java (eye and antenna glow),
              gen_guide.py (advancements and handbook texts of both mods)
 ```

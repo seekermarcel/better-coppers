@@ -23,7 +23,7 @@ Hold the job item and **sneak + right-click** the golem. For a sorter, the job i
 | Job | Job item | Also needs |
 |---|---|---|
 | [Sorter](/jobs/sorter) | <Icon id="bundle" /> Bundle | A home |
-| [Miner](/jobs/miner) | <Icon id="copper_pickaxe" /> Copper pickaxe, then a marked [Mineshaft Plan](/items/mineshaft_plan) | A home, supplies |
+| [Miner](/jobs/miner) | <Icon id="copper_pickaxe" /> Copper pickaxe | A home, a [Mine Entrance](/jobs/miner#mine-entrance), supplies |
 | [Farmer](/jobs/farmer) | <Icon id="copper_hoe" /> Copper hoe | A home, a field |
 | [Forester](/jobs/forester) | <Icon id="copper_axe" /> Copper axe | A home, trees |
 | [Fisher](/jobs/fisher) | <Icon id="fishing_rod" /> Fishing rod | A home, open water |

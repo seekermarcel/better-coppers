@@ -31,7 +31,12 @@ public final class Golems {
 	}
 
 	public static boolean isInReach(CopperGolem golem, BlockPos pos) {
-		return new AABB(pos).inflate(1.0, 1.5, 1.0).intersects(golem.getBoundingBox());
+		return isInReach(golem.getBoundingBox(), pos);
+	}
+
+	/** Whether a golem with this bounding box reaches {@code pos}: a block around it, and 2 above or below its feet. */
+	public static boolean isInReach(AABB golem, BlockPos pos) {
+		return new AABB(pos).inflate(1.0, 1.5, 1.0).intersects(golem);
 	}
 
 	public static void stopInPlace(CopperGolem golem) {

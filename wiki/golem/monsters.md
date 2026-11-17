@@ -54,7 +54,6 @@ When a golem dies, the following land on the ground at its position:
 |---|---|
 | Its job tool or bundle | Guaranteed vanilla equipment drop, with its remaining durability |
 | Its pouch and supplies | Everything it was carrying for its job |
-| Its [Mineshaft Plan](/items/mineshaft_plan) | Miners only |
 | Its [eyes](/golem/eyes) block | The iron, gold or diamond block |
 | Iron ingots it carried for a [repair](/golem/guards-and-repairs) | |
 | Its [trim](/golem/trims) template | The material is lost |
