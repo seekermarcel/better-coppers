@@ -383,7 +383,7 @@ Several miners can share a mine: every miner whose chest has the same entrance n
 Supports take fences and planks: without them it doesn't dig on. Keep those and torches in its chest; it fetches them when it needs them. Without torches it digs on and leaves them out. Rails are optional: it lays them last, from the far end back, only if it carries some.
 
 # On the job
-It digs out ores touching what it digs and follows each vein for up to 16 ores, diamond, gold, redstone and emerald included. It plugs water and lava with filler it dug itself, such as cobblestone, stone or dirt, and walks home with up to 64 items. Link a sorter to the same chest to sort the loot.
+It digs out whole veins of ore touching what it digs, up to 64 ores and 8 blocks from the tunnel (further with Eyes), diamond, gold, redstone and emerald included. Outside the tunnel it breaks only ore, and it patches holes a vein leaves in the tunnel floor. It plugs water and lava with filler it dug itself, such as cobblestone, stone or dirt, and walks home with up to 64 items. Link a sorter to the same chest to sort the loot.
 
 Out of filler at water or lava, it cuts that section short and still lays its rails in the part it dug. Nothing grows on from there.
 
@@ -422,7 +422,7 @@ Mehrere Bergleute können sich eine Mine teilen: Jeder Bergmann, dessen Truhe de
 Stützen brauchen Zäune und Bretter: Ohne sie gräbt er nicht weiter. Lege sie und Fackeln in seine Truhe; er holt sie, wenn er sie braucht. Ohne Fackeln gräbt er weiter und lässt sie weg. Schienen sind freiwillig: Er legt sie zuletzt, vom hinteren Ende zurück, nur wenn er welche dabeihat.
 
 # Bei der Arbeit
-Er baut Erze ab, die an das grenzen, was er gräbt, und folgt jeder Ader für bis zu 16 Erze, auch bei Diamant-, Gold-, Redstone- und Smaragderz. Wasser und Lava stopft er mit selbst gegrabenem Füllmaterial wie Bruchstein, Stein oder Erde zu und geht mit bis zu 64 Gegenständen nach Hause. Ein Sortierer an derselben Truhe sortiert die Beute.
+Er baut ganze Erzadern ab, die an das grenzen, was er gräbt, bis zu 64 Erze und 8 Blöcke vom Stollen entfernt (mit Augen weiter), auch bei Diamant-, Gold-, Redstone- und Smaragderz. Außerhalb des Stollens baut er nur Erz ab, und Löcher, die eine Ader im Stollenboden lässt, stopft er zu. Wasser und Lava stopft er mit selbst gegrabenem Füllmaterial wie Bruchstein, Stein oder Erde zu und geht mit bis zu 64 Gegenständen nach Hause. Ein Sortierer an derselben Truhe sortiert die Beute.
 
 Ohne Füllmaterial an Wasser oder Lava bricht er diesen Abschnitt ab und legt im gegrabenen Teil noch seine Schienen. Von dort wächst nichts weiter.
 

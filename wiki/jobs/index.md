@@ -73,7 +73,7 @@ Every paying job looks for a new tool when its tool breaks, except that an opera
 | Fisher | 10 | 15 | 20 | 30 |
 | Animal keeper | 10 | 15 | 20 | 30 |
 | Beekeeper | 10 | 15 | 20 | 30 |
-| Miner (ores per vein) | 16 | 24 | 32 | 48 |
+| Miner (vein reach from the tunnel) | 8 | 12 | 16 | 24 |
 | Operator (spare parts) | 8 | 12 | 16 | 24 |
 
 ## Advancements

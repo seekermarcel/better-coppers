@@ -495,6 +495,40 @@ public class MinerGameTests {
 			.thenSucceed();
 	}
 
+	/** A flat coal slab of 72 ores beside the shaft, shut in by stone and all within reach: the miner digs 64 of it. */
+	@GameTest(maxTicks = 11000, padding = 48)
+	public void a_vein_bigger_than_the_cap_stops_at_64_ores(GameTestHelper h) {
+		Scene s = scene(h, true, START);
+		// The vein reaches past the test's own chunks, which would freeze the golem there.
+		forceChunks(h, new BlockPos(14, 0, 7));
+		forceChunks(h, new BlockPos(14, 0, -4));
+		fill(h, new BlockPos(6, 0, -4), new BlockPos(14, 2, 6), Blocks.STONE);
+		BlockPos from = new BlockPos(6, 1, -3);
+		BlockPos to = new BlockPos(13, 1, 5);
+		fill(h, from, to, Blocks.COAL_ORE);
+		h.succeedWhen(() -> {
+			h.assertTrue(firstSection(h, s.beam()).done(), "section not done: progress " + progress(h, s));
+			int left = (int) BlockPos.betweenClosedStream(from, to).filter(pos -> h.getBlockState(pos).is(Blocks.COAL_ORE)).count();
+			h.assertValueEqual(left, 72 - 64, "coal ore left");
+		});
+	}
+
+	/** A line of coal running east from the shaft's wall (x = 5), shut in by stone: ore up to 8 blocks out is dug, the rest stays. */
+	@GameTest(maxTicks = 11000, padding = 48)
+	public void ore_beyond_the_vein_reach_stays(GameTestHelper h) {
+		Scene s = scene(h, true, START);
+		forceChunks(h, new BlockPos(17, 0, 7));
+		fill(h, new BlockPos(6, 0, 2), new BlockPos(17, 2, 4), Blocks.STONE);
+		fill(h, new BlockPos(6, 1, 3), new BlockPos(16, 1, 3), Blocks.COAL_ORE);
+		h.succeedWhen(() -> {
+			h.assertTrue(firstSection(h, s.beam()).done(), "section not done: progress " + progress(h, s));
+			h.assertTrue(h.getBlockState(new BlockPos(13, 1, 3)).isAir(), "ore 8 blocks out not dug");
+			for (int x = 14; x <= 16; x++) {
+				h.assertTrue(h.getBlockState(new BlockPos(x, 1, 3)).is(Blocks.COAL_ORE), "dug ore beyond the reach at x " + x);
+			}
+		});
+	}
+
 	/** Padded, like the one below: without it, these two made the miner and repair tests next to them fail now and then. */
 	@GameTest(maxTicks = 3600, padding = 48)
 	public void miner_finds_diamonds_and_hurries_home(GameTestHelper h) {
