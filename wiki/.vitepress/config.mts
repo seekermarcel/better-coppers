@@ -61,6 +61,7 @@ export default defineConfig({
 				item('golem_handbook', 'Golem Handbook'),
 				item('mineshaft_plan', 'Mineshaft Plan'),
 				item('quota_slip', 'Quota Slip'),
+				item('scraper', 'Scraper'),
 				item('survey_table', 'Survey Table'),
 			] },
 			{ text: 'Automatisation add-on', collapsed: true, items: [

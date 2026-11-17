@@ -1,0 +1,26 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "bettercoppers:block/scraper_vertical",
+      "x": 180
+    },
+    "facing=east": {
+      "model": "bettercoppers:block/scraper",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "bettercoppers:block/scraper"
+    },
+    "facing=south": {
+      "model": "bettercoppers:block/scraper",
+      "y": 180
+    },
+    "facing=up": {
+      "model": "bettercoppers:block/scraper_vertical"
+    },
+    "facing=west": {
+      "model": "bettercoppers:block/scraper",
+      "y": 270
+    }
+  }
+}

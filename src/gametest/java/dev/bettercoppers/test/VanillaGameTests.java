@@ -1,9 +1,11 @@
 package dev.bettercoppers.test;
 
+import dev.bettercoppers.block.ScraperBlock;
 import dev.bettercoppers.combat.DefendCopperGolemsTargetGoal;
 import dev.bettercoppers.golem.HomeStroll;
 import dev.bettercoppers.home.Homes;
 import dev.bettercoppers.mixin.CopperGolemAccessor;
+import dev.bettercoppers.registry.ModBlocks;
 import dev.bettercoppers.runningcosts.RunningCosts;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
@@ -15,13 +17,11 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
 import net.minecraft.world.entity.animal.golem.IronGolem;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.DispenserBlock;
-import net.minecraft.world.level.block.entity.DispenserBlockEntity;
+import net.minecraft.world.level.block.WeatheringCopper;
 
 /** Golems without a job must behave exactly like vanilla. */
 public class VanillaGameTests {
@@ -152,31 +152,17 @@ public class VanillaGameTests {
 		});
 	}
 
-	/** Dispenser with an iron axe facing east, powered one tick after the golem (if any) stands in front. */
-	private static DispenserBlockEntity axeDispenser(GameTestHelper h) {
-		h.setBlock(new BlockPos(2, 1, 2), Blocks.DISPENSER.defaultBlockState().setValue(DispenserBlock.FACING, Direction.EAST));
-		DispenserBlockEntity dispenser = h.getBlockEntity(new BlockPos(2, 1, 2), DispenserBlockEntity.class);
-		dispenser.setItem(0, new ItemStack(Items.IRON_AXE));
-		h.setBlock(new BlockPos(2, 2, 2), Blocks.REDSTONE_BLOCK);
-		return dispenser;
-	}
-
-	@GameTest(maxTicks = 100)
-	public void axe_dispenser_without_golem_ejects(GameTestHelper h) {
-		axeDispenser(h);
-		h.succeedWhen(() -> h.assertTrue(
-			h.getLevel().getEntitiesOfClass(ItemEntity.class, h.getBounds(), item -> item.getItem().is(Items.IRON_AXE)).size() == 1,
-			"axe not ejected"));
-	}
-
-	@GameTest(maxTicks = 100)
-	public void axe_dispenser_scrapes_waxed_golem(GameTestHelper h) {
+	/** A Scraper keeps scraping the golem in front of it, wax first, until it is clean, even a golem without a job. */
+	@GameTest(maxTicks = 200)
+	public void scraper_cleans_golem_in_front(GameTestHelper h) {
 		CopperGolem golem = GameTests.golem(h, new BlockPos(3, 1, 2));
+		golem.setNoAi(true);
+		golem.setWeatherState(WeatheringCopper.WeatherState.WEATHERED);
 		((CopperGolemAccessor) golem).bettercoppers$setNextWeatheringTick(-2L);
-		DispenserBlockEntity dispenser = axeDispenser(h);
+		h.setBlock(new BlockPos(2, 1, 2), ModBlocks.SCRAPER.defaultBlockState().setValue(ScraperBlock.FACING, Direction.EAST));
 		h.succeedWhen(() -> {
 			h.assertTrue(!RunningCosts.isWaxed(golem), "golem still waxed");
-			h.assertTrue(dispenser.getItem(0).is(Items.IRON_AXE), "axe left the dispenser");
+			h.assertTrue(golem.getWeatherState() == WeatheringCopper.WeatherState.UNAFFECTED, "golem still rusty");
 		});
 	}
 }

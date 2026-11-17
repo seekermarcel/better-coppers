@@ -10,6 +10,7 @@ export { data }
 // Tags in recipes. Keep the icons in step with TAGS in tools/gen_wiki_icons.py.
 const TAGS: Record<string, Slot> = {
 	'#minecraft:planks': { name: 'Any Planks', icon: 'oak_planks', href: 'https://minecraft.wiki/w/Planks' },
+	'#minecraft:axes': { name: 'Any Axe', icon: 'copper_axe', href: 'https://minecraft.wiki/w/Axe' },
 	'#minecraft:copper_chests': { name: 'Any Copper Chest', icon: 'copper_chest', href: 'https://minecraft.wiki/w/Copper_Chest' },
 	'#c:chests/wooden': { name: 'Any Wooden Chest', icon: 'chest', href: 'https://minecraft.wiki/w/Chest' },
 }

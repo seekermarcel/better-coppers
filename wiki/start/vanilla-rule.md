@@ -50,22 +50,21 @@ Ending a job makes a golem jobless again: a former farmer that picks up a hoe th
 
 A plain click is safe for the same reason. See [Controls](/start/controls).
 
-## The axe dispenser
+## The Scraper
 
-The one exception to the rule is an **axe in a dispenser**. It scrapes any copper golem in front of it, whether or not a player has touched that golem, because the player built the dispenser on purpose.
+The one exception to the rule is the **[Scraper](/items/scraper)**. It scrapes any copper golem in front of it, whether or not a player has touched that golem, because the player built the Scraper on purpose.
 
 | Property | Value |
 |---|---|
-| Trigger | A redstone pulse on the dispenser |
-| Target | The first copper golem in the block directly in front of the dispenser that can be scraped |
+| Trigger | None: it works on its own, once a second |
+| Target | The first copper golem in the block directly in front of the Scraper that can be scraped |
 | Result | Removes the wax, or else one stage of rust |
-| Axes | Any axe, from wood to netherite |
-| Cost | The axe stays in the dispenser and loses 1 durability |
-| Nothing to scrape | The dispenser behaves as in vanilla and ejects the axe |
+| Cost | None: it never wears out |
+| Nothing to scrape | Nothing happens |
 
-Scraping one stage also clears the golem's progress towards its next [rust](/golem/running-costs) stage.
+Scraping one stage also clears the golem's progress towards its next [rust](/golem/running-costs) stage. An axe in a dispenser is plain vanilla: it does not scrape golems.
 
-<!-- MEDIA: start-axe-dispenser.png | screenshot | A dispenser holding an axe, wired to a button, facing a rusty copper golem standing in the block in front of it -->
+<!-- MEDIA: start-scraper.png | screenshot | A Scraper facing a rusty copper golem standing in the block in front of it -->
 
 ## See also
 

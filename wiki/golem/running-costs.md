@@ -76,14 +76,13 @@ Waxing with [honeycomb](https://minecraft.wiki/w/Honeycomb) is vanilla. A waxed 
 
 **By hand.** Any axe on a rusty or waxed golem scrapes it, exactly as in vanilla, with or without sneaking. On a clean golem, sneak + right-click with a copper axe makes it a [forester](/jobs/forester), and any other axe is refused. A plain right-click on a golem with a job never throws the tool out, as described under [The vanilla rule](/start/vanilla-rule).
 
-**By axe dispenser.** A [dispenser](https://minecraft.wiki/w/Dispenser) holding any axe (wooden, stone, copper, iron, golden, diamond or netherite) scrapes the golem in the block in front of it on every redstone pulse, one stage per pulse. This is the one automatic thing that happens to every golem, including ones no player touched, because the player built the dispenser on purpose.
+**By Scraper.** A [Scraper](/items/scraper) scrapes the golem in the block in front of it once a second, one stage at a time, until it is clean. It needs no redstone and never wears out. This is the one automatic thing that happens to every golem, including ones no player touched, because the player built the Scraper on purpose.
 
-- The axe stays in the dispenser and takes 1 durability per scrape.
-- A waxed golem loses only its wax on that pulse.
+- A waxed golem loses its wax first, then its rust on the following seconds.
 - Scraping off a stage this way resets the golem's progress towards its next stage of rust to zero. A hand scrape does not.
-- With nothing to scrape, the dispenser dispenses the axe as usual.
+- Place it beside a [Charging Pad](/items/charging_pad), facing the golem's spot, and the golem is scraped clean each time it charges.
 
-<!-- MEDIA: running-costs-axe-dispenser.png | screenshot | A dispenser facing a one-block spot where a working copper golem stands, with a lever or redstone line next to the dispenser -->
+<!-- MEDIA: running-costs-scraper.png | screenshot | A Scraper facing a Charging Pad with a working copper golem standing on the pad and a redstone clock next to it -->
 
 ## Tools
 
@@ -94,4 +93,4 @@ Job tools take [tool wear](/golem/tools) and break. See [Tools](/golem/tools).
 | Advancement | How |
 |---|---|
 | Recharged | Be within 48 blocks when a golem is charged to full on a Charging Pad |
-| Good as New | Be within 48 blocks when a golem is scraped by an axe in a dispenser |
+| Good as New | Be within 48 blocks when a Scraper scrapes a golem |

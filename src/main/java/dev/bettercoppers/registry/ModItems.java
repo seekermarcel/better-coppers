@@ -44,6 +44,7 @@ public final class ModItems {
 				output.accept(blankPlan());
 				output.accept(QUOTA_SLIP);
 				output.accept(ModBlocks.CHARGING_PAD);
+				output.accept(ModBlocks.SCRAPER);
 				output.accept(COPPER_CHEST_MINECART);
 			})
 			.build());

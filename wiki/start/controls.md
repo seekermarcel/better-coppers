@@ -115,7 +115,7 @@ After a route is started, the next right-click on any chest or barrel ends it, a
 | Hold sneak | Shows particle lines from golems within 24 blocks to their [homes](/start/homes-and-status#seeing-homes) |
 | Right-click a [Copper Chest Minecart](/items/copper_chest_minecart) with an iron or copper chain | Chains it to the player |
 | Sneak + right-click a chained Copper Chest Minecart | Unchains it |
-| Axe in a dispenser, redstone pulse | [Scrapes](/start/vanilla-rule#the-axe-dispenser) the golem in front |
+| [Scraper](/items/scraper) | [Scrapes](/start/vanilla-rule#the-scraper) the golem in front, once a second |
 | Use a [Mineshaft Plan](/items/mineshaft_plan) on a block | Marks the entrance |
 
 ## See also

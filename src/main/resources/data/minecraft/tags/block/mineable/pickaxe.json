@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "bettercoppers:charging_pad"
+    "bettercoppers:charging_pad",
+    "bettercoppers:scraper"
   ]
 }

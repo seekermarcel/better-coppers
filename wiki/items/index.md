@@ -4,7 +4,7 @@ title: Items and blocks
 
 # Items and blocks
 
-**Better Coppers** adds 5 items and blocks of its own, and the **Automatisation** add-on adds 20 more. Anything else a golem uses, such as copper tools and bundles, is a vanilla item.
+**Better Coppers** adds 6 items and blocks of its own, and the **Automatisation** add-on adds 20 more. Anything else a golem uses, such as copper tools and bundles, is a vanilla item.
 
 ## Better Coppers
 
@@ -15,6 +15,7 @@ title: Items and blocks
 | <Icon id="golem_handbook" /> | [Golem Handbook](/items/golem_handbook) | Item | The book that explains the mod |
 | <Icon id="mineshaft_plan" /> | [Mineshaft Plan](/items/mineshaft_plan) | Item | Holds a mine's entrance, direction, length and progress |
 | <Icon id="quota_slip" /> | [Quota Slip](/items/quota_slip) | Item | Lists how much of each item a chest should hold |
+| <Icon id="scraper" /> | [Scraper](/items/scraper) | Block | Scrapes the golem in front of it, on its own |
 | <Icon id="survey_table" /> | [Survey Table](/items/survey_table) | Block | Makes Mineshaft Plans |
 
 ## Automatisation

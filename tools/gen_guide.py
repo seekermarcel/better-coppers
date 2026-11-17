@@ -70,7 +70,7 @@ MAIN_TREE = [
     ("long_haul", "courier", "minecraft:compass", done(), "goal", True),
     ("ride", "home", "minecraft:minecart", done(), "task", True),
     ("recharge", "home", f"{MAIN}:charging_pad", done(), "task", True),
-    ("scrape", "recharge", "minecraft:dispenser", done(), "task", True),
+    ("scrape", "recharge", f"{MAIN}:scraper", done(), "task", True),
     ("guard", "build_golem", "minecraft:poppy", done(), "task", True),
     ("repair", "guard", "minecraft:iron_ingot", done(), "task", True),
     ("trim", "build_golem", "minecraft:coast_armor_trim_smithing_template", done(), "task", True),
@@ -126,8 +126,8 @@ MAIN_ADV = {
              ("Alles einsteigen", "Sieh zu, wie ein Golem Lore oder Boot fährt")),
     "recharge": (("Recharged", "Charge a working golem to full on a Charging Pad driven by a redstone clock"),
                  ("Aufgeladen", "Lade einen Golem auf einem Ladefeld mit Redstone-Taktgeber ganz auf")),
-    "scrape": (("Good as New", "Scrape a rusty golem with an axe in a dispenser"),
-               ("Wie neu", "Kratze einen rostigen Golem mit einer Axt im Werfer ab")),
+    "scrape": (("Good as New", "Watch a Scraper scrape a rusty or waxed golem"),
+               ("Wie neu", "Sieh zu, wie ein Abkratzer einen rostigen oder gewachsten Golem abkratzt")),
     "guard": (("Bodyguard", "Watch an iron golem defend a copper golem"),
               ("Leibwächter", "Sieh zu, wie ein Eisengolem einen Kupfergolem verteidigt")),
     "repair": (("Field Medic", "Watch a copper golem repair an iron golem with iron"),
@@ -581,7 +581,7 @@ When you sleep through the night, every working golem with a free pad near its h
 Steady work makes a golem rust one stage every few days. Exposed golems work at 85% speed, weathered ones at 70%. Oxidized or waxed golems don't work at all, except as sorters and couriers.
 
 # Scraping
-Use an axe on the golem, or put an axe in a dispenser: every redstone pulse scrapes the golem in front of it by one stage.
+Use an axe on the golem, or build a Scraper (a dispenser recipe with an axe in place of the bow). It faces you when placed and scrapes the golem in front of it by one stage every second, the wax first, until it is clean. It needs no redstone and never wears out. Put one next to a Charging Pad, facing it, and the golem gets scraped while it charges.
 
 # Tools
 Job tools wear out and break."""),
@@ -601,7 +601,7 @@ Schläfst du durch die Nacht, wacht jeder arbeitende Golem mit einem freien Lade
 Ständige Arbeit lässt einen Golem alle paar Tage eine Stufe rosten. Angelaufene Golems arbeiten mit 85 %, verwitterte mit 70 %. Oxidierte oder gewachste Golems arbeiten gar nicht, außer als Sortierer und Kuriere.
 
 # Abkratzen
-Benutze eine Axt am Golem, oder lege eine Axt in einen Werfer: Jeder Redstone-Impuls kratzt den Golem davor um eine Stufe ab.
+Benutze eine Axt am Golem, oder bau einen Abkratzer (wie ein Werfer, aber mit einer Axt statt des Bogens). Er schaut beim Setzen zu dir und kratzt den Golem vor sich jede Sekunde um eine Stufe ab, zuerst das Wachs, bis er sauber ist. Er braucht kein Redstone und nutzt sich nie ab. Stell einen neben ein Ladefeld, mit der Vorderseite dazu, und der Golem wird beim Laden abgekratzt.
 
 # Werkzeuge
 Arbeitswerkzeuge nutzen sich ab und gehen kaputt.""")),

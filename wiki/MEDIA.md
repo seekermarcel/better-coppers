@@ -2,7 +2,7 @@
 
 Put each file in `wiki/public/media/` under the name given here. Screenshots are PNG, clips short MP4s under about 10 MB (longer ones go on YouTube). Each one replaces the `<!-- MEDIA: ... -->` comment of the same name in its page. In the same pass, the shaped blocks get `image: /media/<file>` in their infobox, because their icons are only approximate cubes.
 
-44 items: 29 screenshots, 15 clips.
+47 items: 32 screenshots, 15 clips.
 
 ## automatisation/index
 
@@ -46,7 +46,7 @@ Put each file in `wiki/public/media/` under the name given here. Screenshots are
 
 ## golem/running-costs
 
-- [ ] `running-costs-axe-dispenser.png` (screenshot): A dispenser facing a one-block spot where a working copper golem stands, with a lever or redstone line next to the dispenser
+- [ ] `running-costs-scraper.png` (screenshot): A Scraper facing a Charging Pad with a working copper golem standing on the pad and a redstone clock next to it
 
 ## golem/trims
 
@@ -95,6 +95,10 @@ Put each file in `wiki/public/media/` under the name given here. Screenshots are
 ## items/saw
 
 - [ ] `items-saw.png` (screenshot): A saw placed one block above a conveyor belt, seen from a three-quarter view so its real shape and blade above the belt are visible
+
+## items/scraper
+
+- [ ] `scraper-pad.png` (screenshot): A Scraper facing a Charging Pad with a rusty copper golem standing on the pad
 
 ## items/survey_table
 
@@ -166,4 +170,4 @@ Put each file in `wiki/public/media/` under the name given here. Screenshots are
 
 ## start/vanilla-rule
 
-- [ ] `start-axe-dispenser.png` (screenshot): A dispenser holding an axe, wired to a button, facing a rusty copper golem standing in the block in front of it
+- [ ] `start-scraper.png` (screenshot): A Scraper facing a rusty copper golem standing in the block in front of it

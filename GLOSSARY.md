@@ -124,7 +124,11 @@ The base mod's block where a golem recharges, powered by redstone pulses.
 _Avoid_: Charge pad, pad
 
 **Scraping**:
-Removing one rust stage with an axe, by hand or from a dispenser.
+Removing one rust stage, or the wax, with an axe by hand or at a Scraper.
+
+**Scraper**:
+The base mod's block that scrapes the golem standing in front of it, on its own and without wearing out.
+_Avoid_: Axe dispenser, Scraping block
 
 ## Mining
 

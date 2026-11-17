@@ -190,7 +190,7 @@ Sorters and couriers are free. Every other job costs something:
 - **Energy:** work uses energy. At night, or when empty, the golem walks to a free **Charging Pad** near its home (3 copper ingots, a lightning rod and redstone: `CLC` / `CRC`) and stands on it. A steady redstone signal does nothing: the pad charges on **redstone pulses**, so give it a **redstone clock**. Each pulse gives 8 energy (of 1000). Pulses less than 3 ticks apart count once, so the fastest clock fills an empty golem in about 25 seconds and a once-a-second clock in about two minutes. Build one pad per golem.
 - **Sleeping:** when the players sleep through the night, every working golem with a free pad near its home wakes up fully charged, as if it had spent the night on the pad.
 - **Rust:** steady work makes golems rust one stage every few days. Exposed golems work at 85 % speed and weathered ones at 70 %. Fully oxidized or waxed golems don't work at all, except as sorters and couriers.
-- **Scraping:** use an axe by hand, or put an **axe in a dispenser**: each redstone pulse scrapes the golem in front of it by one stage.
+- **Scraping:** use an axe by hand, or build a **Scraper** (a dispenser recipe with an axe in place of the bow): it scrapes the golem in front of it by one stage every second, with no redstone.
 - **Tools** wear out and break. A golem whose tool breaks keeps its job and fetches a new one (see [Tools and eyes](#tools-and-eyes)). When you end its job, it goes back to vanilla sorting.
 
 ---
@@ -244,7 +244,7 @@ src/main/java/dev/bettercoppers/
   trim/      GolemTrims (trim templates and materials)
   mining/    MineBehavior (mining AI), MineLayout, MinePlan, MinerData, MinerInteractions
   job/       JobBehavior (shared home-chest routine), Farm-/Forest-/Fish-/Keeper-/CraftBehavior, WorkerData
-  runningcosts/    RunningCosts (energy, rust, scraping), ChargeBehavior, AxeDispenseBehavior
+  runningcosts/    RunningCosts (energy, rust, scraping), ChargeBehavior
   home/      Homes, HomeLinking (linking homes and routes), HomeDisplay (particle lines)
   block/, menu/  Survey Table and its menu
   entity/, item/  Copper Chest Minecart

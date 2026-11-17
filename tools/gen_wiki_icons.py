@@ -19,9 +19,9 @@ SIZE = 64
 # Items the articles mention that no recipe uses.
 EXTRA = ["minecraft:" + i for i in """copper_pickaxe copper_axe copper_hoe bundle fishing_rod brush crafting_table
 	shears iron_ingot gold_block diamond_block iron_chain copper_chain copper_golem_spawn_egg carved_pumpkin
-	barrel oak_boat dispenser gold_ingot sugar_cane""".split()]
+	barrel oak_boat gold_ingot sugar_cane""".split()]
 # Tags in recipes, shown as one of their members. Keep in step with the labels in recipes.data.mts.
-TAGS = {"#minecraft:planks": "minecraft:oak_planks", "#minecraft:copper_chests": "minecraft:copper_chest", "#c:chests/wooden": "minecraft:chest"}
+TAGS = {"#minecraft:planks": "minecraft:oak_planks", "#minecraft:axes": "minecraft:copper_axe", "#minecraft:copper_chests": "minecraft:copper_chest", "#c:chests/wooden": "minecraft:chest"}
 # Chests are drawn from entity textures and have no block model faces.
 CHESTS = {"minecraft:copper_chest": "copper", "minecraft:chest": "normal"}
 

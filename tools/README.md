@@ -6,6 +6,7 @@ Single-file Java programs (run with `java`, no build step). Most read vanilla te
 - `TrimGen` builds the golem trim textures from the vanilla armour trims.
 - `SurveyGen` builds the Survey Table textures.
 - `PadGen` builds the Charging Pad textures.
+- `ScraperGen` builds the Scraper front textures (args: vanilla `assets/minecraft/textures`, out dir).
 - `HandbookGen` builds the Golem Handbook item texture.
 - `QuotaSlipGen` builds the Quota Slip item texture.
 - `GolemEyesGen` builds the eye and antenna overlay textures.

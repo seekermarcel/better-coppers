@@ -18,8 +18,8 @@ import net.minecraft.world.level.block.WeatheringCopper;
  * <li><b>Energy:</b> every bit of work uses some. At night, or when empty, the golem recharges standing on a
  * Charging Pad driven by a redstone clock (see {@link ChargeBehavior}). Without energy it does not work.</li>
  * <li><b>Rust:</b> work wears the golem down; every {@link #ENERGY_PER_RUST_STAGE} energy spent it rusts one stage. Rusty
- * golems are slower, fully oxidized or waxed golems do not work at all. An axe (by hand or from a dispenser) scrapes
- * them clean again.</li>
+ * golems are slower, fully oxidized or waxed golems do not work at all. An axe by hand, or a Scraper, scrapes them
+ * clean again.</li>
  * </ul>
  */
 public final class RunningCosts {

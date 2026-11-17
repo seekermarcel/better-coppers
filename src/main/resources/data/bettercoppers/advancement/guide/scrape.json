@@ -7,7 +7,7 @@
   },
   "display": {
     "icon": {
-      "id": "minecraft:dispenser"
+      "id": "bettercoppers:scraper"
     },
     "title": {
       "translate": "advancements.bettercoppers.guide.scrape.title"

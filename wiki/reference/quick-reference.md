@@ -64,7 +64,7 @@ Golems only take copper tools. A sneak + right-click with any other pickaxe, hoe
 | Right-click a Copper Chest Minecart with an iron or copper chain | Chains it to the player |
 | Sneak + right-click a chained Copper Chest Minecart | Takes the chain off |
 | Right-click a Copper Chest Minecart with a [Cart Extension](/items/cart_extension) (add-on) | Makes it a double chest |
-| Axe in a dispenser facing a golem | Scrapes it, even a golem no player touched |
+| [Scraper](/items/scraper) facing a golem | Scrapes it once a second until clean, even a golem no player touched |
 | Right-click a [Saw](/items/saw) with an item (add-on) | Sets its filter; an empty hand clears it |
 
 ## Key numbers

@@ -18,7 +18,6 @@ import dev.bettercoppers.registry.ModEntities;
 import dev.bettercoppers.registry.ModItems;
 import dev.bettercoppers.registry.ModMenus;
 import dev.bettercoppers.trim.GolemTrims;
-import dev.bettercoppers.runningcosts.AxeDispenseBehavior;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
@@ -71,7 +70,6 @@ public class BetterCoppers implements ModInitializer {
 				Jobs.dropJobItems(golem);
 			}
 		});
-		AxeDispenseBehavior.register();
 		LOGGER.info("Better Coppers initialised");
 	}
 }

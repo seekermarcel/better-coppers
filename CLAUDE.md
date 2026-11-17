@@ -17,10 +17,10 @@ Everything runs in the flake dev shell:
 - `mining`: miner job, mine layout and plan
 - `courier`: routes and chunk tickets
 - `home`: home linking and particle lines
-- `runningcosts`: energy, rust, scraping, charging, axe dispenser
+- `runningcosts`: energy, rust, scraping, charging
 - `combat`, `repair`: monsters, iron golem guards, repairs
 - `trim`: armour trims
-- `block`, `menu`, `entity`, `item`, `registry`: Survey Table, Copper Chest Minecart, registrations
+- `block`, `menu`, `entity`, `item`, `registry`: Survey Table, Charging Pad, Scraper, Copper Chest Minecart, registrations
 - `mixin`: adds the mod's behaviours in front of vanilla's golem AI, and gates vanilla transport
 - Client code is in `src/client/java`. `tools/` holds texture and resource generators. `automatisation/` is the add-on subproject (its own jar), imports only `api` (ADR 0004).
 
@@ -32,7 +32,7 @@ Everything runs in the flake dev shell:
 - `wiki/`: the player-facing wiki, checked against the code. `wiki/MEDIA.md` lists the screenshots and clips it still needs.
 
 ## The vanilla rule
-Anything that happens automatically to a golem no player touched is exactly vanilla. Mod behaviour starts only after a deliberate player action (job item, route, home link, chain, trim, eyes). "Without a job" is `!Jobs.has(golem)`, even if the golem has a home: a golem with only a home (no job item, no route) still sorts like vanilla. The one exception is the axe dispenser, which scrapes any golem in front of it, because the player built it on purpose.
+Anything that happens automatically to a golem no player touched is exactly vanilla. Mod behaviour starts only after a deliberate player action (job item, route, home link, chain, trim, eyes). "Without a job" is `!Jobs.has(golem)`, even if the golem has a home: a golem with only a home (no job item, no route) still sorts like vanilla. The one exception is the Scraper, which scrapes any golem in front of it, because the player built it on purpose.
 
 A plain click on a golem is safe (ADR 0009): with an empty hand it is exactly vanilla for a golem without a job and only shows the status of one with a job (and cancels its pending link), and shears, honeycomb and axes stay vanilla for every golem, except that on a golem with a job a plain axe or inert item cannot throw the tool out through vanilla's fall-through to the empty off hand; scraping still works. Giving a golem anything, or taking its trim off with shears, takes sneak + right-click.
 

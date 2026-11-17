@@ -2,6 +2,7 @@ package dev.bettercoppers.registry;
 
 import dev.bettercoppers.BetterCoppers;
 import dev.bettercoppers.block.ChargingPadBlock;
+import dev.bettercoppers.block.ScraperBlock;
 import dev.bettercoppers.block.SurveyTableBlock;
 import java.util.function.Function;
 import net.minecraft.core.Registry;
@@ -23,6 +24,10 @@ public final class ModBlocks {
 	public static final Block CHARGING_PAD = register(
 		"charging_pad", ChargingPadBlock::new, BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_ORANGE).strength(3.0F, 6.0F)
 			.sound(SoundType.COPPER).lightLevel(state -> state.getValue(ChargingPadBlock.COOLING) ? 9 : 0)
+	);
+
+	public static final Block SCRAPER = register(
+		"scraper", ScraperBlock::new, BlockBehaviour.Properties.of().mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(3.5F)
 	);
 
 	private ModBlocks() {

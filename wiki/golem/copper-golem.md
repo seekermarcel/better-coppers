@@ -98,7 +98,7 @@ A chained [Copper Chest Minecart](/items/copper_chest_minecart) stays where it i
 |---|---|
 | A Little Helper | Build a copper golem: a carved pumpkin on a copper block |
 | Home Sweet Chest | Link a golem to a copper chest |
-| Good as New | Scrape a rusty golem with an axe in a dispenser |
+| Good as New | Watch a Scraper scrape a rusty or waxed golem |
 | Eagle Eyes | Give a golem a block of iron, gold or diamond |
 | Dressed to Impress | Give a golem an armour trim |
 | Bodyguard | Watch an iron golem defend a copper golem |
