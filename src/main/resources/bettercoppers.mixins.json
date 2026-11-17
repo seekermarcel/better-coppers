@@ -3,6 +3,7 @@
 	"package": "dev.bettercoppers.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
+		"BlockItemMixin",
 		"CopperGolemAccessor",
 		"CopperGolemAiMixin",
 		"CopperGolemMixin",

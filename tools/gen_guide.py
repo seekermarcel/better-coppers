@@ -63,6 +63,7 @@ MAIN_TREE = [
     ("odd_jobs", "home", "minecraft:copper_axe", {job: {"trigger": "minecraft:impossible"} for job in ["forester", "fisher", "keeper", "beekeeper", "crafter"]}, "task", True),
     ("full_employment", "odd_jobs", "minecraft:bell", {job: {"trigger": "minecraft:impossible"} for job in JOBS}, "challenge", False),
     ("survey", "home", f"{MAIN}:survey_table", has(f"{MAIN}:mineshaft_plan"), "task", True),
+    ("mine_entrance", "home", "minecraft:oak_fence", done(), "task", True),
     ("miner", "survey", "minecraft:copper_pickaxe", done(), "task", True),
     ("diamonds", "miner", "minecraft:diamond", done(), "goal", True),
     ("eyes", "home", "minecraft:gold_block", done(), "task", True),
@@ -112,6 +113,8 @@ MAIN_ADV = {
                         ("Vollbeschäftigung", "Gib Golems jeden Beruf: Sortierer, Bergmann, Bauer, Förster, Fischer, Tierpfleger, Imker, Handwerker und Kurier")),
     "survey": (("Surveyor", "Make a mineshaft plan at a Survey Table"),
                ("Vermesser", "Erstelle an einem Vermessungstisch einen Stollenplan")),
+    "mine_entrance": (("Into the Hill", "Build a Mine Entrance: two fence posts 2 high and 1 apart, with 3 planks across their tops"),
+                      ("Ab in den Berg", "Baue einen Mineneingang: zwei Zaunpfosten, 2 hoch und 1 Block auseinander, mit 3 Brettern quer darüber")),
     "miner": (("Down the Shaft", "Sneak + right-click a golem with a copper pickaxe, then with a mineshaft plan"),
               ("Ab in den Stollen", "Schleichen + Rechtsklick auf einen Golem mit einer Kupferspitzhacke, dann mit einem Stollenplan")),
     "diamonds": (("Shiny!", "Watch a miner find diamonds and hurry home with its antenna blinking"),
@@ -397,6 +400,9 @@ Mineshafts of the plan's length stacked straight down, 6 blocks apart: 2 to 8 le
 
 Out of filler at water or lava in a tunnel, it gives up the rest of that level, lays its rails in the part it dug and goes on to the next level. On the stairs it gives up everything below.
 
+# Mine Entrance
+Build a Mine Entrance like the supports in a vanilla mineshaft: two wooden fence posts, each 2 high on a solid block with 1 block between them, and 3 planks across their tops. Any woods will do. Placing its last block shows "Mine Entrance built". A frame you didn't build yourself, such as one in a mineshaft, counts once you rebuild one of its blocks.
+
 # Diamonds!
 When it finds diamonds, it digs out the whole vein and then hurries home with its antenna blinking, to show you."""),
               ("Bergmann", """Bergleute graben einen 3x3-Stollen wie in Vanilla, mit Bretterboden, Stützen, Fackeln und Schienen, eine Treppe gerade nach unten, einen Streifenabbau, eine breite Halle im Kammerpfeilerbau oder eine Mehrebenenmine aus übereinanderliegenden Stollen.
@@ -434,6 +440,9 @@ Ohne Füllmaterial an Wasser oder Lava gibt er den äußeren Teil dieser halben 
 Stollen in der Länge des Plans, gerade übereinander und 6 Blöcke voneinander entfernt: 2 bis 8 Ebenen (einstellbar am Vermessungstisch). Ebenen, die bis zum Grundgestein reichen würden, entfallen. Gegrabene Treppen verbinden sie direkt hinter dem Eingang und biegen nach rechts ab, also halte diesen Boden frei. Jede Ebene braucht Bretter, Zäune und Schienen wie ein Stollen und wird samt Schienen fertiggestellt, bevor die nächste beginnt. Jeder Weg führt zu der einen Truhe oben.
 
 Ohne Füllmaterial an Wasser oder Lava gibt er in einem Stollen den Rest dieser Ebene auf, legt im gegrabenen Teil seine Schienen und macht auf der nächsten Ebene weiter. Auf der Treppe gibt er alles darunter auf.
+
+# Mineneingang
+Baue einen Mineneingang wie die Stützen in einem Vanilla-Minenschacht: zwei Holzzaunpfosten, jeder 2 hoch auf einem festen Block und mit 1 Block Abstand, und 3 Bretter quer darüber. Die Holzarten dürfen gemischt sein. Setzt du seinen letzten Block, erscheint „Mineneingang gebaut“. Ein Rahmen, den du nicht selbst gebaut hast, etwa in einem Minenschacht, zählt, sobald du einen seiner Blöcke neu setzt.
 
 # Diamanten!
 Findet er Diamanten, baut er die ganze Ader ab und eilt dann mit blinkender Antenne nach Hause, um sie dir zu zeigen.""")),
@@ -837,6 +846,7 @@ MESSAGES = [
     ("entity.bettercoppers.golem_float", "Golem Float", "Golem-Schwimmer"),
     ("item.bettercoppers.quota_slip", "Quota Slip", "Mengenzettel"),
     ("message.bettercoppers.quota_recorded", "The slip now lists what this chest holds.", "Der Zettel listet jetzt, was diese Truhe enthält."),
+    ("message.bettercoppers.mine_entrance_built", "Mine Entrance built", "Mineneingang gebaut"),
     ("message.bettercoppers.quota_cleared", "The slip is blank again.", "Der Zettel ist wieder leer."),
 ]
 

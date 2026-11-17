@@ -43,7 +43,7 @@ It sorts like vanilla, and the link also opts it into two things: `HomeStroll` w
 
 ## State
 
-Per-golem state lives in Fabric attachments (`ModAttachments`), and most of it is saved. `Load` holds pouch and supplies in `LOAD`; `WORKER` and `MINER` stay the signal that a player gave the job, and `LOAD` never is. `Load.hasNothingToBringHome` ignores supplies, which stay with the golem. These are lost on restart: the `ERRAND` attachment and the static maps `Couriers.PENDING`, `HomeLinking.SELECTIONS`, `HomeLinking.HANDOVER_PRESSES` and `RepairBehavior.CLAIMS`.
+Per-golem state lives in Fabric attachments (`ModAttachments`), and most of it is saved. `Load` holds pouch and supplies in `LOAD`; `WORKER` and `MINER` stay the signal that a player gave the job, and `LOAD` never is. `Load.hasNothingToBringHome` ignores supplies, which stay with the golem. Mines live in a per-dimension `SavedData`, `bettercoppers:mines` (`Mines`, the spec's `bettercoppers_mines`), keyed by middle beam and axis. It is server-only and has a `format` field: older formats are migrated step by step on the raw `Dynamic` before decoding, and a newer one is logged, ignored and written back untouched. A Mine Entrance is registered only from `BlockItemMixin`, when a player places its last block, and nothing watches its blocks afterwards: `MineEntrance.isIntact` is checked when needed. These are lost on restart: the `ERRAND` attachment and the static maps `Couriers.PENDING`, `HomeLinking.SELECTIONS`, `HomeLinking.HANDOVER_PRESSES` and `RepairBehavior.CLAIMS`.
 
 Behaviours keep per-golem fields, so every golem needs its own instance. The API takes factories for this reason.
 

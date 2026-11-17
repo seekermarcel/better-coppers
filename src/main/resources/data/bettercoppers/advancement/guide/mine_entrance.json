@@ -1,0 +1,25 @@
+{
+  "parent": "bettercoppers:guide/home",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "minecraft:oak_fence"
+    },
+    "title": {
+      "translate": "advancements.bettercoppers.guide.mine_entrance.title"
+    },
+    "description": {
+      "translate": "advancements.bettercoppers.guide.mine_entrance.description"
+    },
+    "frame": "task"
+  },
+  "requirements": [
+    [
+      "done"
+    ]
+  ]
+}
