@@ -38,17 +38,17 @@ public final class MinerInteractions {
 			MinerData.getOrCreate(golem);
 			Guide.job(player, "miner");
 			if (Homes.get(golem) == null) {
-				player.sendOverlayMessage(Component.translatable("message.bettercoppers.miner_needs_home", Mines.ENTRANCE_SEARCH_RADIUS));
+				player.sendOverlayMessage(Component.translatable("message.bettercoppers.miner_needs_home", MineLimits.of(serverLevel).entranceSearchRadius()));
 			} else if (Mines.of(serverLevel, golem, true) == null) {
-				player.sendOverlayMessage(noEntrance());
+				player.sendOverlayMessage(noEntrance(serverLevel));
 			}
 		}
 		return InteractionResult.SUCCESS;
 	}
 
 	/** One message for the hand-over hint and the status line. */
-	public static Component noEntrance() {
-		return Component.translatable("status.bettercoppers.no_mine_entrance", Mines.ENTRANCE_SEARCH_RADIUS);
+	public static Component noEntrance(ServerLevel level) {
+		return Component.translatable("status.bettercoppers.no_mine_entrance", MineLimits.of(level).entranceSearchRadius());
 	}
 
 	/** Forgets the mine with the golem. */

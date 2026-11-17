@@ -10,6 +10,7 @@ import dev.bettercoppers.mining.MineLayout;
 import dev.bettercoppers.mining.MinerData;
 import dev.bettercoppers.mining.Mines;
 import dev.bettercoppers.registry.ModAttachments;
+import dev.bettercoppers.registry.ModGameRules;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
@@ -36,6 +37,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.gamerules.GameRule;
 
 /**
  * Describes the miner's current behaviour: finding its Mine Entrance, digging the first Mine Section, supplies, ore
@@ -156,6 +158,56 @@ public class MinerGameTests {
 		h.assertValueEqual(mine(h, beam).facing(), Optional.of(Direction.NORTH), "facing");
 		h.assertValueEqual(firstSection(h, beam).kind(), MineLayout.STAIRS_DOWN, "first section");
 		h.assertValueEqual(MinerData.get(golem).mine(), beam, "the miner's mine");
+		h.succeed();
+	}
+
+	/** Sets a game rule while {@code run} runs. Rules are world-wide, so a test changes one only for a single tick. */
+	private static void withRule(GameTestHelper h, GameRule<Integer> rule, int value, Runnable run) {
+		ServerLevel level = h.getLevel();
+		int old = level.getGameRules().get(rule);
+		level.getGameRules().set(rule, value, level.getServer());
+		try {
+			run.run();
+		} finally {
+			level.getGameRules().set(rule, old, level.getServer());
+		}
+	}
+
+	/** The entrance is 8.7 blocks from the home chest: out of an Entrance Search Radius of 8, within the default 32. */
+	@GameTest
+	public void a_lowered_entrance_search_radius_misses_a_farther_entrance(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos beam = GameTests.mineEntrance(h, new BlockPos(6, 3, 1));
+		BlockPos home = new BlockPos(0, 1, 7);
+		GameTests.chest(h, home, COPPER_CHEST);
+		CopperGolem golem = GameTests.golem(h, new BlockPos(1, 1, 6));
+		withRule(h, ModGameRules.MINE_ENTRANCE_SEARCH_RADIUS, 8, () -> {
+			GameTests.energize(golem);
+			Homes.set(golem, h.absolutePos(home));
+			give(h, golem, new ItemStack(Items.COPPER_PICKAXE));
+			h.assertFalse(beam.equals(MinerData.get(golem).mine()), "took an entrance out of the radius");
+			h.assertTrue(mine(h, beam).sections().isEmpty(), "started a mine out of the radius");
+		});
+		h.assertValueEqual(Mines.of(h.getLevel(), golem, true).entrance(), beam, "mine with the default radius");
+		h.succeed();
+	}
+
+	/** On flat ground the first section is Stairs Down, whose landing is dug 3 below the opening's floor block. */
+	@GameTest
+	public void a_raised_depth_floor_stops_a_stairs_down_first_section(GameTestHelper h) {
+		JobGameTests.scene(h);
+		BlockPos beam = GameTests.mineEntrance(h, new BlockPos(4, 3, 3));
+		GameTests.chest(h, new BlockPos(4, 1, 7), COPPER_CHEST);
+		withRule(h, ModGameRules.MINE_DEPTH_FLOOR, h.absolutePos(BlockPos.ZERO).getY() - 2, () -> {
+			CopperGolem golem = miner(h, new BlockPos(4, 1, 5), new BlockPos(4, 1, 7));
+			h.assertTrue(mine(h, beam).sections().isEmpty(), "dug a first section below the Depth Floor");
+			h.assertTrue(MinerData.get(golem).mine() == null, "took a mine it can't dig");
+		});
+		withRule(h, ModGameRules.MINE_DEPTH_FLOOR, h.absolutePos(BlockPos.ZERO).getY() - 3, () -> {
+			CopperGolem golem = miner(h, new BlockPos(5, 1, 5), new BlockPos(4, 1, 7));
+			h.assertValueEqual(firstSection(h, beam).kind(), MineLayout.STAIRS_DOWN, "first section right at the Depth Floor");
+			h.assertValueEqual(MinerData.get(golem).mine(), beam, "the miner's mine");
+		});
 		h.succeed();
 	}
 

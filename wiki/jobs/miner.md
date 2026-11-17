@@ -41,7 +41,7 @@ Placing the frame's last block yourself shows "Mine Entrance built" and awards [
 
 ### Finding it
 
-A miner with a home takes the nearest Mine Entrance within 32 blocks of its home chest (straight-line distance to the middle plank) whose frame is whole and whose mine is not finished. It looks when it gets the pickaxe or a home, and every 5 seconds while it has none. It keeps that mine until the mine is finished, the frame is broken, it is linked to another chest or its job ends. A closer entrance built later does not take it away. A plain click on the miner shows "Mine at x y z" (the middle plank), or "No open Mine Entrance within 32 blocks of its home chest".
+A miner with a home takes the nearest Mine Entrance within the [Entrance Search Radius](#settings) (32 blocks) of its home chest (straight-line distance to the middle plank) whose frame is whole and whose mine is not finished. It looks when it gets the pickaxe or a home, and every 5 seconds while it has none. It keeps that mine until the mine is finished, the frame is broken, it is linked to another chest or its job ends. A closer entrance built later does not take it away. A plain click on the miner shows "Mine at x y z" (the middle plank), or "No open Mine Entrance within 32 blocks of its home chest".
 
 ### Which way it runs
 
@@ -58,6 +58,8 @@ A mine grows one **Mine Section** at a time. Positions below count from the open
 ### First section
 
 The first section is not left to chance. If the block at head height in front of the opening is solid, it is a [Straight](#straight). On open ground it is [Stairs Down](#stairs-down).
+
+A first section that would reach past the [Mine Range or the Depth Floor](#settings) is not dug: the miner leaves that entrance alone and keeps looking.
 
 For now a mine stops after its first section. When it is done, the mine is finished, and the miner brings its load home and looks for the next open Mine Entrance.
 
@@ -200,6 +202,16 @@ When the pickaxe breaks, the golem keeps its job, brings its load home and looks
 - If the chest is broken or unloaded, the golem keeps its load and looks again every 10 seconds.
 - If the chest is full, what does not fit stays with the golem. It waits at home and goes back to its mine once something it carries fits.
 - Several miners on one mine dig the same section for now.
+
+## Settings
+
+Three game rules in the Better Coppers category set each world's limits. Change them with `/gamerule`, on the world creation screen or in the game rules screen. They count from the next time a miner checks.
+
+| Game rule | Default | Range | What it does |
+|---|---|---|---|
+| `bettercoppers:mine_entrance_search_radius` | 32 | 8 to 64 | How far from its home chest a miner looks for a Mine Entrance, in a straight line to the middle plank |
+| `bettercoppers:mine_range` | 64 | 16 to 256 | How far a mine grows from the middle plank of its entrance, counted along x and z separately |
+| `bettercoppers:mine_depth_floor` | -59 | -2032 to 2031 | The lowest height a miner digs at, but never lower than 5 above the bottom of the world |
 
 ## Advancements
 

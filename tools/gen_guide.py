@@ -387,7 +387,14 @@ Breaking the entrance frame closes the mine: the miner goes home and looks for a
 Ending its job gives you the pickaxe and everything it carries. What it dug stays in the mine.
 
 # Diamonds!
-When it finds diamonds, it digs out the whole vein and then hurries home with its antenna blinking, to show you."""),
+When it finds diamonds, it digs out the whole vein and then hurries home with its antenna blinking, to show you.
+
+# Settings
+Three game rules (Better Coppers on the game rules screen, or /gamerule) set each world's limits:
+- mine_entrance_search_radius (32): how far from its chest a miner looks for a Mine Entrance.
+- mine_range (64): how far a mine grows from its entrance.
+- mine_depth_floor (-59): how deep it digs, never lower than 5 above the bottom of the world.
+It doesn't dig a section that would cross the range or the floor."""),
               ("Bergmann", """Bergleute graben eine Mine wie in Vanilla, 3 breit und 3 hoch, mit Bretterboden, Stützen, Fackeln und Schienen, von einem Mineneingang aus, den du baust.
 
 # Mineneingang
@@ -414,7 +421,14 @@ Zerstörst du den Rahmen des Eingangs, ist die Mine geschlossen: Der Bergmann ge
 Beendest du seinen Beruf, bekommst du die Spitzhacke und alles, was er trägt. Was er gegraben hat, bleibt in der Mine.
 
 # Diamanten!
-Findet er Diamanten, baut er die ganze Ader ab und eilt dann mit blinkender Antenne nach Hause, um sie dir zu zeigen.""")),
+Findet er Diamanten, baut er die ganze Ader ab und eilt dann mit blinkender Antenne nach Hause, um sie dir zu zeigen.
+
+# Einstellungen
+Drei Spielregeln (Better Coppers in den Spielregeln, oder /gamerule) setzen die Grenzen jeder Welt:
+- mine_entrance_search_radius (32): wie weit von seiner Truhe ein Bergmann nach einem Mineneingang sucht.
+- mine_range (64): wie weit eine Mine von ihrem Eingang wächst.
+- mine_depth_floor (-59): wie tief er gräbt, nie tiefer als 5 über dem Boden der Welt.
+Einen Abschnitt, der darüber hinausginge, gräbt er nicht.""")),
     "farmer": (("Farmer", """Sneak + right-click a golem with a copper hoe. Its field is everything within 8 blocks of its home chest.
 
 - It harvests ripe wheat, carrots, potatoes, beetroot, nether wart, pitcher crops and torchflowers on farmland and replants them right away.

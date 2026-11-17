@@ -267,7 +267,7 @@ public final class HomeLinking {
 		if (beam == null) {
 			beam = Mines.get(level).nearestOpen(level, home).map(Mines.Mine::entrance).orElse(null);
 		}
-		return beam == null ? MinerInteractions.noEntrance() : Component.translatable("status.bettercoppers.mine", beam.getX(), beam.getY(), beam.getZ());
+		return beam == null ? MinerInteractions.noEntrance(level) : Component.translatable("status.bettercoppers.mine", beam.getX(), beam.getY(), beam.getZ());
 	}
 
 	public static InteractionResult onUseBlock(Player player, Level level, InteractionHand hand, BlockHitResult hitResult) {
