@@ -20,7 +20,9 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Unit;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
@@ -120,8 +122,7 @@ public class MinerGameTests {
 	}
 
 	private static List<MineLayout.Step> steps(GameTestHelper h, BlockPos beam) {
-		Mines.Section section = firstSection(h, beam);
-		return MineLayout.build(section.kind(), section.start());
+		return MineLayout.build(firstSection(h, beam));
 	}
 
 	/** Turns the first two slices to glass, which drops nothing, so the miner gets no filler from digging them. */
@@ -212,75 +213,95 @@ public class MinerGameTests {
 	}
 
 	/**
-	 * A whole Straight into a stone hill, sealed from daylight, from an entrance at z = 10: supports at z = 7 and 3, a
-	 * torch, rails last, and then the mine is finished and the load goes home. It is longer than the test area, and
-	 * entities freeze outside the chunks a test keeps loaded, so those are forced.
+	 * A whole section of {@code kind} as the mine's first, in a stone hill sealed from daylight, from an entrance at z = 11
+	 * heading north. It is bigger than the test area, and entities freeze outside the chunks a test keeps loaded, so those
+	 * are forced. Succeeds once the section is done and every step of it is in place, and then {@code after} holds.
 	 */
-	@GameTest(maxTicks = 9600, padding = 48)
-	public void miner_digs_a_straight_to_done(GameTestHelper h) {
+	private static void digsToDone(GameTestHelper h, Identifier kind, Runnable after) {
 		ServerLevel level = h.getLevel();
 		level.clockManager().setTotalTicks(level.dimensionType().defaultClock().orElseThrow(), 1000L);
-		forceChunks(h, new BlockPos(8, 0, 13));
-		fill(h, new BlockPos(0, 0, 0), new BlockPos(8, 0, 13), Blocks.STONE);
-		fill(h, new BlockPos(1, 1, 0), new BlockPos(7, 5, 9), Blocks.STONE);
-		BlockPos beam = GameTests.mineEntrance(h, new BlockPos(4, 3, 10));
-		BlockPos home = new BlockPos(1, 1, 12);
+		forceChunks(h, new BlockPos(10, 0, 14));
+		fill(h, new BlockPos(0, 0, 0), new BlockPos(10, 14, 10), Blocks.STONE);
+		fill(h, new BlockPos(0, 0, 11), new BlockPos(10, 5, 14), Blocks.STONE);
+		BlockPos beam = GameTests.mineEntrance(h, new BlockPos(5, 8, 11));
+		Mines mines = Mines.get(level);
+		mines.start(mines.find(beam, Direction.Axis.X).orElseThrow(), Direction.NORTH, kind);
+		BlockPos home = new BlockPos(1, 6, 13);
 		Container chest = GameTests.chest(h, home, COPPER_CHEST);
 		chest.setItem(0, new ItemStack(Items.RAIL, 16));
 		chest.setItem(1, new ItemStack(Items.OAK_PLANKS, 32));
 		chest.setItem(2, new ItemStack(Items.OAK_FENCE, 16));
 		chest.setItem(3, new ItemStack(Items.TORCH, 16));
-		CopperGolem golem = miner(h, new BlockPos(4, 1, 11), home);
+		CopperGolem golem = miner(h, new BlockPos(5, 6, 12), home);
+		// Rails are laid only if it carries some, and a short section may never send it home to fetch them.
+		Load load = Load.of(golem);
+		load.addSupplies(new ItemStack(Items.RAIL, 16));
+		load.addSupplies(new ItemStack(Items.OAK_PLANKS, 32));
+		load.addSupplies(new ItemStack(Items.OAK_FENCE, 16));
+		load.addSupplies(new ItemStack(Items.TORCH, 16));
 		h.assertValueEqual(MinerData.get(golem).mine(), beam, "the miner's mine");
-		h.assertValueEqual(firstSection(h, beam).kind(), MineLayout.STRAIGHT, "first section");
-		h.succeedWhen(() -> {
-			h.assertTrue(firstSection(h, beam).done(), "section not done, progress " + firstSection(h, beam).progress());
-			for (int z = 2; z <= 9; z++) {
-				h.assertTrue(h.getBlockState(new BlockPos(4, 1, z)).is(Blocks.RAIL), "no rail at z " + z);
-				h.assertTrue(h.getBlockState(new BlockPos(4, 2, z)).isAir(), "not dug at z " + z);
-			}
-			for (int z : new int[] {7, 3}) {
-				for (int x : new int[] {3, 5}) {
-					h.assertTrue(h.getBlockState(new BlockPos(x, 1, z)).is(Blocks.OAK_FENCE) && h.getBlockState(new BlockPos(x, 2, z)).is(Blocks.OAK_FENCE), "no support post at " + x + ", " + z);
+		h.startSequence()
+			.thenWaitUntil(() -> {
+				Mines.Section first = firstSection(h, beam);
+				h.assertValueEqual(first.kind(), kind, "first section");
+				h.assertTrue(first.done(), "section not done, progress " + first.progress());
+				for (MineLayout.Step step : MineLayout.build(first)) {
+					var state = level.getBlockState(step.pos());
+					boolean placed = switch (step.action()) {
+						case DIG -> !state.is(Blocks.STONE);
+						case FLOOR -> state.isFaceSturdy(level, step.pos(), Direction.UP);
+						case FENCE -> state.is(BlockTags.WOODEN_FENCES);
+						case BEAM -> state.is(BlockTags.PLANKS);
+						case RAIL -> state.is(BlockTags.RAILS);
+						// Skipped where the opening already lights it.
+						case TORCH -> true;
+					};
+					h.assertTrue(placed, step.action() + " missing at " + h.relativePos(step.pos()));
 				}
-				h.assertTrue(h.getBlockState(new BlockPos(4, 3, z)).is(Blocks.OAK_PLANKS), "no beam at z " + z);
-			}
-			h.assertTrue(h.getBlockState(new BlockPos(4, 3, 6)).is(Blocks.WALL_TORCH), "no torch");
-			h.assertTrue(h.getBlockState(new BlockPos(4, 1, 1)).is(Blocks.STONE), "dug past the section");
-			h.assertTrue(mine(h, beam).isFinished(), "mine not finished");
-			h.assertTrue(MinerData.get(golem).mine() == null, "still holds a finished mine");
-			h.assertTrue(chest.countItem(Items.COBBLESTONE) > 0, "the load is not home");
-		});
+			})
+			.thenWaitUntil(after)
+			.thenSucceed();
 	}
 
-	/** Stairs Down from an entrance on flat stone: 4 steps, each 4 high, and a landing 4 lower. Fits inside the test area's barrier walls. */
-	@GameTest(maxTicks = 9600, padding = 48)
+	private static BlockPos hillBeam(GameTestHelper h) {
+		return h.absolutePos(new BlockPos(5, 8, 11));
+	}
+
+	/** After a Straight the mine grows: the next section is rolled at its Open End. */
+	@GameTest(maxTicks = 12000, padding = 48)
+	public void miner_digs_a_straight_to_done_and_rolls_the_next_section(GameTestHelper h) {
+		digsToDone(h, MineLayout.STRAIGHT, () -> h.assertTrue(mine(h, hillBeam(h)).sections().size() >= 2, "no next section rolled"));
+	}
+
+	@GameTest(maxTicks = 12000, padding = 48)
+	public void miner_digs_a_corner_to_done(GameTestHelper h) {
+		digsToDone(h, MineLayout.CORNER, () -> {});
+	}
+
+	@GameTest(maxTicks = 12000, padding = 48)
+	public void miner_digs_a_crossing_to_done(GameTestHelper h) {
+		digsToDone(h, MineLayout.CROSSING, () -> {});
+	}
+
+	@GameTest(maxTicks = 15000, padding = 48)
+	public void miner_digs_a_small_hall_to_done(GameTestHelper h) {
+		digsToDone(h, MineLayout.SMALL_HALL, () -> {});
+	}
+
+	@GameTest(maxTicks = 12000, padding = 48)
 	public void miner_digs_stairs_down_to_done(GameTestHelper h) {
-		ServerLevel level = h.getLevel();
-		level.clockManager().setTotalTicks(level.dimensionType().defaultClock().orElseThrow(), 1000L);
-		fill(h, new BlockPos(0, 0, 0), new BlockPos(7, 4, 7), Blocks.STONE);
-		BlockPos beam = GameTests.mineEntrance(h, new BlockPos(4, 7, 6));
-		BlockPos home = new BlockPos(1, 5, 7);
-		Container chest = GameTests.chest(h, home, COPPER_CHEST);
-		CopperGolem golem = miner(h, new BlockPos(4, 5, 7), home);
-		h.assertValueEqual(MinerData.get(golem).mine(), beam, "the miner's mine");
-		h.assertValueEqual(firstSection(h, beam).kind(), MineLayout.STAIRS_DOWN, "first section");
-		h.succeedWhen(() -> {
-			h.assertValueEqual(firstSection(h, beam).kind(), MineLayout.STAIRS_DOWN, "first section of " + mine(h, beam) + ", golem's mine " + MinerData.get(golem).mine());
-			h.assertTrue(firstSection(h, beam).done(), "section not done, progress " + firstSection(h, beam).progress());
-			// Feet height of each slice from z = 5 north, then the landing at z = 1.
-			int[] feet = {4, 3, 2, 1, 1};
-			for (int i = 0; i < feet.length; i++) {
-				BlockPos step = new BlockPos(4, feet[i], 5 - i);
-				for (int up = 0; up < (i < 4 ? 4 : 3); up++) {
-					h.assertTrue(h.getBlockState(step.above(up)).isAir(), "not dug " + up + " above step " + i);
-				}
-				h.assertTrue(h.getBlockState(step.below()).isSolid(), "no floor under step " + i);
-			}
-			h.assertTrue(h.getBlockState(new BlockPos(4, 4, 0)).is(Blocks.STONE), "dug past the landing");
-			h.assertTrue(MinerData.get(golem).mine() == null, "still holds a finished mine");
-			h.assertTrue(chest.countItem(Items.COBBLESTONE) > 0, "the load is not home");
-		});
+		digsToDone(h, MineLayout.STAIRS_DOWN, () -> {});
+	}
+
+	@GameTest(maxTicks = 12000, padding = 48)
+	public void miner_digs_stairs_up_to_done(GameTestHelper h) {
+		digsToDone(h, MineLayout.STAIRS_UP, () -> {});
+	}
+
+	/** A Dead End leaves no Open End: with it done, the mine is finished. */
+	@GameTest(maxTicks = 12000, padding = 48)
+	public void miner_digs_a_dead_end_to_done_and_finishes_the_mine(GameTestHelper h) {
+		digsToDone(h, MineLayout.DEAD_END, () -> h.assertTrue(mine(h, hillBeam(h)).isFinished(), "mine not finished"));
 	}
 
 	/** A broken frame closes the mine: the miner forgets it and goes home. It may then take a neighbouring test's mine. */
@@ -399,14 +420,16 @@ public class MinerGameTests {
 	@GameTest(maxTicks = 3600)
 	public void miner_digs_ore_vein_and_carries_on(GameTestHelper h) {
 		Scene s = scene(h, true, START);
-		// A nearly full pouch, so the trip home does not wait on how fast it digs: 64 items fill it, and it returns on its own.
-		Load.of(s.golem()).stash(new ItemStack(Items.COBBLESTONE, 56));
 		h.setBlock(WALL, Blocks.COAL_ORE);
-		h.succeedWhen(() -> {
-			h.assertTrue(h.getBlockState(WALL).isAir(), "ore not dug yet");
-			h.assertTrue(s.chest().countItem(Items.COAL) >= 1, "no coal in the chest yet");
-			h.assertTrue(progress(h, s) > TWO_SLICES, "plan did not carry on: " + progress(h, s));
-		});
+		h.startSequence()
+			.thenWaitUntil(() -> h.assertTrue(h.getBlockState(WALL).isAir(), "ore not dug yet"))
+			// A full pouch, so the trip home does not wait on how fast it digs.
+			.thenExecute(() -> Load.of(s.golem()).stash(new ItemStack(Items.COBBLESTONE, 64)))
+			.thenWaitUntil(() -> {
+				h.assertTrue(s.chest().countItem(Items.COAL) >= 1, "no coal in the chest yet");
+				h.assertTrue(progress(h, s) > TWO_SLICES, "plan did not carry on: " + progress(h, s));
+			})
+			.thenSucceed();
 	}
 
 	/** Padded, like the one below: without it, these two made the miner and repair tests next to them fail now and then. */

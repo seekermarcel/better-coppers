@@ -128,6 +128,9 @@ Put each file in `wiki/public/media/` under the name given here. Screenshots are
 - [ ] `jobs-miner-entrance.png` (screenshot): A Mine Entrance built into a hillside: two oak fence posts 2 high with 3 spruce planks across their tops, and the "Mine Entrance built" message above the hotbar
 - [ ] `jobs-miner-shaft.png` (screenshot): A finished Straight from inside, with plank beams on fence posts, a torch on the first beam and rails down the middle
 - [ ] `jobs-miner-stairs-down.png` (screenshot): A finished Stairs Down section seen from its top, 3 wide, with rails sloping down to the landing and a torch on the left wall
+- [ ] `jobs-miner-stairs-up.png` (screenshot): A finished Stairs Up section seen from its foot, with rails climbing to the landing and a torch on the left wall
+- [ ] `jobs-miner-crossing.png` (screenshot): A finished Crossing from its entry, with four plank pillars, a torch on one and tunnels leading ahead, left and right
+- [ ] `jobs-miner-small-hall.png` (screenshot): A finished Small Hall, 5 wide, with its two wide supports, two torches and side tunnels between the supports
 
 ## jobs/operator
 

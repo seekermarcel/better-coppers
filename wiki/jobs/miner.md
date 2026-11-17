@@ -61,7 +61,23 @@ The first section is not left to chance. If the block at head height in front of
 
 A first section that would reach past the [Mine Range or the Depth Floor](#settings) is not dug: the miner leaves that entrance alone and keeps looking.
 
-For now a mine stops after its first section. When it is done, the mine is finished, and the miner brings its load home and looks for the next open Mine Entrance.
+### The next sections
+
+Every section but a Dead End leaves one or more **Open Ends**: the block where the next section starts, and the way it faces. When its section is done, the miner takes the Open End nearest to it and rolls the next section there. The roll is random, but each Open End always rolls the same: it is seeded from the world seed, the entrance and the Open End.
+
+| Section | Weight | Above y 0 | Open Ends |
+|---|---|---|---|
+| [Straight](#straight) | 40 | 40 | 1 ahead |
+| [Corner](#corner), right or left | 8 + 8 | 8 + 8 | 1 to the side |
+| [Stairs Down](#stairs-down) | 12 | 24 | 1 ahead, 4 lower |
+| [Stairs Up](#stairs-up) | 6 | 3 | 1 ahead, 4 higher |
+| [Crossing](#crossing) | 10 | 10 | 3: ahead, left and right |
+| [Small Hall](#small-hall) | 5 | 5 | 3: ahead, left and right |
+| [Dead End](#dead-end) | 11 | 11 | none |
+
+Some kinds can't follow others: no Stairs Up right after Stairs Down or the other way round, no Corner right after a Corner, and never a Dead End on the mine's last Open End. The miner tries up to 3 of the rolled kinds, each picked by weight from those not tried yet. A section that would overlap a tunnel already saved, in this mine or another, or reach past the [Mine Range or the Depth Floor](#settings), is left out. If none of the 3 fits, that Open End is dropped.
+
+A mine is finished when no Open End is left and every section is done. The miner then brings its load home and looks for the next open Mine Entrance.
 
 ### Straight
 
@@ -117,6 +133,92 @@ The golem digs each step from the step above it, top block first. A torch hangs 
 
 <!-- MEDIA: jobs-miner-stairs-down.png | screenshot | A finished Stairs Down section seen from its top, 3 wide, with rails sloping down to the landing and a torch on the left wall -->
 
+### Stairs Up
+
+A flat slice, 4 steps up and a 3 high landing 4 blocks higher, 3 wide, no supports. Seen from the side through the middle column:
+
+```
+y+7 ########
+y+6 ####...#
+y+5 ###....#
+y+4 ##...==>
+y+3 #...=__#
+y+2 o..=_###
+y+1 o.=_####
+y+0 o=_#####
+y-1 #_######
+    -0123456  <- slice
+```
+
+From the step behind, a golem reaches only the two lower blocks of a step, so it digs each step in two passes: the two lower blocks from behind, then, standing on the new step, its third block and the head room of the step behind. A torch hangs on the left wall of slice 3.
+
+<!-- MEDIA: jobs-miner-stairs-up.png | screenshot | A finished Stairs Up section seen from its foot, with rails climbing to the landing and a torch on the left wall -->
+
+### Corner
+
+3 slices with the far wall left standing, open to the right or, mirrored, to the left. It has no support, because a support would block the turn. The rails curve by themselves.
+
+```
+y+2      y+1      y+0      y-1
+######   ######   ######   ######
+#...##   #...##   #...##   #___##
+#...##   #...##   #.==>#   #___##
+#...##   #...##   #.=.##   #___##
+#ooo##   #ooo##   #ooo##   ######
+```
+
+### Crossing
+
+5 by 5, shaped like a plus, with a plank pillar at each inner corner. It opens ahead, left and right. The rails run straight through, and a torch hangs on the right pillar of slice 1.
+
+```
+y+2         y+1         y+0         y-1
+#########   #########   #########   #########
+#########   #########   ####^####   #########
+###...###   ###...###   ###.=.###   ###___###
+##.P.P.##   ##.P.P.##   ##.P=P.##   ##_____##
+##.....##   ##.....##   #<..=..>#   ##_____##
+##.PTP.##   ##.P.P.##   ##.P=P.##   ##_____##
+###...###   ###...###   ###.=.###   ###___###
+###ooo###   ###ooo###   ###ooo###   #########
+```
+
+<!-- MEDIA: jobs-miner-crossing.png | screenshot | A finished Crossing from its entry, with four plank pillars, a torch on one and tunnels leading ahead, left and right -->
+
+### Small Hall
+
+5 wide, 7 long and 3 high, with wide supports at slices 1 and 5: a fence post on each side and a 5 wide plank beam. It opens ahead, left and right, between the supports. A torch hangs on each beam, facing into the hall.
+
+```
+y+2         y+1         y+0         y-1
+#########   #########   #########   #########
+#########   #########   ####^####   #########
+##.....##   ##.....##   ##..=..##   ##_____##
+##PPPPP##   ##F...F##   ##F.=.F##   ##_____##
+##..T..##   ##.....##   ##..=..##   ##_____##
+##.....##   ##.....##   #<..=..>#   ##_____##
+##..T..##   ##.....##   ##..=..##   ##_____##
+##PPPPP##   ##F...F##   ##F.=.F##   ##_____##
+##.....##   ##.....##   ##..=..##   ##_____##
+###ooo###   ###ooo###   ###ooo###   #########
+```
+
+<!-- MEDIA: jobs-miner-small-hall.png | screenshot | A finished Small Hall, 5 wide, with its two wide supports, two torches and side tunnels between the supports -->
+
+### Dead End
+
+4 slices with one support and a torch on the far face. It has no Open End and ends its branch on purpose, like the short dead ends of vanilla mineshafts.
+
+```
+y+2     y+1     y+0     y-1
+#####   #####   #####   #####
+#...#   #.T.#   #...#   #___#
+#PPP#   #F.F#   #F=F#   #___#
+#...#   #...#   #.=.#   #___#
+#...#   #...#   #.=.#   #___#
+#ooo#   #ooo#   #ooo#   #####
+```
+
 ### Supplies
 
 Before digging a support slice, the golem checks that it and its chest together hold its fences and planks. If the chest has enough, it fetches them. If not, it goes home and waits, looking again every 7 seconds. It takes supplies only when it goes home to restock. Rails are optional: with none in its supplies it skips them, and the section is still finished.
@@ -124,14 +226,19 @@ Before digging a support slice, the golem checks that it and its chest together 
 | Supply | Needed | Taken along per visit | Checked before digging |
 |---|---|---|---|
 | <Icon id="rail" /> Rails | 1 per slice | 1 per slice of the section | No, optional |
-| Wooden fences, any kind | 4 per support | Up to 16, none for Stairs Down | Yes, on support slices |
-| <Icon id="oak_planks" /> Planks, any kind | 3 per support, plus floors | Up to 32 | Yes, on support slices |
+| Wooden fences, any kind | 4 per support | Up to 16, none for sections without supports | Yes, on support slices |
+| <Icon id="oak_planks" /> Planks, any kind | 3 per support (5 in a Small Hall, 6 per pillar slice of a Crossing), plus floors | Up to 32 | Yes, on support and pillar slices |
 | Torches | 1 every 8 slices | Up to 16 | No |
 
 | Section | Rails | Fences | Planks for beams | Torches |
 |---|---|---|---|---|
 | Straight | 8 | 8 | 6 | 1 |
+| Corner | 3 | 0 | 0 | 0 |
+| Crossing | 5 | 0 | 12 | 1 |
+| Small Hall | 7 | 8 | 10 | 2 |
 | Stairs Down | 5 | 0 | 0 | 1 |
+| Stairs Up | 6 | 0 | 0 | 1 |
+| Dead End | 3 | 4 | 3 | 1 |
 
 Floors add up to 3 more planks or filler blocks per slice. If a building material is missing from both the golem and its chest, that one step is skipped for good and the golem carries on.
 
@@ -158,7 +265,7 @@ A miner can harvest diamond, gold, redstone and emerald ore with its copper pick
 | Situation | What the golem does |
 |---|---|
 | Water or lava in the block, or touching it | Plugs it with filler, 15 ticks each, then digs on. Skips fluids the golem itself stands in |
-| No filler at a fluid | Cuts the section short: what is dug stays, and the golem lays rails in the part already dug, then the section counts as done. It does not go home for filler |
+| No filler at a fluid | Cuts the section short: what is dug stays, and the golem lays rails in the part already dug, then the section counts as done. Nothing grows on from its Open Ends. It does not go home for filler |
 | No filler at a fluid beside a chased ore or fallen block | Skips only that block. The section carries on |
 | Gravel or sand fell into its last 32 digs | Clears it before anything else |
 | Walking without getting closer | Every 5 seconds, digs out the nearest block that fell into the finished tunnel |
@@ -175,7 +282,7 @@ Mined items go into a chained [Copper Chest Minecart](/items/copper_chest_mineca
 
 A miner far from home may ride a [minecart or boat](/golem/riding) for trips over 24 blocks, unless it is towing a cart.
 
-When the last step is done, it brings the rest home and looks for the next open Mine Entrance. Progress is saved with the mine, not on the golem, so a section half dug stays in the mine.
+When a section is done, it rolls the next one without going home. When the mine is finished, it brings the rest home and looks for the next open Mine Entrance. Progress is saved with the mine, not on the golem, so a section half dug stays in the mine.
 
 ### Diamond ore
 
@@ -228,7 +335,7 @@ Three game rules in the Better Coppers category set each world's limits. Change 
 |---|---|
 | Job item | `minecraft:copper_pickaxe` |
 | Saved mines | `data/bettercoppers/mines.dat` in each dimension |
-| Section kinds | `bettercoppers:straight`, `bettercoppers:stairs_down` |
+| Section kinds | `bettercoppers:straight`, `bettercoppers:corner`, `bettercoppers:crossing`, `bettercoppers:small_hall`, `bettercoppers:stairs_down`, `bettercoppers:stairs_up`, `bettercoppers:dead_end` |
 | Status name key | `job.bettercoppers.miner` |
 | Filler tag | `bettercoppers:filler` (block) |
 | Ore tag | `c:ores` (block) |

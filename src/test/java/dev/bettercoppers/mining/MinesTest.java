@@ -29,8 +29,8 @@ class MinesTest {
 		mines.register(new BlockPos(-7, 12, 40), Direction.Axis.Z);
 		Mines loaded = load(save(mines));
 		assertEquals(List.of(
-			new Mines.Mine(new BlockPos(10, 64, -3), Direction.Axis.X, Optional.empty(), List.of()),
-			new Mines.Mine(new BlockPos(-7, 12, 40), Direction.Axis.Z, Optional.empty(), List.of())), loaded.all());
+			new Mines.Mine(new BlockPos(10, 64, -3), Direction.Axis.X, Optional.empty(), List.of(), List.of()),
+			new Mines.Mine(new BlockPos(-7, 12, 40), Direction.Axis.Z, Optional.empty(), List.of(), List.of())), loaded.all());
 	}
 
 	@Test
@@ -42,19 +42,43 @@ class MinesTest {
 		mines.setProgress(mine, 0, 12, false);
 		Mines.Mine loaded = load(save(mines)).find(beam, Direction.Axis.X).orElseThrow();
 		assertEquals(Optional.of(Direction.SOUTH), loaded.facing());
-		assertEquals(List.of(new Mines.Section(MineLayout.STAIRS_DOWN, new Mines.OpenEnd(new BlockPos(3, 68, 4), Direction.SOUTH), false, -1, 12, false)), loaded.sections());
+		Mines.OpenEnd start = new Mines.OpenEnd(new BlockPos(3, 68, 4), Direction.SOUTH);
+		assertEquals(List.of(new Mines.Section(MineLayout.STAIRS_DOWN, start, false, -1, MineLayout.of(MineLayout.STAIRS_DOWN, start, false).box(), 12, false)), loaded.sections());
+		assertEquals(List.of(new Mines.OpenEnd(new BlockPos(3, 64, 9), Direction.SOUTH)), loaded.ends(), "the stairs' Open End");
 	}
 
 	@Test
-	void a_mine_is_finished_once_its_first_section_is_done() {
+	void a_mine_is_finished_with_no_open_ends_and_every_section_done() {
+		Mines.OpenEnd start = new Mines.OpenEnd(BlockPos.ZERO, Direction.EAST);
+		Mines.Section deadEnd = new Mines.Section(MineLayout.DEAD_END, start, false, -1, MineLayout.of(MineLayout.DEAD_END, start, false).box(), 0, false);
+		Mines.OpenEnd end = new Mines.OpenEnd(new BlockPos(9, 0, 0), Direction.EAST);
+		assertFalse(new Mines.Mine(BlockPos.ZERO, Direction.Axis.Z, Optional.empty(), List.of(), List.of()).isFinished(), "nothing dug yet");
+		assertFalse(new Mines.Mine(BlockPos.ZERO, Direction.Axis.Z, Optional.empty(), List.of(deadEnd), List.of()).isFinished(), "a section is not done");
+		assertFalse(new Mines.Mine(BlockPos.ZERO, Direction.Axis.Z, Optional.empty(), List.of(deadEnd.at(36, true)), List.of(end)).isFinished(), "an Open End is left");
+		assertTrue(new Mines.Mine(BlockPos.ZERO, Direction.Axis.Z, Optional.empty(), List.of(deadEnd.at(36, true)), List.of()).isFinished());
+	}
+
+	@Test
+	void an_open_end_rolls_the_same_section_every_time_and_knows_its_parent() {
 		Mines mines = new Mines();
 		mines.register(BlockPos.ZERO, Direction.Axis.Z);
-		Mines.Mine mine = mines.find(BlockPos.ZERO, Direction.Axis.Z).orElseThrow();
-		assertFalse(mine.isFinished(), "nothing dug yet");
-		mine = mines.start(mine, Direction.EAST, MineLayout.STRAIGHT);
-		assertFalse(mine.isFinished());
-		mines.setProgress(mine, 0, 100, true);
-		assertTrue(mines.find(BlockPos.ZERO, Direction.Axis.Z).orElseThrow().isFinished());
+		Mines.Mine mine = mines.start(mines.find(BlockPos.ZERO, Direction.Axis.Z).orElseThrow(), Direction.EAST, MineLayout.STRAIGHT);
+		Mines.OpenEnd end = mine.ends().getFirst();
+		assertEquals(0, mine.parentOf(end));
+		Mines.Section rolled = mines.roll(42L, new MineLimits(64, -59, 32), mine, end);
+		assertEquals(end, rolled.start());
+		assertEquals(0, rolled.parent());
+		assertEquals(rolled, mines.roll(42L, new MineLimits(64, -59, 32), mine, end));
+	}
+
+	@Test
+	void a_rolled_section_that_overlaps_a_tunnel_is_dropped() {
+		Mines mines = new Mines();
+		mines.register(BlockPos.ZERO, Direction.Axis.Z);
+		Mines.Mine mine = mines.start(mines.find(BlockPos.ZERO, Direction.Axis.Z).orElseThrow(), Direction.EAST, MineLayout.STRAIGHT);
+		// An Open End facing back into the Straight: every kind overlaps it.
+		Mines.OpenEnd back = new Mines.OpenEnd(new BlockPos(4, -2, 0), Direction.WEST);
+		assertEquals(null, mines.roll(42L, new MineLimits(64, -59, 32), mine, back));
 	}
 
 	@Test

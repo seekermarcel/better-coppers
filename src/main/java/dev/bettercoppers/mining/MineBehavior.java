@@ -58,9 +58,9 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Digs the Mine Section its mine is at, step by step: dig, lay floor, build supports, lay rails, hang torches. Mined
- * items go into the golem's pouch or its chained cart; when full (or out of supplies) it walks back to its home chest,
- * unloads, and restocks torches, wood and rails. Progress is saved with the section in {@link Mines}.
+ * Digs its mine section by section, rolling the next one at an Open End when the last is done. Each section goes step
+ * by step: dig, lay floor, build supports, lay rails, hang torches. Mined items go into the golem's pouch or its chained
+ * cart; when full (or out of supplies) it walks back to its home chest, unloads, and restocks torches, wood and rails. Progress is saved with the section in {@link Mines}.
  * <p>
  * Golems are not good at this: they dig slowly, sometimes stop to scratch their heads, and give up on blocks they
  * cannot reach. Water and lava are sealed off with filler blocks before they can flood the tunnel; with no filler the golem gives up
@@ -170,10 +170,10 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	}
 
 	private List<MineLayout.Step> steps(Mines.Section section) {
-		Mines.Section key = new Mines.Section(section.kind(), section.start(), section.mirrored(), section.parent(), 0, false);
+		Mines.Section key = section.at(0, false);
 		if (!key.equals(this.layoutSection)) {
 			this.layoutSection = key;
-			this.steps = MineLayout.build(section.kind(), section.start());
+			this.steps = MineLayout.build(section);
 			this.oreDigs.clear();
 			this.recentDigs.clear();
 			this.checkedNeeds = null;
@@ -242,6 +242,16 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		this.oreBudget = Eyes.radius(golem, ORE_BUDGET);
 
 		int index = mine.current();
+		if (index < 0) {
+			// Every section is done: roll the next one at the nearest Open End.
+			mine = Mines.get(level).grow(level, mine, golem.blockPosition());
+			index = mine.current();
+			if (index < 0) {
+				// The mine is finished (the next look finds another one), or no end is loaded: home.
+				this.startReturn(golem, true);
+				return false;
+			}
+		}
 		Mines.Section section = mine.sections().get(index);
 		if (section.progress() == 0 && this.leaveIfBroken(level, golem, data, mine)) {
 			return false;
@@ -278,9 +288,8 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			MineLayout.Step floor = this.floorFirst(level, golem, step);
 			return floor != null ? this.setWork(floor, true) : this.setWork(step, false);
 		}
-		// Section done. With no Open Ends saved yet that finishes the mine, and the next look finds another one.
+		// Section done: the next choice grows the mine.
 		Mines.get(level).setProgress(mine, index, steps.size(), true);
-		this.startReturn(golem, true);
 		return false;
 	}
 
@@ -631,6 +640,8 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		if (this.extraWork || mine == null || mine.current() < 0) {
 			this.unreachable.add(step.pos());
 		} else {
+			// shortcut: the cut-short section's Open Ends are only dropped; #42 puts up a Barrier at its last dug slice.
+			Mines.get((ServerLevel) golem.level()).dropEnds(mine, mine.current());
 			this.moveTo((ServerLevel) golem.level(), mine, mine.current(), step.resumeAt());
 		}
 	}
