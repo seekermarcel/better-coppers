@@ -137,7 +137,7 @@ The shape of mine a Mineshaft Plan describes, such as a mineshaft or a strip min
 _Avoid_: Mine mode, layout
 
 **Mine Section**:
-A stretch of a mine that is given up as one: a branch, a level's tunnel or a stretch of corridor.
+One piece a miner digs at a time, such as a crossing, a straight, a small hall, a corner, or stairs down or up. A mine grows section by section.
 
 **Survey Table**:
 The block that makes Mineshaft Plans.
