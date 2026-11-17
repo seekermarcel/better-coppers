@@ -372,7 +372,9 @@ Build it within 32 blocks of a copper chest, against a hillside if you can: the 
 Sneak + right-click it with a copper pickaxe, then link it to that copper chest. The other way round works just the same. It walks to the nearest open Mine Entrance within 32 blocks of its chest and starts digging. A plain click shows which mine it works in.
 
 # Mine Sections
-A mine grows one Mine Section at a time. The first one goes straight into the hill: 8 blocks long, with two supports and a torch. On flat ground the first section is Stairs Down instead: 4 steps down, each 4 high so you can walk them, and a landing 4 blocks lower. For now the mine stops after its first section, and the miner moves on to the next open Mine Entrance.
+A mine grows one Mine Section at a time. The first one goes straight into the hill: 8 blocks long, with two supports and a torch. On flat ground the first section is Stairs Down instead: 4 steps down, each 4 high so you can walk them, and a landing 4 blocks lower.
+
+After that the miner rolls each next section: a Straight, a Corner, a Crossing, a Small Hall, Stairs Down, Stairs Up or a Dead End. Crossings and halls branch off to the left and right, a Dead End ends its branch, and above y 0 the mine leans downwards. A section that would run into another tunnel is left out. It digs on until no branch is left open, then moves on to the next open Mine Entrance.
 
 # Supplies
 Supports take fences and planks: without them it doesn't dig on. Keep those and torches in its chest; it fetches them when it needs them. Without torches it digs on and leaves them out. Rails are optional: it lays them last, from the far end back, only if it carries some.
@@ -380,7 +382,7 @@ Supports take fences and planks: without them it doesn't dig on. Keep those and 
 # On the job
 It digs out ores touching what it digs and follows each vein for up to 16 ores, diamond, gold, redstone and emerald included. It plugs water and lava with filler it dug itself, such as cobblestone, stone or dirt, and walks home with up to 64 items. Link a sorter to the same chest to sort the loot.
 
-Out of filler at water or lava, it cuts that section short and still lays its rails in the part it dug.
+Out of filler at water or lava, it cuts that section short and still lays its rails in the part it dug. Nothing grows on from there.
 
 Breaking the entrance frame closes the mine: the miner goes home and looks for another entrance. Linking it to another chest makes it look again too.
 
@@ -406,7 +408,9 @@ Baue ihn höchstens 32 Blöcke von einer Kupfertruhe entfernt, am besten an eine
 Schleichen + Rechtsklick auf ihn mit einer Kupferspitzhacke, dann verbinde ihn mit dieser Kupfertruhe. Andersherum geht es genauso. Er geht zum nächsten offenen Mineneingang höchstens 32 Blöcke von seiner Truhe und fängt an zu graben. Ein einfacher Klick zeigt, in welcher Mine er arbeitet.
 
 # Minenabschnitte
-Eine Mine wächst Abschnitt für Abschnitt. Der erste führt gerade in den Berg: 8 Blöcke lang, mit zwei Stützen und einer Fackel. Auf flachem Boden ist der erste Abschnitt stattdessen eine Treppe nach unten: 4 Stufen, jede 4 hoch, sodass du sie begehen kannst, und ein Absatz 4 Blöcke tiefer. Vorerst endet die Mine nach ihrem ersten Abschnitt, und der Bergmann zieht zum nächsten offenen Mineneingang weiter.
+Eine Mine wächst Abschnitt für Abschnitt. Der erste führt gerade in den Berg: 8 Blöcke lang, mit zwei Stützen und einer Fackel. Auf flachem Boden ist der erste Abschnitt stattdessen eine Treppe nach unten: 4 Stufen, jede 4 hoch, sodass du sie begehen kannst, und ein Absatz 4 Blöcke tiefer.
+
+Danach würfelt der Bergmann jeden weiteren Abschnitt aus: eine Gerade, eine Kurve, eine Kreuzung, eine kleine Halle, eine Treppe nach unten oder nach oben oder eine Sackgasse. Kreuzungen und Hallen zweigen nach links und rechts ab, eine Sackgasse beendet ihren Zweig, und über y 0 führt die Mine eher nach unten. Ein Abschnitt, der in einen anderen Stollen liefe, fällt weg. Er gräbt weiter, bis kein Zweig mehr offen ist, und zieht dann zum nächsten offenen Mineneingang weiter.
 
 # Nachschub
 Stützen brauchen Zäune und Bretter: Ohne sie gräbt er nicht weiter. Lege sie und Fackeln in seine Truhe; er holt sie, wenn er sie braucht. Ohne Fackeln gräbt er weiter und lässt sie weg. Schienen sind freiwillig: Er legt sie zuletzt, vom hinteren Ende zurück, nur wenn er welche dabeihat.
@@ -414,7 +418,7 @@ Stützen brauchen Zäune und Bretter: Ohne sie gräbt er nicht weiter. Lege sie 
 # Bei der Arbeit
 Er baut Erze ab, die an das grenzen, was er gräbt, und folgt jeder Ader für bis zu 16 Erze, auch bei Diamant-, Gold-, Redstone- und Smaragderz. Wasser und Lava stopft er mit selbst gegrabenem Füllmaterial wie Bruchstein, Stein oder Erde zu und geht mit bis zu 64 Gegenständen nach Hause. Ein Sortierer an derselben Truhe sortiert die Beute.
 
-Ohne Füllmaterial an Wasser oder Lava bricht er diesen Abschnitt ab und legt im gegrabenen Teil noch seine Schienen.
+Ohne Füllmaterial an Wasser oder Lava bricht er diesen Abschnitt ab und legt im gegrabenen Teil noch seine Schienen. Von dort wächst nichts weiter.
 
 Zerstörst du den Rahmen des Eingangs, ist die Mine geschlossen: Der Bergmann geht nach Hause und sucht einen anderen Eingang. Verbindest du ihn mit einer anderen Truhe, sucht er ebenfalls neu.
 
