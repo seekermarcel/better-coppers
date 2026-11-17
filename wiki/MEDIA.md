@@ -127,6 +127,7 @@ Put each file in `wiki/public/media/` under the name given here. Screenshots are
 - [ ] `jobs-miner-setup.png` (screenshot): A Mine Entrance in a hillside with a copper chest next to it holding rails, fences, planks and torches, and a copper golem holding a copper pickaxe
 - [ ] `jobs-miner-entrance.png` (screenshot): A Mine Entrance built into a hillside: two oak fence posts 2 high with 3 spruce planks across their tops, and the "Mine Entrance built" message above the hotbar
 - [ ] `jobs-miner-shaft.png` (screenshot): A finished Straight from inside, with plank beams on fence posts, a torch on the first beam and rails down the middle
+- [ ] `jobs-miner-barrier.png` (screenshot): A Barrier at the end of a tunnel: three oak fence posts across it and an oak sign on the middle one reading "Blocked: Water", a lake glinting beyond
 - [ ] `jobs-miner-stairs-down.png` (screenshot): A finished Stairs Down section seen from its top, 3 wide, with rails sloping down to the landing and a torch on the left wall
 - [ ] `jobs-miner-stairs-up.png` (screenshot): A finished Stairs Up section seen from its foot, with rails climbing to the landing and a torch on the left wall
 - [ ] `jobs-miner-crossing.png` (screenshot): A finished Crossing from its entry, with four plank pillars, a torch on one and tunnels leading ahead, left and right

@@ -35,7 +35,9 @@ import net.minecraft.server.level.TicketType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.network.chat.Component;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -56,7 +58,12 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.StandingSignBlock;
 import net.minecraft.world.level.block.WallTorchBlock;
+import net.minecraft.world.level.block.entity.SignBlockEntity;
+import net.minecraft.world.level.block.entity.SignText;
+import net.minecraft.world.level.block.entity.SignTextSlot;
+import net.minecraft.world.level.block.state.properties.RotationSegment;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
@@ -75,9 +82,9 @@ import org.jspecify.annotations.Nullable;
  * <p>
  * Golems are not good at this: they dig slowly, sometimes stop to scratch their heads, and give up on blocks they
  * cannot reach. An ore it digs next to starts an Ore Vein: face-connected ores, up to 64 and 8 blocks (more with Eyes)
- * from the section, dug before the section goes on; outside the section it breaks only ore. Water and lava are sealed
- * off with filler blocks before they can flood the tunnel; with no filler the golem gives up that Mine Section and
- * carries on.
+ * from the section, dug before the section goes on; outside the section it breaks only ore. Water is sealed off with
+ * filler blocks before it can flood the tunnel. Lava, or water with no filler left, cuts the Mine Section short: a
+ * Barrier goes up at its last dug slice. Vein digging plugs lava too.
  * <p>
  * A broken entrance frame, noticed when a section starts and after unloading at home, closes the mine for this miner:
  * it goes home and looks for another.
@@ -374,8 +381,8 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			}
 			Predicate<ItemStack> material = this.materialFor(step.action());
 			if (material != null && Load.of(golem).find(material).isEmpty()) {
-				// Rails are optional: laid only if it carries some.
-				if (step.action() != MineLayout.Action.RAIL && this.homeHas(level, golem, material)) {
+				// Rails and signs are optional: laid only if it carries some.
+				if (step.action() != MineLayout.Action.RAIL && step.action() != MineLayout.Action.SIGN && this.homeHas(level, golem, material)) {
 					this.startReturn(golem, false);
 					return false;
 				}
@@ -576,22 +583,29 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		return switch (step.action()) {
 			case DIG -> state.isAir() || state.canBeReplaced() && state.getFluidState().isEmpty() || !this.canDig(level, golem, pos);
 			case FLOOR -> state.isFaceSturdy(level, pos, Direction.UP);
-			case FENCE -> state.is(BlockTags.WOODEN_FENCES) || !state.canBeReplaced();
+			// A rail in a Barrier's way is taken up; any other block there stays and takes the post's place.
+			case FENCE -> state.is(BlockTags.WOODEN_FENCES) || !state.canBeReplaced() && !state.is(BlockTags.RAILS);
 			case BEAM -> state.is(BlockTags.PLANKS) || !state.canBeReplaced();
 			case RAIL -> state.is(BlockTags.RAILS) || !state.canBeReplaced() || !Blocks.RAIL.defaultBlockState().canSurvive(level, pos);
 			// Already bright (daylight or a closer torch) means no torch needed. A torch 4 blocks off gives exactly 10, and
 			// the pillars of a hall stand that far apart: each of them still gets its own.
 			case TORCH -> !state.canBeReplaced() || level.getMaxLocalRawBrightness(pos) > 10;
+			case SIGN -> !state.canBeReplaced() || !Blocks.OAK_SIGN.defaultBlockState().canSurvive(level, pos);
 		};
 	}
 
 	/** Blocks the golem leaves alone: unbreakable ones, containers and anything its pickaxe cannot harvest, precious ores aside. */
 	private boolean canDig(ServerLevel level, CopperGolem golem, BlockPos pos) {
 		BlockState state = level.getBlockState(pos);
-		if (state.isAir() || state.getDestroySpeed(level, pos) < 0.0F || state.hasBlockEntity()) {
+		return canDig(state, state.getDestroySpeed(level, pos), golem.getMainHandItem());
+	}
+
+	/** {@code state}, as hard as {@code hardness}, is no air and a miner with {@code tool} may dig it. */
+	static boolean canDig(BlockState state, float hardness, ItemStack tool) {
+		if (state.isAir() || hardness < 0.0F || state.hasBlockEntity()) {
 			return false;
 		}
-		return !state.requiresCorrectToolForDrops() || golem.getMainHandItem().isCorrectToolForDrops(state) || isPreciousOre(state);
+		return !state.requiresCorrectToolForDrops() || tool.isCorrectToolForDrops(state) || isPreciousOre(state);
 	}
 
 	/** Too hard for a copper pickaxe by vanilla's rules, but miners are allowed to bring these home. */
@@ -864,23 +878,30 @@ public class MineBehavior extends Behavior<CopperGolem> {
 	 * Before opening a block, plugs any water or lava next to it. Returns false while it is still busy (or gave up).
 	 */
 	private boolean sealFluids(ServerLevel level, CopperGolem golem, MinerData data, BlockPos pos) {
-		if (!level.getFluidState(pos).isEmpty()) {
-			return this.plugOrFlee(level, golem, data, pos);
-		}
+		BlockPos fluid = level.getFluidState(pos).isEmpty() ? null : pos;
 		for (Direction direction : Direction.values()) {
 			BlockPos next = pos.relative(direction);
-			if (!level.getFluidState(next).isEmpty() && !golem.getBoundingBox().intersects(new AABB(next))) {
-				return this.plugOrFlee(level, golem, data, next);
+			if (fluid == null && !level.getFluidState(next).isEmpty() && !golem.getBoundingBox().intersects(new AABB(next))) {
+				fluid = next;
 			}
 		}
-		return true;
+		if (fluid == null) {
+			return true;
+		}
+		BlockedReason reason = level.getFluidState(fluid).is(FluidTags.LAVA) ? BlockedReason.LAVA : BlockedReason.WATER;
+		if (reason == BlockedReason.LAVA && !this.extraWork) {
+			// The check found none, so it came later: the section stops here.
+			this.giveUp(golem, data, reason);
+			return false;
+		}
+		return this.plugOrFlee(level, golem, data, fluid, reason);
 	}
 
-	private boolean plugOrFlee(ServerLevel level, CopperGolem golem, MinerData data, BlockPos pos) {
+	private boolean plugOrFlee(ServerLevel level, CopperGolem golem, MinerData data, BlockPos pos, BlockedReason reason) {
 		ItemStack filler = Load.of(golem).takeOne(MineBehavior::isFiller);
 		if (filler.isEmpty()) {
 			// Nothing to plug the hole with: too dangerous, so this bit stays undug and the golem carries on.
-			this.giveUp(golem, data);
+			this.giveUp(golem, data, reason);
 			return false;
 		}
 		this.placeBlock(level, golem, pos, ((BlockItem) filler.getItem()).getBlock().defaultBlockState());
@@ -889,8 +910,11 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		return false;
 	}
 
-	/** Extra work gives up only itself; a step of the section cuts the section short, and its rails still go down. */
-	private void giveUp(CopperGolem golem, MinerData data) {
+	/**
+	 * Extra work gives up only itself; a step of the section cuts the section short for {@code reason}, its rails still
+	 * go down, and then it builds the Barrier.
+	 */
+	private void giveUp(CopperGolem golem, MinerData data, BlockedReason reason) {
 		MineLayout.Step step = this.work;
 		this.work = null;
 		golem.setState(CopperGolemState.IDLE);
@@ -899,8 +923,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		if (this.extraWork || index < 0) {
 			this.unreachable.add(step.pos());
 		} else {
-			// shortcut: the cut-short section's Open Ends are only dropped; #42 puts up a Barrier at its last dug slice.
-			Mines.get((ServerLevel) golem.level()).dropEnds(mine, index);
+			Mines.get((ServerLevel) golem.level()).cutShort(mine, index, step, reason);
 			this.moveTo((ServerLevel) golem.level(), mine, index, step.resumeAt());
 		}
 	}
@@ -910,6 +933,17 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		if (step.action() == MineLayout.Action.TORCH) {
 			this.placeTorch(level, golem, pos, step.facing());
 			return;
+		}
+		if (step.action() == MineLayout.Action.SIGN) {
+			this.placeSign(level, golem, pos, step.facing());
+			return;
+		}
+		if (step.action() == MineLayout.Action.FENCE && level.getBlockState(pos).is(BlockTags.RAILS)) {
+			if (Load.of(golem).find(this.materialFor(MineLayout.Action.FENCE)).isEmpty()) {
+				return;
+			}
+			Load.of(golem).addSupplies(new ItemStack(level.getBlockState(pos).getBlock()));
+			level.removeBlock(pos, false);
 		}
 		Predicate<ItemStack> material = this.materialFor(step.action());
 		ItemStack item = material == null ? ItemStack.EMPTY : Load.of(golem).takeOne(material);
@@ -942,6 +976,29 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		}
 	}
 
+	/** The Barrier's sign: "Blocked:" and the reason, on both sides, read from the section it belongs to. */
+	private void placeSign(ServerLevel level, CopperGolem golem, BlockPos pos, Direction facing) {
+		Mines.Mine mine = mine(golem);
+		int index = claimed(golem, mine);
+		if (index < 0) {
+			return;
+		}
+		ItemStack sign = Load.of(golem).takeOne(this.materialFor(MineLayout.Action.SIGN));
+		if (!(sign.getItem() instanceof BlockItem item) || !(item.getBlock() instanceof StandingSignBlock)) {
+			return;
+		}
+		BlockedReason reason = mine.sections().get(index).reason().orElse(BlockedReason.PLAYER);
+		this.placeBlock(level, golem, pos, item.getBlock().defaultBlockState().setValue(StandingSignBlock.ROTATION, RotationSegment.convertToSegment(facing)));
+		if (level.getBlockEntity(pos) instanceof SignBlockEntity entity) {
+			SignText text = SignText.EMPTY.asMutable()
+				.setLine(1, Component.translatable("mine.bettercoppers.blocked"))
+				.setLine(2, reason.text())
+				.asImmutable();
+			entity.setText(text, SignTextSlot.FRONT);
+			entity.setText(text, SignTextSlot.BACK);
+		}
+	}
+
 	private void placeBlock(ServerLevel level, CopperGolem golem, BlockPos pos, BlockState state) {
 		BlockState placed = Block.updateFromNeighbourShapes(state, level, pos);
 		level.setBlockAndUpdate(pos, placed);
@@ -961,6 +1018,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 			case BEAM -> stack -> stack.is(ItemTags.PLANKS);
 			case RAIL -> stack -> stack.is(Items.RAIL);
 			case TORCH -> stack -> stack.is(Items.TORCH);
+			case SIGN -> stack -> stack.is(ItemTags.SIGNS);
 		};
 	}
 
@@ -1056,7 +1114,10 @@ public class MineBehavior extends Behavior<CopperGolem> {
 		// Rails stay in the pouch until the digging is done, so it takes one for every rail of the section.
 		this.restockOne(load, chest, stack -> stack.is(Items.RAIL), (int) steps.stream().filter(step -> step.action() == MineLayout.Action.RAIL).count());
 		this.restockOne(load, chest, stack -> stack.is(ItemTags.PLANKS), 32);
-		this.restockOne(load, chest, stack -> stack.is(ItemTags.WOODEN_FENCES), steps.stream().anyMatch(step -> step.needs().fences() > 0) ? 16 : 0);
+		this.restockOne(load, chest, stack -> stack.is(ItemTags.WOODEN_FENCES),
+			steps.stream().anyMatch(step -> step.needs().fences() > 0 || step.action() == MineLayout.Action.FENCE) ? 16 : 0);
+		// One sign along, for a Barrier.
+		this.restockOne(load, chest, stack -> stack.is(ItemTags.SIGNS), 1);
 	}
 
 	/** Whether the golem carries (plus {@code chest}, if given, holds) {@code needs}. */
@@ -1090,7 +1151,7 @@ public class MineBehavior extends Behavior<CopperGolem> {
 
 	/** What a miner takes along from its home chest; sorting golems leave these there. */
 	public static boolean isSupply(ItemStack stack) {
-		return stack.is(Items.TORCH) || stack.is(Items.RAIL) || stack.is(ItemTags.PLANKS) || stack.is(ItemTags.WOODEN_FENCES);
+		return stack.is(Items.TORCH) || stack.is(Items.RAIL) || stack.is(ItemTags.PLANKS) || stack.is(ItemTags.WOODEN_FENCES) || stack.is(ItemTags.SIGNS);
 	}
 
 	// --- movement ---

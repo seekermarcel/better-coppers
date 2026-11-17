@@ -33,6 +33,8 @@ public final class MineLayout {
 	public static final Identifier DEAD_END = BetterCoppers.id("dead_end");
 	/** Every built-in Section Kind. */
 	public static final List<Identifier> KINDS = List.of(STRAIGHT, CORNER, CROSSING, SMALL_HALL, STAIRS_DOWN, STAIRS_UP, DEAD_END);
+	/** The fences across a Closed End, in the parent's last slice. Never rolled. */
+	public static final Identifier BARRIER = BetterCoppers.id("barrier");
 
 	public enum Action {
 		/** Dig out the block. */
@@ -42,7 +44,9 @@ public final class MineLayout {
 		FENCE,
 		BEAM,
 		RAIL,
-		TORCH
+		TORCH,
+		/** A Barrier's sign, if the golem carries one. */
+		SIGN
 	}
 
 	/**
@@ -115,6 +119,7 @@ public final class MineLayout {
 			case "stairs_down" -> layout.stairsDown();
 			case "stairs_up" -> layout.stairsUp();
 			case "dead_end" -> layout.deadEnd();
+			case "barrier" -> layout.barrier();
 			default -> throw new IllegalArgumentException("unknown Mine Section kind " + kind);
 		}
 		return layout;
@@ -232,6 +237,23 @@ public final class MineLayout {
 		}
 		this.place(Action.TORCH, 3, 0, 1, this.forward.getOpposite());
 		this.withRails(3, i -> 0);
+	}
+
+	/**
+	 * Three fence posts across the parent's last slice at feet height, the middle one last, with a sign on it facing the
+	 * tunnel. At the entrance the frame's posts stand where the outer two go. Built from the slice behind.
+	 */
+	private void barrier() {
+		this.stand = this.cell(-2, 0, 0);
+		for (int side : new int[] {-1, 1, 0}) {
+			this.add(Action.FENCE, this.cell(-1, side, 0));
+		}
+		this.add(Action.SIGN, this.cell(-1, 0, 1), this.forward.getOpposite());
+	}
+
+	/** The middle fence of a Barrier closing {@code end}: where a player closes or opens it. */
+	public static BlockPos middleFence(Mines.OpenEnd end) {
+		return end.pos().relative(end.facing().getOpposite());
 	}
 
 	/**
