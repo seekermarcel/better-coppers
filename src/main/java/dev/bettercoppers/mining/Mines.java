@@ -89,9 +89,9 @@ public final class Mines extends SavedData {
 			return new Section(this.kind, this.start, this.mirrored, parent, this.box, this.progress, this.done, this.reason);
 		}
 
-		/** The Open Ends this section leaves. */
+		/** The Open Ends this section leaves; none for a kind whose add-on was removed, whose saved ends still count. */
 		public List<OpenEnd> openEnds() {
-			return MineLayout.of(this.kind, this.start, this.mirrored).openEnds();
+			return MineSections.isKnown(this.kind) ? MineLayout.of(this.kind, this.start, this.mirrored).openEnds() : List.of();
 		}
 	}
 
@@ -289,7 +289,8 @@ public final class Mines extends SavedData {
 				sections.remove(index);
 				List<OpenEnd> ends = new ArrayList<>(mine.ends());
 				int parent = barrier.parent();
-				if (parent < 0 || sections.get(parent).openEnds().contains(barrier.start())) {
+				// A section of a removed add-on can't be dug on: its end opens again instead.
+				if (parent < 0 || !MineSections.isKnown(sections.get(parent).kind()) || sections.get(parent).openEnds().contains(barrier.start())) {
 					ends.add(barrier.start());
 				} else {
 					sections.set(parent, sections.get(parent).at(0, false));
@@ -562,8 +563,13 @@ public final class Mines extends SavedData {
 		}
 		return Stored.CODEC.parse(migrate(data, format))
 			.resultOrPartial(error -> BetterCoppers.LOGGER.error("bettercoppers_mines: {}", error))
-			.map(stored -> new Mines(stored.mines(), null))
+			.map(stored -> new Mines(stored.mines().stream().map(Mines::withoutUnknownKinds).toList(), null))
 			.orElseGet(Mines::new);
+	}
+
+	/** A section of a kind nobody registered (its add-on was removed) is kept as saved, but done: nothing can dig it. */
+	private static Mine withoutUnknownKinds(Mine mine) {
+		return mine.with(mine.sections().stream().map(section -> MineSections.isKnown(section.kind()) ? section : section.at(section.progress(), true)).toList(), mine.ends());
 	}
 
 	/** Brings older data up to {@link #FORMAT}, one format at a time. There is no older format yet. */

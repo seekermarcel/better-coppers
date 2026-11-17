@@ -77,6 +77,8 @@ Every section but a Dead End leaves one or more **Open Ends**: the block where t
 
 Some kinds can't follow others: no Stairs Up right after Stairs Down or the other way round, no Corner right after a Corner, and never a Dead End on the mine's last Open End. The miner tries up to 3 of the rolled kinds, each picked by weight from those not tried yet. A kind that is [Blocked](#barriers) is left out. If none of the 3 fits, the miner closes that Open End with a [Barrier](#barriers). All of this happens in one tick.
 
+Add-ons can register more level sections ([Add-on API](/reference/api#mine-sections)). They are rolled next to these with their own weights and follow rules, but never on the mine's last Open End if they have none, and the same Barrier checks apply. If the add-on is removed later, its sections stay in the mine as they are, and their Open Ends can still grow.
+
 A mine is finished when no Open End is left and every section is done. The miner then brings its load home and looks for the next open Mine Entrance.
 
 ### Several miners

@@ -21,27 +21,24 @@ public final class SectionRoll {
 	}
 
 	/**
-	 * The candidates for an Open End of a {@code parent} section (null for the entrance). Stairs never undo the stairs
-	 * before them, a Corner never follows a Corner, and the mine's {@code lastEnd} never gets a kind without Open Ends.
-	 * Above y 0 ({@code high}) the mine leans down.
+	 * The candidates for an Open End of a {@code parent} section (null for the entrance), from {@link MineSections}: each
+	 * kind its own follow rules allow (stairs never undo the stairs before them, a Corner never follows a Corner), a
+	 * mirrorable kind twice, and the mine's {@code lastEnd} never gets a kind without Open Ends. Above y 0 ({@code high})
+	 * the mine leans down.
 	 */
 	public static List<Candidate> candidates(@Nullable Identifier parent, boolean lastEnd, boolean high) {
-		List<Candidate> all = List.of(
-			new Candidate(MineLayout.STRAIGHT, false, 40),
-			new Candidate(MineLayout.CORNER, false, 8),
-			new Candidate(MineLayout.CORNER, true, 8),
-			new Candidate(MineLayout.STAIRS_DOWN, false, high ? 24 : 12),
-			new Candidate(MineLayout.STAIRS_UP, false, high ? 3 : 6),
-			new Candidate(MineLayout.CROSSING, false, 10),
-			new Candidate(MineLayout.SMALL_HALL, false, 5),
-			new Candidate(MineLayout.DEAD_END, false, 11));
-		return all.stream().filter(candidate -> mayFollow(candidate.kind(), parent) && !(lastEnd && isDeadEnd(candidate.kind()))).toList();
-	}
-
-	private static boolean mayFollow(Identifier kind, @Nullable Identifier parent) {
-		return !(kind.equals(MineLayout.STAIRS_UP) && MineLayout.STAIRS_DOWN.equals(parent))
-			&& !(kind.equals(MineLayout.STAIRS_DOWN) && MineLayout.STAIRS_UP.equals(parent))
-			&& !(kind.equals(MineLayout.CORNER) && MineLayout.CORNER.equals(parent));
+		List<Candidate> candidates = new ArrayList<>();
+		for (MineSections.Kind kind : MineSections.all()) {
+			if (!kind.mayFollow().test(parent) || lastEnd && isDeadEnd(kind.id())) {
+				continue;
+			}
+			int weight = high ? kind.highWeight() : kind.weight();
+			candidates.add(new Candidate(kind.id(), false, weight));
+			if (kind.template() != null && kind.template().mirrorable()) {
+				candidates.add(new Candidate(kind.id(), true, weight));
+			}
+		}
+		return candidates;
 	}
 
 	private static boolean isDeadEnd(Identifier kind) {

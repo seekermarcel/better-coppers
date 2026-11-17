@@ -242,23 +242,29 @@ public class MinerGameTests {
 			.thenWaitUntil(() -> {
 				Mines.Section first = firstSection(h, beam);
 				h.assertValueEqual(first.kind(), kind, "first section");
-				h.assertTrue(first.done(), "section not done, progress " + first.progress());
-				for (MineLayout.Step step : MineLayout.build(first)) {
-					var state = level.getBlockState(step.pos());
-					boolean placed = switch (step.action()) {
-						case DIG -> !state.is(Blocks.STONE);
-						case FLOOR -> state.isFaceSturdy(level, step.pos(), Direction.UP);
-						case FENCE -> state.is(BlockTags.WOODEN_FENCES);
-						case BEAM -> state.is(BlockTags.PLANKS);
-						case RAIL -> state.is(BlockTags.RAILS);
-						// Skipped where the opening already lights it.
-						case TORCH, SIGN -> true;
-					};
-					h.assertTrue(placed, step.action() + " missing at " + h.relativePos(step.pos()));
-				}
+				assertDug(h, first);
 			})
 			.thenWaitUntil(after)
 			.thenSucceed();
+	}
+
+	/** {@code section} is done and every step of it is in place. */
+	private static void assertDug(GameTestHelper h, Mines.Section section) {
+		ServerLevel level = h.getLevel();
+		h.assertTrue(section.done(), "section not done, progress " + section.progress());
+		for (MineLayout.Step step : MineLayout.build(section)) {
+			var state = level.getBlockState(step.pos());
+			boolean placed = switch (step.action()) {
+				case DIG -> !state.is(Blocks.STONE);
+				case FLOOR -> state.isFaceSturdy(level, step.pos(), Direction.UP);
+				case FENCE -> state.is(BlockTags.WOODEN_FENCES);
+				case BEAM -> state.is(BlockTags.PLANKS);
+				case RAIL -> state.is(BlockTags.RAILS);
+				// Skipped where the opening already lights it.
+				case TORCH, SIGN -> true;
+			};
+			h.assertTrue(placed, step.action() + " missing at " + h.relativePos(step.pos()));
+		}
 	}
 
 	private static final BlockPos HILL_HOME = new BlockPos(1, 6, 13);
@@ -369,6 +375,26 @@ public class MinerGameTests {
 	@GameTest(maxTicks = 12000, padding = 48)
 	public void miner_digs_stairs_up_to_done(GameTestHelper h) {
 		digsToDone(h, MineLayout.STAIRS_UP, () -> {});
+	}
+
+	/** An add-on's L-shaped room ({@link TestMineSections}) is rolled at the end of the first section and dug like a built-in. */
+	@GameTest(maxTicks = 15000, padding = 48)
+	public void miner_rolls_and_digs_an_add_on_section(GameTestHelper h) {
+		BlockPos beam = hill(h, TestMineSections.LEAD);
+		CopperGolem golem = miner(h, new BlockPos(5, 6, 12), HILL_HOME);
+		Load load = Load.of(golem);
+		load.addSupplies(new ItemStack(Items.RAIL, 16));
+		load.addSupplies(new ItemStack(Items.OAK_PLANKS, 32));
+		load.addSupplies(new ItemStack(Items.OAK_FENCE, 16));
+		load.addSupplies(new ItemStack(Items.TORCH, 16));
+		h.startSequence()
+			.thenWaitUntil(() -> {
+				List<Mines.Section> sections = mine(h, beam).sections();
+				h.assertTrue(sections.size() >= 2, "nothing rolled after the first section");
+				h.assertValueEqual(sections.get(1).kind(), TestMineSections.L_ROOM, "rolled section");
+				assertDug(h, sections.get(1));
+			})
+			.thenSucceed();
 	}
 
 	/** A Dead End leaves no Open End: with it done, the mine is finished. */

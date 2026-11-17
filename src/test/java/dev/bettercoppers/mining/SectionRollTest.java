@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.bettercoppers.api.BetterCoppersApi;
+import dev.bettercoppers.api.MineSectionTemplate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +58,33 @@ class SectionRollTest {
 		assertTrue(kinds(SectionRoll.candidates(MineLayout.STRAIGHT, false, false)).contains(MineLayout.DEAD_END));
 		assertFalse(kinds(SectionRoll.candidates(MineLayout.STRAIGHT, true, false)).contains(MineLayout.DEAD_END), "the last Open End never gets a Dead End");
 		assertTrue(kinds(SectionRoll.candidates(MineLayout.STRAIGHT, true, false)).contains(MineLayout.CROSSING));
+	}
+
+	private static Identifier testId(String path) {
+		return Identifier.fromNamespaceAndPath("bettercoppers_test", path);
+	}
+
+	@Test
+	void anAddOnKindIsACandidateAfterTheParentsItMayFollow() {
+		Identifier lead = testId("roll_lead");
+		Identifier room = testId("roll_room");
+		BetterCoppersApi.registerMineSection(room, 7, MineSectionTemplate.builder().columns(0, 2, -1, 1).openEnd(3, 0, MineSectionTemplate.Turn.AHEAD).mirrorable().build(),
+			parent -> parent.equals(lead));
+		Map<String, Integer> weights = weights(SectionRoll.candidates(lead, false, true));
+		assertEquals(7, weights.get("roll_room"), "no depth bias");
+		assertEquals(7, weights.get("roll_room_left"), "the mirror image is a candidate of its own");
+		assertEquals(40, weights.get("straight"));
+		assertFalse(kinds(SectionRoll.candidates(MineLayout.STRAIGHT, false, false)).contains(room));
+		assertFalse(kinds(SectionRoll.candidates(null, false, false)).contains(room), "not rolled at the entrance");
+	}
+
+	@Test
+	void anAddOnKindWithoutOpenEndsNeverEndsTheMine() {
+		Identifier lead = testId("closed_lead");
+		Identifier closet = testId("closet");
+		BetterCoppersApi.registerMineSection(closet, 3, MineSectionTemplate.builder().columns(0, 1, -1, 1).build(), parent -> parent.equals(lead));
+		assertTrue(kinds(SectionRoll.candidates(lead, false, false)).contains(closet));
+		assertFalse(kinds(SectionRoll.candidates(lead, true, false)).contains(closet));
 	}
 
 	@Test

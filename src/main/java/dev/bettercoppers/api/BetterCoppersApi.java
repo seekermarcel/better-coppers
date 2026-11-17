@@ -7,6 +7,7 @@ import dev.bettercoppers.home.HomeDisplay;
 import dev.bettercoppers.guide.Guide;
 import dev.bettercoppers.job.JobHandover;
 import dev.bettercoppers.job.Jobs;
+import dev.bettercoppers.mining.MineSections;
 import dev.bettercoppers.runningcosts.RunningCosts;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +37,7 @@ import org.jspecify.annotations.Nullable;
  * <li>{@link #registerLinkTarget}: blocks golems can be linked to.</li>
  * <li>{@link #registerUpgrade}: upgrades that change speed, rusting or how much a golem carries.</li>
  * <li>{@link #registerChargingSpot}: blocks golems recharge on.</li>
+ * <li>{@link #registerMineSection}: level Mine Sections miners roll (see {@link MineSectionTemplate}).</li>
  * <li>{@link #registerHandbookChapter}: chapters for the Golem Handbook; {@link #awardGuide} unlocks guide
  * advancements.</li>
  * <li>{@link #CREATIVE_TAB}: the mod's creative tab. Add items with
@@ -81,6 +83,30 @@ public final class BetterCoppersApi {
 	/** The same, for every player within sight of something a golem or machine did. */
 	public static void awardGuideNearby(ServerLevel level, Vec3 pos, Identifier advancement) {
 		Guide.awardNearby(level, pos, advancement);
+	}
+
+	/** {@link #registerMineSection(Identifier, int, MineSectionTemplate, Predicate)} that may follow any section. */
+	public static void registerMineSection(Identifier kind, int weight, MineSectionTemplate template) {
+		registerMineSection(kind, weight, template, parent -> true);
+	}
+
+	/**
+	 * A level Mine Section miners roll next to the built-ins. {@code kind} is saved with every section of it, so register
+	 * a new id instead of reshaping a published kind. {@code weight} is on the scale where the built-ins sum to 100, per
+	 * mirror image of a mirrorable template. {@code mayFollow} takes the parent section's kind; it is not asked at the
+	 * entrance, where add-on kinds are never rolled. The built-in follow rules don't apply, except that the mine's last
+	 * Open End never gets a kind without Open Ends, and the blocked checks apply unchanged. The name comes from the
+	 * translation key {@code mine_section.<namespace>.<path>}. Throws {@link IllegalArgumentException} for the
+	 * {@code bettercoppers} namespace, an id already registered or a weight below 1.
+	 */
+	public static void registerMineSection(Identifier kind, int weight, MineSectionTemplate template, Predicate<Identifier> mayFollow) {
+		if (kind.getNamespace().equals("bettercoppers")) {
+			throw new IllegalArgumentException("Mine Section kind " + kind + " must use the add-on's own namespace");
+		}
+		if (weight < 1) {
+			throw new IllegalArgumentException("Mine Section kind " + kind + " needs a weight of at least 1, not " + weight);
+		}
+		MineSections.register(new MineSections.Kind(kind, weight, weight, template, parent -> parent != null && mayFollow.test(parent)));
 	}
 
 	public static void registerJob(GolemJob job) {

@@ -1,8 +1,10 @@
 package dev.bettercoppers.mining;
 
 import dev.bettercoppers.BetterCoppers;
+import dev.bettercoppers.api.MineSectionTemplate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -71,17 +73,13 @@ public final class MineLayout {
 	/** Supplies to carry before digging; rails are optional and never needed. Digs that are checked together share one instance. */
 	public record Needs(int fences, int planks) {
 		public static final Needs NONE = new Needs(0, 0);
-		private static final Needs SUPPORT = new Needs(4, 3);
 	}
 
-	private static final int STRAIGHT_LENGTH = 8;
-	private static final int SUPPORT_SPACING = 4;
 	/** Clear blocks on each step: a player needs this much to jump up one. */
 	private static final int STAIR_HEIGHT = 4;
 	private static final int STAIR_STEPS = 4;
 	/** Dig order of a slice's columns: middle first, then outwards, left before right. */
 	private static final int[] NARROW = {0, -1, 1};
-	private static final int[] WIDE = {0, -1, 1, -2, 2};
 
 	private final BlockPos start;
 	private final Direction forward;
@@ -107,20 +105,18 @@ public final class MineLayout {
 
 	/** The layout of a section of {@code kind} growing from {@code start}. */
 	public static MineLayout of(Identifier kind, Mines.OpenEnd start, boolean mirrored) {
-		if (!kind.getNamespace().equals(BetterCoppers.MOD_ID)) {
-			throw new IllegalArgumentException("unknown Mine Section kind " + kind);
-		}
 		MineLayout layout = new MineLayout(start, mirrored);
-		switch (kind.getPath()) {
-			case "straight" -> layout.straight();
-			case "corner" -> layout.corner();
-			case "crossing" -> layout.crossing();
-			case "small_hall" -> layout.smallHall();
-			case "stairs_down" -> layout.stairsDown();
-			case "stairs_up" -> layout.stairsUp();
-			case "dead_end" -> layout.deadEnd();
-			case "barrier" -> layout.barrier();
-			default -> throw new IllegalArgumentException("unknown Mine Section kind " + kind);
+		MineSections.Kind registered = MineSections.get(kind);
+		if (kind.equals(BARRIER)) {
+			layout.barrier();
+		} else if (kind.equals(STAIRS_DOWN)) {
+			layout.stairsDown();
+		} else if (kind.equals(STAIRS_UP)) {
+			layout.stairsUp();
+		} else if (registered != null && registered.template() != null) {
+			layout.level(registered.template());
+		} else {
+			throw new IllegalArgumentException("unknown Mine Section kind " + kind);
 		}
 		return layout;
 	}
@@ -149,94 +145,103 @@ public final class MineLayout {
 	}
 
 	/**
-	 * Like the vanilla abandoned ones: 3 wide, 3 high, plank floor where there is none, and supports of two fence posts
-	 * carrying a plank beam at slices 2 and 6, with a torch hung on the first beam. Rails come last.
+	 * A level section from its template, slice by slice: dig it, then put up its supports, the pillars of the slice
+	 * behind (before, they would cut its outer columns off) and the torches that now have something to hang on. Rails
+	 * come last, from the far end back.
 	 */
-	private void straight() {
-		for (int i = 0; i < STRAIGHT_LENGTH; i++) {
-			this.needs = isSupportSlice(i) ? Needs.SUPPORT : Needs.NONE;
-			this.digSlice(i, NARROW);
-			if (isSupportSlice(i)) {
-				this.support(i, 1);
+	private void level(MineSectionTemplate template) {
+		Set<MineSectionTemplate.Cell> columns = template.columns();
+		int last = columns.stream().mapToInt(MineSectionTemplate.Cell::f).max().orElseThrow();
+		List<Torch> torches = template.torches().stream().map(torch -> this.hang(template, torch)).toList();
+		for (int i = 0; i <= last; i++) {
+			int slice = i;
+			int fences = 0;
+			int planks = 0;
+			for (MineSectionTemplate.Support support : template.supports()) {
+				if (support.f() == i) {
+					fences += 4;
+					planks += support.toSide() - support.fromSide() + 1;
+				}
 			}
-			// Hangs on the far side of the previous beam, so it needs this slice dug out first.
-			if (i % (SUPPORT_SPACING * 2) == 3) {
-				this.place(Action.TORCH, i, 0, 2, this.forward);
+			planks += 3 * (int) template.pillars().stream().filter(pillar -> pillar.f() == slice).count();
+			this.needs = fences + planks > 0 ? new Needs(fences, planks) : Needs.NONE;
+			this.digSlice(i, columns.stream().filter(cell -> cell.f() == slice).mapToInt(MineSectionTemplate.Cell::side).boxed()
+				.sorted(Comparator.comparingInt((Integer side) -> Math.abs(side)).thenComparingInt(side -> side)).mapToInt(side -> side).toArray());
+			for (MineSectionTemplate.Support support : template.supports()) {
+				if (support.f() == i) {
+					this.support(i, support.fromSide(), support.toSide());
+				}
 			}
-		}
-		this.openEnd(STRAIGHT_LENGTH, 0, 0, this.forward);
-		this.withRails(STRAIGHT_LENGTH, i -> 0);
-	}
-
-	/** Three slices with the far wall left standing, open to the right. No support: it would block the turn. */
-	private void corner() {
-		for (int i = 0; i < 3; i++) {
-			this.digSlice(i, NARROW);
-		}
-		this.openEnd(1, 2, 0, this.right);
-		// The rails curve by themselves.
-		this.withRails(List.of(new int[] {1, 1}, new int[] {1, 0}, new int[] {0, 0}), i -> 0);
-	}
-
-	/** Five by five, a plus, with a plank pillar at each inner corner. Open ahead, left and right. */
-	private void crossing() {
-		int[][] slices = {NARROW, WIDE, WIDE, WIDE, NARROW};
-		for (int i = 0; i < slices.length; i++) {
-			this.needs = i == 1 || i == 3 ? new Needs(0, 6) : Needs.NONE;
-			this.digSlice(i, slices[i]);
-			// A slice's pillars go up once the next slice is open: before, they would cut its outer columns off.
-			if (i == 2 || i == 4) {
-				for (int side : new int[] {-1, 1}) {
+			for (MineSectionTemplate.Cell pillar : template.pillars()) {
+				if (pillarSlice(template, pillar) == i) {
 					for (int up = 0; up < 3; up++) {
-						this.place(Action.BEAM, i - 1, side, up, Direction.UP);
+						this.place(Action.BEAM, pillar.f(), pillar.side(), up, Direction.UP);
 					}
 				}
 			}
-			if (i == 2) {
-				// Hangs on the right pillar.
-				this.place(Action.TORCH, 1, 0, 2, this.right.getOpposite());
+			for (Torch torch : torches) {
+				if (torch.slice() == i) {
+					this.place(Action.TORCH, torch.cell().f(), torch.cell().side(), torch.up(), torch.facing());
+				}
 			}
 		}
-		this.openEnd(5, 0, 0, this.forward);
-		this.openEnd(2, -3, 0, this.right.getOpposite());
-		this.openEnd(2, 3, 0, this.right);
-		this.withRails(5, i -> 0);
+		for (MineSectionTemplate.OpenEnd end : template.openEnds()) {
+			this.openEnd(end.f(), end.side(), 0, switch (end.turn()) {
+				case AHEAD -> this.forward;
+				case LEFT -> this.right.getOpposite();
+				case RIGHT -> this.right;
+			});
+		}
+		this.withRails(template.rails().stream().sorted(Comparator.comparingInt(rail -> -(rail.f() + Math.abs(rail.side()))))
+			.map(rail -> new int[] {rail.f(), rail.side()}).toList(), i -> 0);
 	}
 
-	/** Five wide and seven long, with wide supports at slices 1 and 5. The side openings fall between them. */
-	private void smallHall() {
-		for (int i = 0; i < 7; i++) {
-			boolean support = i == 1 || i == 5;
-			this.needs = support ? new Needs(4, 5) : Needs.NONE;
-			this.digSlice(i, WIDE);
-			if (support) {
-				this.support(i, 2);
-			}
-			if (i == 2) {
-				this.place(Action.TORCH, i, 0, 2, this.forward);
-			}
-			if (i == 5) {
-				// Hangs on this beam, from the slice before it.
-				this.place(Action.TORCH, 4, 0, 2, this.forward.getOpposite());
-			}
-		}
-		this.openEnd(7, 0, 0, this.forward);
-		this.openEnd(3, -3, 0, this.right.getOpposite());
-		this.openEnd(3, 3, 0, this.right);
-		this.withRails(7, i -> 0);
+	/** A torch at {@code up} in {@code cell}, pointing {@code facing}, put up in {@code slice}, once what it hangs on is there. */
+	private record Torch(MineSectionTemplate.Cell cell, int up, Direction facing, int slice) {
 	}
 
-	/** Four slices, one support and a torch on the face. No Open End: it ends a branch. */
-	private void deadEnd() {
-		for (int i = 0; i < 4; i++) {
-			this.needs = i == 1 ? Needs.SUPPORT : Needs.NONE;
-			this.digSlice(i, NARROW);
-			if (i == 1) {
-				this.support(i, 1);
+	/**
+	 * Where a torch hangs: at head height on a beam or pillar beside it, else one lower on the rock beside it, looking
+	 * behind, ahead, right and left in that order.
+	 */
+	private Torch hang(MineSectionTemplate template, MineSectionTemplate.Cell torch) {
+		int f = torch.f();
+		int side = torch.side();
+		List<MineSectionTemplate.Cell> around = List.of(new MineSectionTemplate.Cell(f - 1, side), new MineSectionTemplate.Cell(f + 1, side),
+			new MineSectionTemplate.Cell(f, side + 1), new MineSectionTemplate.Cell(f, side - 1));
+		List<Direction> away = List.of(this.forward, this.forward.getOpposite(), this.right.getOpposite(), this.right);
+		for (int i = 0; i < around.size(); i++) {
+			MineSectionTemplate.Cell next = around.get(i);
+			if (template.pillars().contains(next)) {
+				return new Torch(torch, 2, away.get(i), Math.max(f, pillarSlice(template, next)));
+			}
+			for (MineSectionTemplate.Support support : template.supports()) {
+				if (support.f() == next.f() && next.side() >= support.fromSide() && next.side() <= support.toSide()) {
+					return new Torch(torch, 2, away.get(i), Math.max(f, support.f()));
+				}
 			}
 		}
-		this.place(Action.TORCH, 3, 0, 1, this.forward.getOpposite());
-		this.withRails(3, i -> 0);
+		for (int i = 0; i < around.size(); i++) {
+			MineSectionTemplate.Cell next = around.get(i);
+			if (next.f() >= 0 && !template.columns().contains(next)) {
+				return new Torch(torch, 1, away.get(i), f);
+			}
+		}
+		throw new IllegalArgumentException("torch " + torch + " has nothing to hang on");
+	}
+
+	/** The slice a pillar goes up in: once the slice after it is dug, if there is one. */
+	private static int pillarSlice(MineSectionTemplate template, MineSectionTemplate.Cell pillar) {
+		return template.columns().stream().anyMatch(cell -> cell.f() == pillar.f() + 1) ? pillar.f() + 1 : pillar.f();
+	}
+
+	/** Lays {@code template} out once, so a block out of reach or a torch with nothing to hang on fails at init. */
+	public static void check(MineSectionTemplate template) {
+		try {
+			new MineLayout(new Mines.OpenEnd(BlockPos.ZERO, Direction.NORTH), false).level(template);
+		} catch (IllegalStateException e) {
+			throw new IllegalArgumentException(e.getMessage(), e);
+		}
 	}
 
 	/**
@@ -343,10 +348,6 @@ public final class MineLayout {
 		this.steps.subList(railsStart, end).replaceAll(step -> step.resumingAt(end));
 	}
 
-	private static boolean isSupportSlice(int slice) {
-		return slice % SUPPORT_SPACING == 2;
-	}
-
 	private BlockPos cell(int forward, int side, int up) {
 		return this.start.relative(this.forward, forward).relative(this.right, side).above(up);
 	}
@@ -385,13 +386,13 @@ public final class MineLayout {
 		}
 	}
 
-	/** Two fence posts at {@code -width} and {@code width} carrying a plank beam across the top. */
-	private void support(int i, int width) {
-		for (int side : new int[] {-width, width}) {
+	/** Two fence posts at {@code from} and {@code to} carrying a plank beam across the top. */
+	private void support(int i, int from, int to) {
+		for (int side : new int[] {from, to}) {
 			this.place(Action.FENCE, i, side, 0, Direction.UP);
 			this.place(Action.FENCE, i, side, 1, Direction.UP);
 		}
-		for (int side = -width; side <= width; side++) {
+		for (int side = from; side <= to; side++) {
 			this.place(Action.BEAM, i, side, 2, Direction.UP);
 		}
 	}

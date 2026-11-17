@@ -11,6 +11,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.TagParser;
+import net.minecraft.resources.Identifier;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.block.Blocks;
@@ -79,6 +81,25 @@ class MinesTest {
 		Mines.OpenEnd start = new Mines.OpenEnd(new BlockPos(3, 68, 4), Direction.SOUTH);
 		assertEquals(List.of(new Mines.Section(MineLayout.STAIRS_DOWN, start, false, -1, MineLayout.of(MineLayout.STAIRS_DOWN, start, false).box(), 12, false, Optional.empty())), loaded.sections());
 		assertEquals(List.of(new Mines.OpenEnd(new BlockPos(3, 64, 9), Direction.SOUTH)), loaded.ends(), "the stairs' Open End");
+	}
+
+	/** An add-on was removed: its section is kept as saved but done, and its Open End stays usable. */
+	@Test
+	void a_section_of_an_unknown_kind_is_kept_as_done() throws Exception {
+		Mines mines = new Mines();
+		BlockPos beam = new BlockPos(3, 70, 3);
+		mines.register(beam, Direction.Axis.X);
+		Mines.Mine mine = mines.start(mines.find(beam, Direction.Axis.X).orElseThrow(), Direction.SOUTH, MineLayout.STRAIGHT);
+		Mines.OpenEnd end = mine.ends().getFirst();
+		Mines.Mine grown = mines.grow(mine, end, MineLayout.STRAIGHT, false);
+		Tag tag = save(mines);
+		String saved = tag.toString().replace("bettercoppers:straight", "removed_addon:room");
+		Mines.Mine loaded = load(TagParser.parseCompoundFully(saved)).find(beam, Direction.Axis.X).orElseThrow();
+		assertEquals(2, loaded.sections().size());
+		assertEquals(Identifier.fromNamespaceAndPath("removed_addon", "room"), loaded.sections().get(1).kind());
+		assertTrue(loaded.sections().stream().allMatch(Mines.Section::done), "unknown sections are done");
+		assertEquals(grown.ends(), loaded.ends(), "its Open End is still saved");
+		assertTrue(loaded.sections().get(1).openEnds().isEmpty());
 	}
 
 	@Test
