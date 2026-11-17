@@ -9,6 +9,7 @@ import dev.bettercoppers.job.Jobs;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,7 +26,10 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.entity.animal.golem.CopperGolem;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
@@ -52,9 +56,10 @@ public final class Mines extends SavedData {
 
 	/**
 	 * A Mine Section saved when it was rolled and fits, before its first block is dug. {@code parent} is the index of the
-	 * section it grew from, -1 for the entrance. {@code box} is its footprint and floor layer.
+	 * section it grew from, -1 for the entrance. {@code box} is its footprint and floor layer. Only a Barrier has a
+	 * {@code reason}: what closed its end, for the sign.
 	 */
-	public record Section(Identifier kind, OpenEnd start, boolean mirrored, int parent, BoundingBox box, int progress, boolean done) {
+	public record Section(Identifier kind, OpenEnd start, boolean mirrored, int parent, BoundingBox box, int progress, boolean done, Optional<BlockedReason> reason) {
 		static final Codec<Section> CODEC = RecordCodecBuilder.create(i -> i.group(
 			Identifier.CODEC.fieldOf("kind").forGetter(Section::kind),
 			OpenEnd.CODEC.fieldOf("start").forGetter(Section::start),
@@ -62,16 +67,26 @@ public final class Mines extends SavedData {
 			Codec.INT.fieldOf("parent").forGetter(Section::parent),
 			BoundingBox.CODEC.fieldOf("box").forGetter(Section::box),
 			Codec.INT.optionalFieldOf("progress", 0).forGetter(Section::progress),
-			Codec.BOOL.optionalFieldOf("done", false).forGetter(Section::done)
+			Codec.BOOL.optionalFieldOf("done", false).forGetter(Section::done),
+			BlockedReason.CODEC.optionalFieldOf("reason").forGetter(Section::reason)
 		).apply(i, Section::new));
 
 		/** A new section of {@code kind} at {@code start}, nothing dug yet. */
 		static Section of(Identifier kind, OpenEnd start, boolean mirrored, int parent) {
-			return new Section(kind, start, mirrored, parent, MineLayout.of(kind, start, mirrored).box(), 0, false);
+			return new Section(kind, start, mirrored, parent, MineLayout.of(kind, start, mirrored).box(), 0, false, Optional.empty());
+		}
+
+		/** A Barrier across {@code end}, closed for {@code reason}, not built yet. */
+		static Section barrier(OpenEnd end, int parent, BlockedReason reason) {
+			return new Section(MineLayout.BARRIER, end, false, parent, MineLayout.of(MineLayout.BARRIER, end, false).box(), 0, false, Optional.of(reason));
 		}
 
 		public Section at(int progress, boolean done) {
-			return new Section(this.kind, this.start, this.mirrored, this.parent, this.box, progress, done);
+			return new Section(this.kind, this.start, this.mirrored, this.parent, this.box, progress, done, this.reason);
+		}
+
+		private Section withParent(int parent) {
+			return new Section(this.kind, this.start, this.mirrored, parent, this.box, this.progress, this.done, this.reason);
 		}
 
 		/** The Open Ends this section leaves. */
@@ -204,7 +219,10 @@ public final class Mines extends SavedData {
 	 * opening, with that section's Open Ends. Returns the mine as saved now.
 	 */
 	public Mine start(Mine mine, Direction facing, Identifier kind) {
-		Section first = Section.of(kind, firstEnd(mine, facing), false, -1);
+		return start(mine, facing, Section.of(kind, firstEnd(mine, facing), false, -1));
+	}
+
+	private Mine start(Mine mine, Direction facing, Section first) {
 		return replace(mine, new Mine(mine.entrance(), mine.axis(), Optional.of(facing), List.of(first), first.openEnds()));
 	}
 
@@ -224,20 +242,87 @@ public final class Mines extends SavedData {
 		}
 	}
 
-	/** Drops the Open Ends of section {@code index}: it was cut short, so nothing can grow from them. */
-	public void dropEnds(Mine mine, int index) {
+	/**
+	 * Cuts section {@code index} short at {@code step}, which met lava or water it can't plug: its Open Ends are dropped,
+	 * and a Barrier for {@code reason} is saved at its last fully dug slice, the one the golem stands in to dig that step.
+	 */
+	public void cutShort(Mine mine, int index, MineLayout.Step step, BlockedReason reason) {
 		Mine saved = find(mine.entrance(), mine.axis()).orElseThrow();
-		List<OpenEnd> ends = saved.ends().stream().filter(end -> saved.parentOf(end) != index).toList();
-		if (ends.size() != saved.ends().size()) {
-			replace(saved, saved.with(saved.sections(), ends));
+		OpenEnd start = saved.sections().get(index).start();
+		Direction forward = start.facing();
+		int slice = (step.pos().get(forward.getAxis()) - start.pos().get(forward.getAxis())) * forward.getAxisDirection().getStep();
+		OpenEnd at = new OpenEnd(start.pos().relative(forward, Math.max(0, slice)).atY(step.stand().getY()), forward);
+		List<Section> sections = new ArrayList<>(saved.sections());
+		sections.add(Section.barrier(at, index, reason));
+		replace(saved, saved.with(sections, saved.ends().stream().filter(end -> saved.parentOf(end) != index).toList()));
+	}
+
+	/** A player's fence on an Open End's middle Barrier cell closes that end. True if it closed one. */
+	public boolean close(BlockPos fence) {
+		for (Mine mine : mines) {
+			for (OpenEnd end : mine.ends()) {
+				if (MineLayout.middleFence(end).equals(fence)) {
+					List<Section> sections = new ArrayList<>(mine.sections());
+					sections.add(Section.barrier(end, mine.parentOf(end), BlockedReason.PLAYER).at(0, true));
+					replace(mine, mine.with(sections, mine.ends().stream().filter(other -> !other.equals(end)).toList()));
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Breaking the middle fence of a Barrier deletes it and opens what it closed again: its end, or for a section that
+	 * was cut short, that section, which digs on from where it stopped. True if it opened one.
+	 */
+	public boolean reopen(BlockPos fence) {
+		for (Mine mine : mines) {
+			for (int index = 0; index < mine.sections().size(); index++) {
+				Section barrier = mine.sections().get(index);
+				if (!barrier.kind().equals(MineLayout.BARRIER) || !MineLayout.middleFence(barrier.start()).equals(fence)) {
+					continue;
+				}
+				int removed = index;
+				List<Section> sections = new ArrayList<>(mine.sections().stream()
+					.map(section -> section.parent() > removed ? section.withParent(section.parent() - 1) : section).toList());
+				sections.remove(index);
+				List<OpenEnd> ends = new ArrayList<>(mine.ends());
+				int parent = barrier.parent();
+				if (parent < 0 || sections.get(parent).openEnds().contains(barrier.start())) {
+					ends.add(barrier.start());
+				} else {
+					sections.set(parent, sections.get(parent).at(0, false));
+					ends.addAll(sections.get(parent).openEnds());
+				}
+				claims.remove(new ClaimKey(mine.entrance(), mine.axis(), barrier.start()));
+				replace(mine, mine.with(sections, ends));
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** After a player placed a block: a wooden fence may close an Open End. */
+	public static void onPlaced(ServerLevel level, BlockPos pos, BlockState placed) {
+		if (placed.is(BlockTags.WOODEN_FENCES)) {
+			get(level).close(pos);
+		}
+	}
+
+	/** After a player broke a block: a Barrier's middle fence opens its end again. */
+	public static void onBroken(Level level, BlockPos pos, BlockState broken) {
+		if (level instanceof ServerLevel server && broken.is(BlockTags.WOODEN_FENCES)) {
+			get(server).reopen(pos);
 		}
 	}
 
 	/**
 	 * Finds work for {@code golem} in {@code mine} and claims it, all in this tick: the section it already holds, else
 	 * the nearest unfinished section nobody else holds a valid claim on, else the nearest Open End whose section is done,
-	 * rolled and saved as a new section. Ties go to the oldest, and work in unloaded chunks is left out. An end no kind
-	 * fits is dropped. Returns the index of the claimed section, or -1 if nothing is free.
+	 * rolled and saved as a new section, or as a Barrier if no kind fits. Ties go to the oldest, and work in unloaded
+	 * chunks is left out, as is an end whose roll reads unloaded cells. Returns the index of the claimed section, or -1
+	 * if nothing is free.
 	 */
 	public int pick(ServerLevel level, Mine mine, CopperGolem golem) {
 		return pick(level, mine, golem, Set.of());
@@ -257,19 +342,19 @@ public final class Mines extends SavedData {
 		if (section.isPresent()) {
 			return claim(level, saved, section.get(), golem);
 		}
+		Blocked.Site site = Blocked.Site.of(level);
+		Set<OpenEnd> waiting = new HashSet<>();
 		while (true) {
-			Mine current = saved;
-			Optional<OpenEnd> pick = freeEnds(current, skipped).filter(end -> level.isLoaded(end.pos())).min(Comparator.comparingDouble(end -> end.pos().distSqr(golem.blockPosition())));
+			Optional<OpenEnd> pick = freeEnds(saved, skipped).filter(end -> !waiting.contains(end) && level.isLoaded(end.pos()))
+				.min(Comparator.comparingDouble(end -> end.pos().distSqr(golem.blockPosition())));
 			if (pick.isEmpty()) {
 				return -1;
 			}
 			OpenEnd end = pick.get();
-			Section rolled = roll(level.getSeed(), MineLimits.of(level), saved, end);
+			Section rolled = roll(level.getSeed(), MineLimits.of(level), site, saved, end);
 			if (rolled == null) {
-				// shortcut: an end no section fits is dropped; #42 closes it with a Barrier instead.
-				List<OpenEnd> ends = new ArrayList<>(saved.ends());
-				ends.remove(end);
-				saved = replace(saved, saved.with(saved.sections(), ends));
+				// Some of its cells are not loaded: it waits for now.
+				waiting.add(end);
 				continue;
 			}
 			Mine grown = grow(saved, rolled);
@@ -368,24 +453,38 @@ public final class Mines extends SavedData {
 	/** How many rolled kinds an Open End tries before it gives up. */
 	static final int TRIES = 3;
 
-	/** The first of {@link #TRIES} rolled sections for {@code end} that fits within {@code limits}, or null. */
-	@Nullable Section roll(long worldSeed, MineLimits limits, Mine mine, OpenEnd end) {
+	/**
+	 * The first of {@link #TRIES} rolled sections for {@code end} that isn't Blocked, or else a Barrier closing the end
+	 * for the first one's reason. Null if a section's cells are not all loaded: no verdict yet.
+	 */
+	@Nullable Section roll(long worldSeed, MineLimits limits, Blocked.Site site, Mine mine, OpenEnd end) {
 		int parent = mine.parentOf(end);
 		List<SectionRoll.Candidate> candidates = SectionRoll.candidates(parent < 0 ? null : mine.sections().get(parent).kind(), mine.ends().size() == 1, end.pos().getY() > 0);
 		List<SectionRoll.Candidate> order = SectionRoll.order(candidates, RandomSource.create(SectionRoll.seed(worldSeed, mine.entrance(), end)));
+		BlockedReason reason = null;
 		for (SectionRoll.Candidate candidate : order.subList(0, Math.min(TRIES, order.size()))) {
 			Section section = Section.of(candidate.kind(), end, candidate.mirrored(), parent);
-			if (fits(section.box()) && limits.allows(mine.entrance(), MineLayout.build(section))) {
+			if (!Blocked.loaded(site, section)) {
+				return null;
+			}
+			BlockedReason blocked = Blocked.check(site, section, limits, mine.entrance(), this::taken);
+			if (blocked == null) {
 				return section;
 			}
+			reason = reason == null ? blocked : reason;
 		}
-		return null;
+		// A Straight always passes the follow rules, so there was at least one try.
+		return Section.barrier(end, parent, reason);
 	}
 
-	/** Clear of every saved section of every mine here. */
-	// shortcut: only overlaps (and the limits) count until the blocked checks (#42) add lava, water, caves, the surface and the rest.
-	private boolean fits(BoundingBox box) {
-		return mines.stream().flatMap(mine -> mine.sections().stream()).noneMatch(section -> section.box().intersects(box));
+	/** Overlaps a saved section, or a Mine Entrance frame with its opening, of any mine here. */
+	boolean taken(BoundingBox box) {
+		return mines.stream().anyMatch(mine -> frame(mine).intersects(box) || mine.sections().stream().anyMatch(section -> section.box().intersects(box)));
+	}
+
+	private static BoundingBox frame(Mine mine) {
+		Direction side = Direction.fromAxisAndDirection(mine.axis(), Direction.AxisDirection.POSITIVE);
+		return BoundingBox.fromCorners(mine.entrance().relative(side, -1).below(2), mine.entrance().relative(side, 1));
 	}
 
 	private Mine replace(Mine old, Mine mine) {
@@ -424,11 +523,14 @@ public final class Mines extends SavedData {
 			Direction facing = found.facing().orElse(facing(level, found.entrance(), found.axis(), home));
 			// Not rolled: into a hill it is a Straight, on open ground Stairs Down.
 			Identifier kind = isSolid(level, found.entrance().below().relative(facing)) ? MineLayout.STRAIGHT : MineLayout.STAIRS_DOWN;
-			// shortcut: past the Mine Range or the Depth Floor it is just not dug and the miner keeps looking; #42 closes it with a Barrier.
-			if (!MineLimits.of(level).allows(found.entrance(), MineLayout.build(kind, firstEnd(found, facing), false))) {
+			// Not rolled either, so nothing to retry: Blocked, it closes the end at once.
+			Section first = Section.of(kind, firstEnd(found, facing), false, -1);
+			Blocked.Site site = Blocked.Site.of(level);
+			if (!Blocked.loaded(site, first)) {
 				return null;
 			}
-			found = mines.start(found, facing, kind);
+			BlockedReason reason = Blocked.check(site, first, MineLimits.of(level), found.entrance(), mines::taken);
+			found = mines.start(found, facing, reason == null ? first : Section.barrier(first.start(), -1, reason));
 		}
 		data.setMine(found.entrance(), found.axis());
 		return found;

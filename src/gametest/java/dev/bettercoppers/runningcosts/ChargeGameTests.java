@@ -81,13 +81,7 @@ public class ChargeGameTests {
 
 	/** A miner at a Mine Entrance in front of a stone block, home (1, 1, 7), its first dig out of reach of (4, 1, 7). */
 	private static void miner(GameTestHelper h, CopperGolem golem) {
-		for (int x = 2; x <= 6; x++) {
-			for (int y = 1; y <= 4; y++) {
-				for (int z = 0; z <= 5; z++) {
-					h.setBlock(new BlockPos(x, y, z), Blocks.STONE);
-				}
-			}
-		}
+		GameTests.hill(h);
 		GameTests.mineEntrance(h, new BlockPos(4, 3, 6));
 		BlockPos home = new BlockPos(1, 1, 7);
 		Container supplies = GameTests.chest(h, home, Blocks.COPPER_CHEST.weathering().unaffected());

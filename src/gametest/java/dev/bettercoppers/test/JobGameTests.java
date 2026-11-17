@@ -675,14 +675,7 @@ public class JobGameTests {
 	@GameTest(maxTicks = 2400)
 	public void miner_digs_first_slice(GameTestHelper h) {
 		scene(h);
-		// Stone block in front of the golem; the tunnel heads north from the entrance.
-		for (int x = 2; x <= 6; x++) {
-			for (int y = 1; y <= 4; y++) {
-				for (int z = 0; z <= 5; z++) {
-					h.setBlock(new BlockPos(x, y, z), Blocks.STONE);
-				}
-			}
-		}
+		GameTests.hill(h);
 		BlockPos home = new BlockPos(1, 1, 7);
 		Container supplies = GameTests.chest(h, home, COPPER_CHEST);
 		supplies.setItem(0, new ItemStack(Items.RAIL, 16));

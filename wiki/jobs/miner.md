@@ -59,7 +59,7 @@ A mine grows one **Mine Section** at a time. Positions below count from the open
 
 The first section is not left to chance. If the block at head height in front of the opening is solid, it is a [Straight](#straight). On open ground it is [Stairs Down](#stairs-down).
 
-A first section that would reach past the [Mine Range or the Depth Floor](#settings) is not dug: the miner leaves that entrance alone and keeps looking.
+It is [checked](#barriers) like any other section, except that it may meet the sky: the Surface check is left out, and open air under the sky around it doesn't count as a cave. As it isn't rolled, there is nothing to retry: if it doesn't fit, the miner closes the entrance with a [Barrier](#barriers) right away, a single fence in the opening, as the frame's posts are the other two.
 
 ### The next sections
 
@@ -75,7 +75,7 @@ Every section but a Dead End leaves one or more **Open Ends**: the block where t
 | [Small Hall](#small-hall) | 5 | 5 | 3: ahead, left and right |
 | [Dead End](#dead-end) | 11 | 11 | none |
 
-Some kinds can't follow others: no Stairs Up right after Stairs Down or the other way round, no Corner right after a Corner, and never a Dead End on the mine's last Open End. The miner tries up to 3 of the rolled kinds, each picked by weight from those not tried yet. A section that would overlap a tunnel already saved, in this mine or another, or reach past the [Mine Range or the Depth Floor](#settings), is left out. If none of the 3 fits, that Open End is dropped.
+Some kinds can't follow others: no Stairs Up right after Stairs Down or the other way round, no Corner right after a Corner, and never a Dead End on the mine's last Open End. The miner tries up to 3 of the rolled kinds, each picked by weight from those not tried yet. A kind that is [Blocked](#barriers) is left out. If none of the 3 fits, the miner closes that Open End with a [Barrier](#barriers). All of this happens in one tick.
 
 A mine is finished when no Open End is left and every section is done. The miner then brings its load home and looks for the next open Mine Entrance.
 
@@ -245,7 +245,7 @@ y+2     y+1     y+0     y-1
 
 ### Supplies
 
-Before digging a support slice, the golem checks that it and its chest together hold its fences and planks. If the chest has enough, it fetches them. If not, it goes home and waits, looking again every 7 seconds. It takes supplies only when it goes home to restock. Rails are optional: with none in its supplies it skips them, and the section is still finished.
+Before digging a support slice, the golem checks that it and its chest together hold its fences and planks. If the chest has enough, it fetches them. If not, it goes home and waits, looking again every 7 seconds. It takes supplies only when it goes home to restock. Rails are optional: with none in its supplies it skips them, and the section is still finished. Signs are optional too: it takes one along every time it restocks, for a [Barrier](#barriers).
 
 | Supply | Needed | Taken along per visit | Checked before digging |
 |---|---|---|---|
@@ -253,6 +253,7 @@ Before digging a support slice, the golem checks that it and its chest together 
 | Wooden fences, any kind | 4 per support | Up to 16, none for sections without supports | Yes, on support slices |
 | <Icon id="oak_planks" /> Planks, any kind | 3 per support (5 in a Small Hall, 6 per pillar slice of a Crossing), plus floors | Up to 32 | Yes, on support and pillar slices |
 | Torches | 1 every 8 slices | Up to 16 | No |
+| Signs, any wood | 1 per Barrier | 1 | No, optional |
 
 | Section | Rails | Fences | Planks for beams | Torches |
 |---|---|---|---|---|
@@ -266,11 +267,11 @@ Before digging a support slice, the golem checks that it and its chest together 
 
 Floors add up to 3 more planks or filler blocks per slice. If a building material is missing from both the golem and its chest, that one step is skipped for good and the golem carries on.
 
-A [sorter](/jobs/sorter) linked to the same chest leaves spare copper pickaxes alone. With a mine it also leaves the torches, rails, planks and fences.
+A [sorter](/jobs/sorter) linked to the same chest leaves spare copper pickaxes alone. With a mine it also leaves the torches, rails, planks, fences and signs.
 
 ### Filler
 
-**Filler** blocks are the `bettercoppers:filler` block tag: cobblestone, cobbled deepslate, stone, deepslate, andesite, diorite, granite, tuff, dirt, netherrack and blackstone. The golem uses them to plug water and lava and, in place of planks, for floors. It only gets filler from what it digs. It keeps up to 16 when it unloads at home, and does not take any from the chest.
+**Filler** blocks are the `bettercoppers:filler` block tag: cobblestone, cobbled deepslate, stone, deepslate, andesite, diorite, granite, tuff, dirt, netherrack and blackstone. The golem uses them to plug water (and lava next to an ore it chases) and, in place of planks, for floors. It only gets filler from what it digs. It keeps up to 16 when it unloads at home, and does not take any from the chest.
 
 ### Digging
 
@@ -290,8 +291,9 @@ A miner can harvest diamond, gold, redstone and emerald ore with its copper pick
 
 | Situation | What the golem does |
 |---|---|
-| Water or lava in the block, or touching it | Plugs it with filler, 15 ticks each, then digs on. Skips fluids the golem itself stands in |
-| No filler at a fluid | Cuts the section short: what is dug stays, and the golem lays rails in the part already dug, then the section counts as done. Nothing grows on from its Open Ends. It does not go home for filler |
+| Water in the block, or touching it | Plugs it with filler, 15 ticks each, then digs on. Skips fluids the golem itself stands in |
+| Lava in the block, or touching it | Cuts the section short (see below). Lava beside a chased ore or fallen block is plugged like water |
+| No filler at water | Cuts the section short. It does not go home for filler |
 | No filler at a fluid beside a chased ore or fallen block | Skips only that block. The section carries on |
 | Gravel or sand fell into its last 32 digs | Clears it before anything else |
 | Walking without getting closer | Every 5 seconds, digs out the nearest block that fell into the finished tunnel |
@@ -301,6 +303,34 @@ A miner can harvest diamond, gold, redstone and emerald ore with its copper pick
 | Chunk not loaded | Waits. A miner does not load chunks |
 
 Before starting, a golem sometimes shakes its head for 1.5 to 3 seconds.
+
+A section **cut short** keeps what is dug. The golem lays rails in the part already dug, and the section counts as done, but nothing grows on from its Open Ends. Then it puts up a [Barrier](#barriers), with Lava or Water on the sign, across the last slice it dug out whole. The check before digging found no lava, so it came later or flowed in.
+
+### Barriers
+
+Before digging, a section is checked once, in a single tick: every block it digs, plus a 1-block shell around them. The parent's last slice, where the golem stands, is left out. Any of these makes it **Blocked**:
+
+| Reason on the sign | When |
+|---|---|
+| Lava | Any lava |
+| Water | More than 4 water blocks |
+| Cave | More than 4 open blocks in the shell |
+| Surface | A block it digs, or the one above, is under the open sky |
+| Another tunnel | It overlaps a section of any mine, or a Mine Entrance frame with its opening |
+| Structure | A block it digs is part of a structure, such as a vanilla mineshaft or a stronghold |
+| Hard rock | A block it digs that a copper pickaxe can't break, such as obsidian. Diamond, gold, redstone and emerald ore are fine |
+| Too far | It reaches past the [Mine Range](#settings) |
+| Too deep | It digs below the [Depth Floor](#settings) |
+
+Where a block of the check is in an unloaded chunk, the miner leaves that Open End for now and comes back to it later.
+
+A **Barrier** closes an Open End: the golem builds three fence posts across the parent's last slice at feet height, from the slice behind it, with the middle one last. A rail there is taken up; any other block there stays, and that post is left out. If the golem carries a sign, it puts it on the middle post: "Blocked:" and the reason of the first kind it tried. The Barrier is saved with the mine, so a mine whose branches are all closed is finished.
+
+<!-- MEDIA: jobs-miner-barrier.png | screenshot | A Barrier at the end of a tunnel: three oak fence posts across it and an oak sign on the middle one reading "Blocked: Water", a lake glinting beyond -->
+
+**Breaking the middle fence** of a Barrier opens it again: the Barrier is deleted, and the Open End is back, or for a section that was cut short, that section is dug on. Each Open End rolls the same kinds every time, so fix what blocked it first: drain the water, clear the lava or raise a game rule.
+
+**To close an Open End yourself**, place a wooden fence in the middle of its last slice, at feet height. It is saved as a Barrier with no sign, and breaking that fence opens it again.
 
 ### Bringing it home
 
@@ -344,6 +374,8 @@ Three game rules in the Better Coppers category set each world's limits. Change 
 | `bettercoppers:mine_entrance_search_radius` | 32 | 8 to 64 | How far from its home chest a miner looks for a Mine Entrance, in a straight line to the middle plank |
 | `bettercoppers:mine_range` | 64 | 16 to 256 | How far a mine grows from the middle plank of its entrance, counted along x and z separately |
 | `bettercoppers:mine_depth_floor` | -59 | -2032 to 2031 | The lowest height a miner digs at, but never lower than 5 above the bottom of the world |
+
+Lowering a rule makes later sections Too far or Too deep. Raising one doesn't open Barriers that were put up for it: break them.
 
 ## Advancements
 

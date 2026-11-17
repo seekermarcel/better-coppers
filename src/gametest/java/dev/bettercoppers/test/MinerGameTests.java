@@ -6,6 +6,7 @@ import dev.bettercoppers.job.Load;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import dev.bettercoppers.mining.BlockedReason;
 import dev.bettercoppers.mining.MineLayout;
 import dev.bettercoppers.mining.MinerData;
 import dev.bettercoppers.mining.Mines;
@@ -22,6 +23,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Unit;
 import net.minecraft.world.Container;
@@ -38,7 +40,12 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.SignBlockEntity;
+import net.minecraft.world.level.block.entity.SignTextSlot;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.gamerules.GameRule;
 
 /**
@@ -69,13 +76,7 @@ public class MinerGameTests {
 				h.setBlock(new BlockPos(x, 0, z), Blocks.STONE);
 			}
 		}
-		for (int x = 2; x <= 7; x++) {
-			for (int y = 1; y <= 4; y++) {
-				for (int z = 0; z <= 5; z++) {
-					h.setBlock(new BlockPos(x, y, z), Blocks.STONE);
-				}
-			}
-		}
+		GameTests.hill(h);
 		BlockPos beam = GameTests.mineEntrance(h, BEAM);
 		Container chest = GameTests.chest(h, HOME, COPPER_CHEST);
 		if (supplies) {
@@ -153,6 +154,7 @@ public class MinerGameTests {
 	@GameTest
 	public void on_flat_ground_a_mine_runs_away_from_home_and_starts_with_stairs_down(GameTestHelper h) {
 		JobGameTests.scene(h);
+		GameTests.ground(h);
 		BlockPos beam = GameTests.mineEntrance(h, new BlockPos(4, 3, 3));
 		GameTests.chest(h, new BlockPos(4, 1, 7), COPPER_CHEST);
 		CopperGolem golem = miner(h, new BlockPos(4, 1, 5), new BlockPos(4, 1, 7));
@@ -193,17 +195,25 @@ public class MinerGameTests {
 		h.succeed();
 	}
 
-	/** On flat ground the first section is Stairs Down, whose landing is dug 3 below the opening's floor block. */
+	/**
+	 * On flat ground the first section is Stairs Down, whose landing is dug 3 below the opening's floor block. Below the
+	 * Depth Floor it is Blocked, and as it isn't rolled the end gets a Barrier at once.
+	 */
 	@GameTest
-	public void a_raised_depth_floor_stops_a_stairs_down_first_section(GameTestHelper h) {
+	public void a_raised_depth_floor_closes_the_entrance_with_a_barrier(GameTestHelper h) {
 		JobGameTests.scene(h);
+		GameTests.ground(h);
 		BlockPos beam = GameTests.mineEntrance(h, new BlockPos(4, 3, 3));
 		GameTests.chest(h, new BlockPos(4, 1, 7), COPPER_CHEST);
 		withRule(h, ModGameRules.MINE_DEPTH_FLOOR, h.absolutePos(BlockPos.ZERO).getY() - 2, () -> {
-			CopperGolem golem = miner(h, new BlockPos(4, 1, 5), new BlockPos(4, 1, 7));
-			h.assertTrue(mine(h, beam).sections().isEmpty(), "dug a first section below the Depth Floor");
-			h.assertTrue(MinerData.get(golem).mine() == null, "took a mine it can't dig");
+			miner(h, new BlockPos(4, 1, 5), new BlockPos(4, 1, 7));
+			Mines.Section first = firstSection(h, beam);
+			h.assertValueEqual(first.kind(), MineLayout.BARRIER, "first section");
+			h.assertValueEqual(first.reason(), Optional.of(BlockedReason.TOO_DEEP), "reason");
+			h.assertTrue(mine(h, beam).ends().isEmpty(), "the end is still open");
 		});
+		Mines.get(h.getLevel()).forget(beam, Direction.Axis.X);
+		Mines.get(h.getLevel()).register(beam, Direction.Axis.X);
 		withRule(h, ModGameRules.MINE_DEPTH_FLOOR, h.absolutePos(BlockPos.ZERO).getY() - 3, () -> {
 			CopperGolem golem = miner(h, new BlockPos(5, 1, 5), new BlockPos(4, 1, 7));
 			h.assertValueEqual(firstSection(h, beam).kind(), MineLayout.STAIRS_DOWN, "first section right at the Depth Floor");
@@ -242,7 +252,7 @@ public class MinerGameTests {
 						case BEAM -> state.is(BlockTags.PLANKS);
 						case RAIL -> state.is(BlockTags.RAILS);
 						// Skipped where the opening already lights it.
-						case TORCH -> true;
+						case TORCH, SIGN -> true;
 					};
 					h.assertTrue(placed, step.action() + " missing at " + h.relativePos(step.pos()));
 				}
@@ -577,7 +587,9 @@ public class MinerGameTests {
 		h.succeedWhen(() -> {
 			h.assertTrue(firstSection(h, s.beam()).done(), "section not done");
 			h.assertTrue(h.getBlockState(new BlockPos(4, 1, 5)).is(Blocks.RAIL), "no rail in the first slice");
-			h.assertTrue(h.getBlockState(new BlockPos(4, 1, 4)).is(Blocks.RAIL), "no rail in the second slice");
+			// The Barrier goes in the second slice, the last one dug whole, and takes up its rail.
+			h.assertTrue(h.getBlockState(new BlockPos(4, 1, 4)).is(BlockTags.WOODEN_FENCES), "no Barrier in the second slice");
+			h.assertValueEqual(mine(h, s.beam()).sections().get(1).reason(), Optional.of(BlockedReason.WATER), "Barrier reason");
 			h.assertTrue(h.getBlockState(new BlockPos(4, 3, 3)).is(Blocks.STONE), "dug on at the water");
 		});
 	}
@@ -595,5 +607,87 @@ public class MinerGameTests {
 			h.assertTrue(h.getBlockState(new BlockPos(4, 3, 3)).isAir(), "third slice not opened: progress " + progress(h, s));
 			h.assertTrue(h.getBlockState(WALL).is(Blocks.COAL_ORE), "dug the ore at the water");
 		});
+	}
+
+	/** Lava that turns up after the check (here: put next to the second slice once digging started) cuts the section short. */
+	@GameTest(maxTicks = 3600)
+	public void lava_met_mid_dig_cuts_the_section_short(GameTestHelper h) {
+		Scene s = scene(h, true, START);
+		h.startSequence()
+			.thenWaitUntil(() -> h.assertTrue(progress(h, s) > 0, "not digging yet"))
+			.thenExecute(() -> h.setBlock(WALL, Blocks.LAVA))
+			.thenWaitUntil(() -> {
+				Mines.Mine mine = mine(h, s.beam());
+				h.assertTrue(mine.sections().getFirst().done(), "section not done");
+				h.assertValueEqual(mine.sections().size(), 2, "sections");
+				h.assertValueEqual(mine.sections().get(1).reason(), Optional.of(BlockedReason.LAVA), "Barrier reason");
+				h.assertTrue(mine.ends().isEmpty(), "the cut section kept its Open End");
+				// Digging the east column of the second slice met the lava, so the first slice is the last one dug whole.
+				h.assertTrue(h.getBlockState(new BlockPos(4, 1, 5)).is(BlockTags.WOODEN_FENCES), "no Barrier in the first slice");
+				h.assertTrue(h.getBlockState(new BlockPos(4, 2, 3)).is(Blocks.STONE), "dug on past the lava");
+			})
+			.thenSucceed();
+	}
+
+	/**
+	 * A done Straight in the hill, and obsidian in the middle of the slice ahead of its Open End: every kind rolled there
+	 * digs that cell, and a copper pickaxe can't. So the end gets a Barrier, with a sign saying why.
+	 */
+	@GameTest(maxTicks = 3600, padding = 48)
+	public void a_blocked_roll_gets_a_barrier_with_its_sign(GameTestHelper h) {
+		ServerLevel level = h.getLevel();
+		level.clockManager().setTotalTicks(level.dimensionType().defaultClock().orElseThrow(), 1000L);
+		forceChunks(h, new BlockPos(10, 0, 14));
+		// Past the test area too, so whatever is rolled ahead stays in the hill.
+		fill(h, new BlockPos(0, 0, -10), new BlockPos(10, 14, 10), Blocks.STONE);
+		fill(h, new BlockPos(0, 0, 11), new BlockPos(10, 5, 14), Blocks.STONE);
+		fill(h, new BlockPos(4, 6, 3), new BlockPos(6, 8, 10), Blocks.AIR);
+		h.setBlock(new BlockPos(5, 7, 2), Blocks.OBSIDIAN);
+		BlockPos beam = GameTests.mineEntrance(h, new BlockPos(5, 8, 11));
+		Mines mines = Mines.get(level);
+		Mines.Mine started = mines.start(mines.find(beam, Direction.Axis.X).orElseThrow(), Direction.NORTH, MineLayout.STRAIGHT);
+		mines.setProgress(started, 0, MineLayout.build(started.sections().getFirst()).size(), true);
+		BlockPos home = new BlockPos(1, 6, 13);
+		GameTests.chest(h, home, COPPER_CHEST);
+		CopperGolem golem = miner(h, new BlockPos(5, 6, 12), home);
+		Load.of(golem).addSupplies(new ItemStack(Items.OAK_FENCE, 4));
+		Load.of(golem).addSupplies(new ItemStack(Items.OAK_SIGN));
+		h.startSequence()
+			.thenWaitUntil(() -> {
+				Mines.Mine mine = mine(h, beam);
+				h.assertValueEqual(mine.sections().size(), 2, "sections");
+				h.assertValueEqual(mine.sections().get(1).kind(), MineLayout.BARRIER, "second section");
+				h.assertValueEqual(mine.sections().get(1).reason(), Optional.of(BlockedReason.HARD_ROCK), "reason");
+				h.assertTrue(mine.sections().get(1).done(), "Barrier not built");
+				for (int x = 4; x <= 6; x++) {
+					h.assertTrue(h.getBlockState(new BlockPos(x, 6, 3)).is(BlockTags.WOODEN_FENCES), "no post at x " + x);
+				}
+				h.assertTrue(h.getBlockEntity(new BlockPos(5, 7, 3), BlockEntity.class) instanceof SignBlockEntity sign
+					&& hasKey(sign.getText(SignTextSlot.FRONT).getMessages(false).get(2), "mine.bettercoppers.blocked.hard_rock"), "no sign saying Hard rock");
+				h.assertTrue(mine.isFinished(), "a closed end is still open");
+			})
+			.thenSucceed();
+	}
+
+	/** A player's fence in the slice behind an Open End closes it; breaking that fence opens it again. */
+	@GameTest
+	public void a_player_closes_an_open_end_with_a_fence_and_breaking_it_opens_the_end(GameTestHelper h) {
+		Scene s = scene(h, false, new BlockPos(7, 1, 7));
+		Mines.OpenEnd end = mine(h, s.beam()).ends().getFirst();
+		BlockPos fence = MineLayout.middleFence(end);
+		ServerPlayer player = h.makeMockServerPlayerInLevel();
+		player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_FENCE));
+		h.getLevel().setBlock(fence.below(), Blocks.STONE.defaultBlockState(), Block.UPDATE_ALL);
+		h.getLevel().setBlock(fence, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+		BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(fence.below()).add(0, 0.5, 0), Direction.UP, fence.below(), false);
+		player.getMainHandItem().useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+		h.assertTrue(h.getLevel().getBlockState(fence).is(BlockTags.WOODEN_FENCES), "fence not placed");
+		h.assertTrue(mine(h, s.beam()).ends().isEmpty(), "the end is still open");
+		h.assertValueEqual(mine(h, s.beam()).sections().getLast().reason(), Optional.of(BlockedReason.PLAYER), "Barrier reason");
+		player.gameMode.destroyBlock(fence);
+		h.assertTrue(h.getLevel().getBlockState(fence).isAir(), "fence not broken");
+		h.assertValueEqual(mine(h, s.beam()).ends(), List.of(end), "ends after breaking the fence");
+		h.assertValueEqual(mine(h, s.beam()).sections().size(), 1, "sections after breaking the fence");
+		h.succeed();
 	}
 }

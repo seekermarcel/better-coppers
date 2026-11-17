@@ -374,7 +374,7 @@ Sneak + right-click it with a copper pickaxe, then link it to that copper chest.
 # Mine Sections
 A mine grows one Mine Section at a time. The first one goes straight into the hill: 8 blocks long, with two supports and a torch. On flat ground the first section is Stairs Down instead: 4 steps down, each 4 high so you can walk them, and a landing 4 blocks lower.
 
-After that the miner rolls each next section: a Straight, a Corner, a Crossing, a Small Hall, Stairs Down, Stairs Up or a Dead End. Crossings and halls branch off to the left and right, a Dead End ends its branch, and above y 0 the mine leans downwards. A section that would run into another tunnel is left out. It digs on until no branch is left open, then moves on to the next open Mine Entrance.
+After that the miner rolls each next section: a Straight, a Corner, a Crossing, a Small Hall, Stairs Down, Stairs Up or a Dead End. Crossings and halls branch off to the left and right, a Dead End ends its branch, and above y 0 the mine leans downwards. A section that doesn't fit where it was rolled is left out, and it rolls again (see Barriers). It digs on until no branch is left open, then moves on to the next open Mine Entrance.
 
 # Several miners
 Several miners can share a mine: every miner whose chest has the same entrance nearest works in it. Each digs its own section, and two never dig the same one. When every open tunnel already has a miner, the others wait at home, and a plain click says "Waiting: every tunnel has a miner". A miner that stops working for 5 minutes, such as one in an unloaded chunk, leaves its section to the next.
@@ -385,12 +385,17 @@ The miner walks to its work through the tunnels it has dug, section by section, 
 A mine only works while you are near: within the Mine Range plus 32 blocks of its entrance, the miner keeps the chunks around it loaded, however far it digs. With nobody near, it loads nothing, and work in unloaded chunks waits until you come back. It rides an empty minecart left on the rails of a long straight tunnel, but never places one.
 
 # Supplies
-Supports take fences and planks: without them it doesn't dig on. Keep those and torches in its chest; it fetches them when it needs them. Without torches it digs on and leaves them out. Rails are optional: it lays them last, from the far end back, only if it carries some.
+Supports take fences and planks: without them it doesn't dig on. Keep those and torches in its chest; it fetches them when it needs them. Without torches it digs on and leaves them out. Rails are optional: it lays them last, from the far end back, only if it carries some. So are signs: it takes one along for a Barrier.
 
 # On the job
 It digs out whole veins of ore touching what it digs, up to 64 ores and 8 blocks from the tunnel (further with Eyes), diamond, gold, redstone and emerald included. Outside the tunnel it breaks only ore, and it patches holes a vein leaves in the tunnel floor. It plugs water and lava with filler it dug itself, such as cobblestone, stone or dirt, and walks home with up to 64 items. Link a sorter to the same chest to sort the loot.
 
-Out of filler at water or lava, it cuts that section short and still lays its rails in the part it dug. Nothing grows on from there.
+Lava in the tunnel itself, or water with no filler left, cuts that section short: it still lays its rails in the part it dug and puts up a Barrier at the last slice it dug out. Nothing grows on from there until you break that Barrier.
+
+# Barriers
+Before it digs a section, the miner checks it and the rock around it: lava, more than a little water, a cave, the surface, another tunnel or Mine Entrance, a structure such as a vanilla mineshaft, rock a copper pickaxe can't break, and the game rules below. After three rolls that don't fit, it closes that branch with a Barrier: three fence posts across the tunnel, and a sign saying why if it carries one. The first section is not rolled, so if it doesn't fit the entrance is closed right away, with one fence in its opening.
+
+Break the middle fence of a Barrier, after you fix what blocked it, and the miners try that branch again. They roll the same sections as before, so only a changed world gives a different result. To close a branch yourself, place a fence in the middle of its last slice, at your feet.
 
 Breaking the entrance frame closes the mine: the miner goes home and looks for another entrance. Linking it to another chest makes it look again too.
 
@@ -404,7 +409,7 @@ Three game rules (Better Coppers on the game rules screen, or /gamerule) set eac
 - mine_entrance_search_radius (32): how far from its chest a miner looks for a Mine Entrance.
 - mine_range (64): how far a mine grows from its entrance.
 - mine_depth_floor (-59): how deep it digs, never lower than 5 above the bottom of the world.
-It doesn't dig a section that would cross the range or the floor."""),
+A section that would cross the range or the floor doesn't fit. Raising a rule doesn't open closed branches again: break their Barriers."""),
               ("Bergmann", """Bergleute graben eine Mine wie in Vanilla, 3 breit und 3 hoch, mit Bretterboden, Stützen, Fackeln und Schienen, von einem Mineneingang aus, den du baust.
 
 # Mineneingang
@@ -418,7 +423,7 @@ Schleichen + Rechtsklick auf ihn mit einer Kupferspitzhacke, dann verbinde ihn m
 # Minenabschnitte
 Eine Mine wächst Abschnitt für Abschnitt. Der erste führt gerade in den Berg: 8 Blöcke lang, mit zwei Stützen und einer Fackel. Auf flachem Boden ist der erste Abschnitt stattdessen eine Treppe nach unten: 4 Stufen, jede 4 hoch, sodass du sie begehen kannst, und ein Absatz 4 Blöcke tiefer.
 
-Danach würfelt der Bergmann jeden weiteren Abschnitt aus: eine Gerade, eine Kurve, eine Kreuzung, eine kleine Halle, eine Treppe nach unten oder nach oben oder eine Sackgasse. Kreuzungen und Hallen zweigen nach links und rechts ab, eine Sackgasse beendet ihren Zweig, und über y 0 führt die Mine eher nach unten. Ein Abschnitt, der in einen anderen Stollen liefe, fällt weg. Er gräbt weiter, bis kein Zweig mehr offen ist, und zieht dann zum nächsten offenen Mineneingang weiter.
+Danach würfelt der Bergmann jeden weiteren Abschnitt aus: eine Gerade, eine Kurve, eine Kreuzung, eine kleine Halle, eine Treppe nach unten oder nach oben oder eine Sackgasse. Kreuzungen und Hallen zweigen nach links und rechts ab, eine Sackgasse beendet ihren Zweig, und über y 0 führt die Mine eher nach unten. Ein Abschnitt, der dort nicht passt, wo er gewürfelt wurde, fällt weg, und er würfelt neu (siehe Absperrungen). Er gräbt weiter, bis kein Zweig mehr offen ist, und zieht dann zum nächsten offenen Mineneingang weiter.
 
 # Mehrere Bergleute
 Mehrere Bergleute können sich eine Mine teilen: Jeder Bergmann, dessen Truhe denselben Eingang am nächsten hat, arbeitet darin. Jeder gräbt seinen eigenen Abschnitt, und nie graben zwei denselben. Hat jeder offene Stollen schon einen Bergmann, warten die anderen zu Hause, und ein einfacher Klick zeigt „Wartet: In jedem Stollen gräbt schon ein Bergmann“. Ein Bergmann, der 5 Minuten nicht arbeitet, etwa in einem nicht geladenen Chunk, überlässt seinen Abschnitt dem nächsten.
@@ -429,12 +434,17 @@ Der Bergmann geht durch die Stollen, die er gegraben hat, Abschnitt für Abschni
 Eine Mine arbeitet nur, solange du in der Nähe bist: Höchstens die Minenreichweite plus 32 Blöcke von ihrem Eingang hält der Bergmann die Chunks um sich geladen, egal wie weit er gräbt. Ist niemand in der Nähe, lädt er nichts, und Arbeit in nicht geladenen Chunks wartet, bis du zurückkommst. Liegt eine leere Lore auf den Schienen eines langen geraden Stollens, fährt er mit, aber er stellt nie selbst eine auf.
 
 # Nachschub
-Stützen brauchen Zäune und Bretter: Ohne sie gräbt er nicht weiter. Lege sie und Fackeln in seine Truhe; er holt sie, wenn er sie braucht. Ohne Fackeln gräbt er weiter und lässt sie weg. Schienen sind freiwillig: Er legt sie zuletzt, vom hinteren Ende zurück, nur wenn er welche dabeihat.
+Stützen brauchen Zäune und Bretter: Ohne sie gräbt er nicht weiter. Lege sie und Fackeln in seine Truhe; er holt sie, wenn er sie braucht. Ohne Fackeln gräbt er weiter und lässt sie weg. Schienen sind freiwillig: Er legt sie zuletzt, vom hinteren Ende zurück, nur wenn er welche dabeihat. Schilder auch: Er nimmt eins für eine Absperrung mit.
 
 # Bei der Arbeit
 Er baut ganze Erzadern ab, die an das grenzen, was er gräbt, bis zu 64 Erze und 8 Blöcke vom Stollen entfernt (mit Augen weiter), auch bei Diamant-, Gold-, Redstone- und Smaragderz. Außerhalb des Stollens baut er nur Erz ab, und Löcher, die eine Ader im Stollenboden lässt, stopft er zu. Wasser und Lava stopft er mit selbst gegrabenem Füllmaterial wie Bruchstein, Stein oder Erde zu und geht mit bis zu 64 Gegenständen nach Hause. Ein Sortierer an derselben Truhe sortiert die Beute.
 
-Ohne Füllmaterial an Wasser oder Lava bricht er diesen Abschnitt ab und legt im gegrabenen Teil noch seine Schienen. Von dort wächst nichts weiter.
+Lava im Stollen selbst oder Wasser ohne übriges Füllmaterial bricht diesen Abschnitt ab: Er legt im gegrabenen Teil noch seine Schienen und stellt an der letzten ganz gegrabenen Scheibe eine Absperrung auf. Von dort wächst nichts weiter, bis du diese Absperrung abbaust.
+
+# Absperrungen
+Bevor er einen Abschnitt gräbt, prüft der Bergmann ihn und das Gestein darum: Lava, mehr als ein wenig Wasser, eine Höhle, die Oberfläche, einen anderen Stollen oder Mineneingang, ein Bauwerk wie einen Vanilla-Minenschacht, Gestein, das eine Kupferspitzhacke nicht abbaut, und die Spielregeln unten. Passt nach drei Würfen keiner, schließt er diesen Zweig mit einer Absperrung: drei Zaunpfosten quer über den Stollen und ein Schild mit dem Grund, wenn er eins dabeihat. Der erste Abschnitt wird nicht gewürfelt: Passt er nicht, wird der Eingang sofort geschlossen, mit einem Zaun in seiner Öffnung.
+
+Baue den mittleren Zaun einer Absperrung ab, nachdem du behoben hast, was im Weg war, und die Bergleute versuchen es dort erneut. Sie würfeln dieselben Abschnitte wie zuvor, also ändert nur eine veränderte Welt das Ergebnis. Um einen Zweig selbst zu schließen, setze einen Zaun in die Mitte seiner letzten Scheibe, auf Fußhöhe.
 
 Zerstörst du den Rahmen des Eingangs, ist die Mine geschlossen: Der Bergmann geht nach Hause und sucht einen anderen Eingang. Verbindest du ihn mit einer anderen Truhe, sucht er ebenfalls neu.
 
@@ -448,7 +458,7 @@ Drei Spielregeln (Better Coppers in den Spielregeln, oder /gamerule) setzen die 
 - mine_entrance_search_radius (32): wie weit von seiner Truhe ein Bergmann nach einem Mineneingang sucht.
 - mine_range (64): wie weit eine Mine von ihrem Eingang wächst.
 - mine_depth_floor (-59): wie tief er gräbt, nie tiefer als 5 über dem Boden der Welt.
-Einen Abschnitt, der darüber hinausginge, gräbt er nicht.""")),
+Ein Abschnitt, der darüber hinausginge, passt nicht. Hebst du eine Regel an, öffnen sich geschlossene Zweige nicht wieder: Baue ihre Absperrungen ab.""")),
     "farmer": (("Farmer", """Sneak + right-click a golem with a copper hoe. Its field is everything within 8 blocks of its home chest.
 
 - It harvests ripe wheat, carrots, potatoes, beetroot, nether wart, pitcher crops and torchflowers on farmland and replants them right away.
@@ -855,6 +865,16 @@ MESSAGES = [
     ("status.bettercoppers.mine_stuck", "Stuck in the mine", "Steckt in der Mine fest"),
     ("status.bettercoppers.mine_waiting", "Waiting: every tunnel has a miner", "Wartet: In jedem Stollen gräbt schon ein Bergmann"),
     ("status.bettercoppers.mine", "Mine at %s %s %s", "Mine bei %s %s %s"),
+    ("mine.bettercoppers.blocked", "Blocked:", "Gesperrt:"),
+    ("mine.bettercoppers.blocked.lava", "Lava", "Lava"),
+    ("mine.bettercoppers.blocked.water", "Water", "Wasser"),
+    ("mine.bettercoppers.blocked.cave", "Cave", "Höhle"),
+    ("mine.bettercoppers.blocked.surface", "Surface", "Oberfläche"),
+    ("mine.bettercoppers.blocked.another_tunnel", "Another tunnel", "Anderer Stollen"),
+    ("mine.bettercoppers.blocked.structure", "Structure", "Bauwerk"),
+    ("mine.bettercoppers.blocked.hard_rock", "Hard rock", "Hartes Gestein"),
+    ("mine.bettercoppers.blocked.too_far", "Too far", "Zu weit"),
+    ("mine.bettercoppers.blocked.too_deep", "Too deep", "Zu tief"),
     ("message.bettercoppers.quota_cleared", "The slip is blank again.", "Der Zettel ist wieder leer."),
 ]
 

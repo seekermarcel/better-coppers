@@ -19,8 +19,10 @@ import dev.bettercoppers.registry.ModGameRules;
 import dev.bettercoppers.registry.ModItems;
 import dev.bettercoppers.trim.GolemTrims;
 import dev.bettercoppers.runningcosts.AxeDispenseBehavior;
+import dev.bettercoppers.mining.Mines;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.Event;
+import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -63,6 +65,7 @@ public class BetterCoppers implements ModInitializer {
 		UseEntityCallback.EVENT.register(WorkerInteractions::onUseEntity);
 		UseEntityCallback.EVENT.register(Sorter::onUseEntity);
 		UseBlockCallback.EVENT.register(HomeLinking::onUseBlock);
+		PlayerBlockBreakEvents.AFTER.register((level, player, pos, state, blockEntity) -> Mines.onBroken(level, pos, state));
 		ServerTickEvents.END_LEVEL_TICK.register(HomeDisplay::tick);
 		ServerEntityEvents.ENTITY_LOAD.register(GolemGuards::onEntityLoad);
 		ServerEntityEvents.ENTITY_LOAD.register(Couriers::onEntityLoad);
