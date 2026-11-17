@@ -24,6 +24,20 @@ A **miner** is a [copper golem](/golem/copper-golem) that digs the mine a [Mines
 
 <!-- MEDIA: jobs-miner-setup.png | screenshot | A marked entrance on the surface with a copper chest next to it holding rails, fences, planks and torches, and a copper golem holding a copper pickaxe -->
 
+## Mine Entrance
+
+A **Mine Entrance** is a frame like the supports in a vanilla mineshaft: two posts of any wooden fence, each 2 high and standing on a solid block, 1 block apart, with 3 planks of any wood across their tops. The opening between the posts must be free to walk through. The frame stands along the X or Z axis.
+
+```
+ P P P    3 planks
+ F . F    fence posts, 2 high
+ F . F    the opening between them stays free
+```
+
+Placing the frame's last block yourself shows "Mine Entrance built" and awards [Into the Hill](#advancements). Only blocks a player places count: frames from commands, structures or world generation are not entrances until a player rebuilds one of their blocks. Each dimension saves its entrances, so a frame rebuilt on the same spot along the same line is the same entrance again.
+
+<!-- MEDIA: jobs-miner-entrance.png | screenshot | A Mine Entrance built into a hillside: two oak fence posts 2 high with 3 spruce planks across their tops, and the "Mine Entrance built" message above the hotbar -->
+
 ## Behaviour
 
 ### The tunnel
@@ -213,6 +227,7 @@ When the pickaxe breaks, the golem keeps its job, brings its load home and looks
 | Advancement | How | ID |
 |---|---|---|
 | Surveyor | Have a Mineshaft Plan | `bettercoppers:guide/survey` |
+| Into the Hill | Place the last block of a Mine Entrance | `bettercoppers:guide/mine_entrance` |
 | Down the Shaft | Give a golem a copper pickaxe and a Mineshaft Plan | `bettercoppers:guide/miner` |
 | Shiny! | A miner digs diamond ore within 48 blocks of the player | `bettercoppers:guide/diamonds` |
 | Full Employment | Give golems all nine jobs | `bettercoppers:guide/full_employment` |
