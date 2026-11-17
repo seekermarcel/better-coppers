@@ -5,10 +5,16 @@ import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.bettercoppers.BetterCoppers;
 import dev.bettercoppers.home.Homes;
+import dev.bettercoppers.job.Jobs;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.NbtOps;
@@ -101,15 +107,25 @@ public final class Mines extends SavedData {
 		private Mine with(List<Section> sections, List<OpenEnd> ends) {
 			return new Mine(this.entrance, this.axis, this.facing, List.copyOf(sections), List.copyOf(ends));
 		}
+	}
 
-		/** The first section not done yet, or -1. */
-		public int current() {
-			for (int i = 0; i < this.sections.size(); i++) {
-				if (!this.sections.get(i).done()) {
-					return i;
-				}
+	/** How long a claim holds without being renewed: a miner frozen in an unloaded chunk lets go after 5 minutes. */
+	public static final int CLAIM_TICKS = 6000;
+
+	/** A section of a mine, found by where it starts, so deleting a section doesn't move the claims of the others. */
+	private record ClaimKey(BlockPos entrance, Direction.Axis axis, OpenEnd start) {
+	}
+
+	/** One miner digging one section, renewed by each tick of its {@link MineBehavior}. */
+	private record Claim(UUID golem, long renewedAt) {
+		/** The claimant is loaded, alive, a miner with a pickaxe in hand and still on {@code mine}, and renewed in time. */
+		boolean isValid(ServerLevel level, Mine mine) {
+			if (level.getGameTime() - this.renewedAt > CLAIM_TICKS || !(level.getEntity(this.golem) instanceof CopperGolem golem) || !golem.isAlive()
+				|| Jobs.of(golem) != Jobs.JobKind.MINER || !MinerData.hasPickaxe(golem)) {
+				return false;
 			}
-			return -1;
+			MinerData data = MinerData.get(golem);
+			return data != null && mine.entrance().equals(data.mine()) && mine.axis() == data.mineAxis();
 		}
 	}
 
@@ -126,6 +142,8 @@ public final class Mines extends SavedData {
 
 	// shortcut: a list scanned linearly, fine for the few mines a world has; a spatial index if lookups ever show up.
 	private final List<Mine> mines = new ArrayList<>();
+	/** Who digs which section. Never saved: empty after a load. */
+	private final Map<ClaimKey, Claim> claims = new HashMap<>();
 	/** Data saved by a newer version, kept as read so saving doesn't destroy it. */
 	private final Dynamic<?> newer;
 
@@ -162,6 +180,7 @@ public final class Mines extends SavedData {
 
 	/** Deletes the mine of this frame. Only gametests use it, whose world and test positions outlive a run. */
 	public void forget(BlockPos entrance, Direction.Axis axis) {
+		claims.keySet().removeIf(key -> key.entrance().equals(entrance) && key.axis() == axis);
 		if (mines.removeIf(mine -> mine.entrance().equals(entrance) && mine.axis() == axis)) {
 			setDirty();
 		}
@@ -199,6 +218,9 @@ public final class Mines extends SavedData {
 		List<Section> sections = new ArrayList<>(saved.sections());
 		sections.set(index, sections.get(index).at(progress, done));
 		replace(saved, saved.with(sections, saved.ends()));
+		if (done) {
+			claims.remove(new ClaimKey(saved.entrance(), saved.axis(), sections.get(index).start()));
+		}
 	}
 
 	/** Drops the Open Ends of section {@code index}: it was cut short, so nothing can grow from them. */
@@ -211,36 +233,107 @@ public final class Mines extends SavedData {
 	}
 
 	/**
-	 * Grows {@code mine} by one section at the Open End nearest {@code near} (ties go to the oldest) whose section is
-	 * done and whose cells are loaded: it rolls that end and saves the first kind that fits, which takes the end's place
-	 * and adds its own ends. An end no kind fits is dropped. Returns the mine as saved now; it has no section to dig if
-	 * nothing could be grown.
+	 * Finds work for {@code golem} in {@code mine} and claims it, all in this tick: the section it already holds, else
+	 * the nearest unfinished section nobody else holds a valid claim on, else the nearest Open End whose section is done,
+	 * rolled and saved as a new section. Ties go to the oldest, and work in unloaded chunks is left out. An end no kind
+	 * fits is dropped. Returns the index of the claimed section, or -1 if nothing is free.
 	 */
-	public Mine grow(ServerLevel level, Mine mine, BlockPos near) {
+	public int pick(ServerLevel level, Mine mine, CopperGolem golem) {
 		Mine saved = find(mine.entrance(), mine.axis()).orElseThrow();
+		int held = claimed(saved, golem);
+		if (held >= 0) {
+			return held;
+		}
+		Mine known = saved;
+		Optional<Integer> section = freeSections(level, known)
+			.min(Comparator.comparingDouble(i -> known.sections().get(i).start().pos().distSqr(golem.blockPosition())));
+		if (section.isPresent()) {
+			return claim(level, saved, section.get(), golem);
+		}
 		while (true) {
 			Mine current = saved;
-			Optional<OpenEnd> pick = current.ends().stream()
-				.filter(end -> level.isLoaded(end.pos()))
-				.filter(end -> current.parentOf(end) < 0 || current.sections().get(current.parentOf(end)).done())
-				.min(Comparator.comparingDouble(end -> end.pos().distSqr(near)));
+			Optional<OpenEnd> pick = freeEnds(level, current).min(Comparator.comparingDouble(end -> end.pos().distSqr(golem.blockPosition())));
 			if (pick.isEmpty()) {
-				return saved;
+				return -1;
 			}
 			OpenEnd end = pick.get();
 			List<OpenEnd> ends = new ArrayList<>(saved.ends());
 			ends.remove(end);
-			Section section = roll(level.getSeed(), MineLimits.of(level), saved, end);
-			if (section == null) {
+			Section rolled = roll(level.getSeed(), MineLimits.of(level), saved, end);
+			if (rolled == null) {
 				// shortcut: an end no section fits is dropped; #42 closes it with a Barrier instead.
 				saved = replace(saved, saved.with(saved.sections(), ends));
 				continue;
 			}
 			List<Section> sections = new ArrayList<>(saved.sections());
-			sections.add(section);
-			ends.addAll(section.openEnds());
-			return replace(saved, saved.with(sections, ends));
+			sections.add(rolled);
+			ends.addAll(rolled.openEnds());
+			Mine grown = replace(saved, saved.with(sections, ends));
+			return claim(level, grown, sections.size() - 1, golem);
 		}
+	}
+
+	/** Whether {@code golem} holds no section of {@code mine} and has nothing free to pick there. */
+	public boolean isWaiting(ServerLevel level, Mine mine, CopperGolem golem) {
+		return !mine.isFinished() && claimed(mine, golem) < 0 && freeSections(level, mine).findAny().isEmpty() && freeEnds(level, mine).findAny().isEmpty();
+	}
+
+	/** Indices of the unfinished, loaded sections nobody holds a valid claim on, oldest first. */
+	private Stream<Integer> freeSections(ServerLevel level, Mine mine) {
+		return IntStream.range(0, mine.sections().size()).boxed()
+			.filter(i -> !mine.sections().get(i).done() && level.isLoaded(mine.sections().get(i).start().pos()))
+			.filter(i -> {
+				Claim claim = claims.get(new ClaimKey(mine.entrance(), mine.axis(), mine.sections().get(i).start()));
+				return claim == null || !claim.isValid(level, mine);
+			});
+	}
+
+	/** The loaded Open Ends whose section (or the entrance) is done, oldest first. */
+	private static Stream<OpenEnd> freeEnds(ServerLevel level, Mine mine) {
+		return mine.ends().stream()
+			.filter(end -> level.isLoaded(end.pos()))
+			.filter(end -> mine.parentOf(end) < 0 || mine.sections().get(mine.parentOf(end)).done());
+	}
+
+	private int claim(ServerLevel level, Mine mine, int index, CopperGolem golem) {
+		release(golem.getUUID());
+		claims.put(new ClaimKey(mine.entrance(), mine.axis(), mine.sections().get(index).start()), new Claim(golem.getUUID(), level.getGameTime()));
+		return index;
+	}
+
+	/** The index of the section {@code golem} holds a claim on in {@code mine}, lapsed or not, or -1. */
+	public int claimed(Mine mine, CopperGolem golem) {
+		Mine saved = find(mine.entrance(), mine.axis()).orElse(mine);
+		for (int i = 0; i < saved.sections().size(); i++) {
+			Claim claim = claims.get(new ClaimKey(saved.entrance(), saved.axis(), saved.sections().get(i).start()));
+			if (claim != null && claim.golem().equals(golem.getUUID())) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/** Renews the claims of {@code golem}; one whose time ran out is dropped instead. */
+	public void renew(ServerLevel level, CopperGolem golem) {
+		long now = level.getGameTime();
+		claims.replaceAll((key, claim) -> claim.golem().equals(golem.getUUID()) && now - claim.renewedAt() <= CLAIM_TICKS ? new Claim(claim.golem(), now) : claim);
+		claims.values().removeIf(claim -> claim.golem().equals(golem.getUUID()) && now - claim.renewedAt() > CLAIM_TICKS);
+	}
+
+	/** Frees every claim {@code golem} holds: its job ended, it died, or its home changed. */
+	public static void release(CopperGolem golem) {
+		if (golem.level() instanceof ServerLevel level) {
+			get(level).release(golem.getUUID());
+		}
+	}
+
+	private void release(UUID golem) {
+		claims.values().removeIf(claim -> claim.golem().equals(golem));
+	}
+
+	/** Frees every claim on {@code mine}: its frame is broken. */
+	public void releaseAll(Mine mine) {
+		claims.keySet().removeIf(key -> key.entrance().equals(mine.entrance()) && key.axis() == mine.axis());
 	}
 
 	/** How many rolled kinds an Open End tries before it gives up. */

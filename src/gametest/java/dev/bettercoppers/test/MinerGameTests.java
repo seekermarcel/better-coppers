@@ -219,20 +219,8 @@ public class MinerGameTests {
 	 */
 	private static void digsToDone(GameTestHelper h, Identifier kind, Runnable after) {
 		ServerLevel level = h.getLevel();
-		level.clockManager().setTotalTicks(level.dimensionType().defaultClock().orElseThrow(), 1000L);
-		forceChunks(h, new BlockPos(10, 0, 14));
-		fill(h, new BlockPos(0, 0, 0), new BlockPos(10, 14, 10), Blocks.STONE);
-		fill(h, new BlockPos(0, 0, 11), new BlockPos(10, 5, 14), Blocks.STONE);
-		BlockPos beam = GameTests.mineEntrance(h, new BlockPos(5, 8, 11));
-		Mines mines = Mines.get(level);
-		mines.start(mines.find(beam, Direction.Axis.X).orElseThrow(), Direction.NORTH, kind);
-		BlockPos home = new BlockPos(1, 6, 13);
-		Container chest = GameTests.chest(h, home, COPPER_CHEST);
-		chest.setItem(0, new ItemStack(Items.RAIL, 16));
-		chest.setItem(1, new ItemStack(Items.OAK_PLANKS, 32));
-		chest.setItem(2, new ItemStack(Items.OAK_FENCE, 16));
-		chest.setItem(3, new ItemStack(Items.TORCH, 16));
-		CopperGolem golem = miner(h, new BlockPos(5, 6, 12), home);
+		BlockPos beam = hill(h, kind);
+		CopperGolem golem = miner(h, new BlockPos(5, 6, 12), HILL_HOME);
 		// Rails are laid only if it carries some, and a short section may never send it home to fetch them.
 		Load load = Load.of(golem);
 		load.addSupplies(new ItemStack(Items.RAIL, 16));
@@ -260,6 +248,81 @@ public class MinerGameTests {
 				}
 			})
 			.thenWaitUntil(after)
+			.thenSucceed();
+	}
+
+	private static final BlockPos HILL_HOME = new BlockPos(1, 6, 13);
+
+	/**
+	 * A stone hill sealed from daylight with a Mine Entrance at z = 11 heading north, its first section of {@code kind}
+	 * saved but not dug, and a home chest with supplies. Returns the middle beam.
+	 */
+	private static BlockPos hill(GameTestHelper h, Identifier kind) {
+		ServerLevel level = h.getLevel();
+		level.clockManager().setTotalTicks(level.dimensionType().defaultClock().orElseThrow(), 1000L);
+		forceChunks(h, new BlockPos(10, 0, 14));
+		fill(h, new BlockPos(0, 0, 0), new BlockPos(10, 14, 10), Blocks.STONE);
+		fill(h, new BlockPos(0, 0, 11), new BlockPos(10, 5, 14), Blocks.STONE);
+		BlockPos beam = GameTests.mineEntrance(h, new BlockPos(5, 8, 11));
+		Mines mines = Mines.get(level);
+		mines.start(mines.find(beam, Direction.Axis.X).orElseThrow(), Direction.NORTH, kind);
+		Container chest = GameTests.chest(h, HILL_HOME, COPPER_CHEST);
+		chest.setItem(0, new ItemStack(Items.RAIL, 16));
+		chest.setItem(1, new ItemStack(Items.OAK_PLANKS, 32));
+		chest.setItem(2, new ItemStack(Items.OAK_FENCE, 16));
+		chest.setItem(3, new ItemStack(Items.TORCH, 16));
+		return beam;
+	}
+
+	/** A Crossing marked done leaves three free Open Ends: each miner rolls its own section at one of them. */
+	@GameTest(maxTicks = 400, padding = 48)
+	public void two_miners_on_one_mine_never_share_a_section(GameTestHelper h) {
+		BlockPos beam = hill(h, MineLayout.CROSSING);
+		Mines mines = Mines.get(h.getLevel());
+		mines.setProgress(mine(h, beam), 0, steps(h, beam).size(), true);
+		CopperGolem a = miner(h, new BlockPos(4, 6, 12), HILL_HOME);
+		CopperGolem b = miner(h, new BlockPos(6, 6, 12), HILL_HOME);
+		int first = mines.pick(h.getLevel(), mine(h, beam), a);
+		int second = mines.pick(h.getLevel(), mine(h, beam), b);
+		h.assertTrue(first > 0 && second > 0 && first != second, "sections picked: " + first + ", " + second);
+		h.onEachTick(() -> {
+			int ia = mines.claimed(mine(h, beam), a);
+			int ib = mines.claimed(mine(h, beam), b);
+			h.assertTrue(ia < 0 || ia != ib, "both miners hold section " + ia);
+		});
+		h.runAfterDelay(300, h::succeed);
+	}
+
+	/** One miner holds the only section; the others wait, and one takes it once the first lets go. */
+	@GameTest(maxTicks = 200)
+	public void a_third_miner_waits_when_every_tunnel_has_a_miner(GameTestHelper h) {
+		Scene s = scene(h, true, START);
+		Mines mines = Mines.get(h.getLevel());
+		CopperGolem second = miner(h, new BlockPos(7, 1, 7), HOME);
+		CopperGolem third = miner(h, new BlockPos(6, 1, 7), HOME);
+		h.assertValueEqual(mines.pick(h.getLevel(), mine(h, s.beam()), s.golem()), 0, "first miner's section");
+		h.assertValueEqual(mines.pick(h.getLevel(), mine(h, s.beam()), second), -1, "second miner's section");
+		h.assertValueEqual(mines.pick(h.getLevel(), mine(h, s.beam()), third), -1, "third miner's section");
+		h.assertTrue(hasKey(HomeLinking.status(third), "status.bettercoppers.mine_waiting"), "no waiting line in the status");
+		Mines.release(s.golem());
+		h.assertValueEqual(mines.pick(h.getLevel(), mine(h, s.beam()), third), 0, "section after the first miner let go");
+		h.succeed();
+	}
+
+	/** A miner that stops ticking keeps its claim for 6000 ticks; then another miner takes the section. */
+	@GameTest(maxTicks = 7000)
+	public void a_claim_lapses_after_its_timeout(GameTestHelper h) {
+		Scene s = scene(h, true, START);
+		Mines mines = Mines.get(h.getLevel());
+		s.golem().setNoAi(true);
+		h.assertValueEqual(mines.pick(h.getLevel(), mine(h, s.beam()), s.golem()), 0, "frozen miner's section");
+		CopperGolem other = miner(h, new BlockPos(7, 1, 7), HOME);
+		h.startSequence()
+			.thenExecuteAfter(Mines.CLAIM_TICKS - 100, () -> {
+				h.assertValueEqual(mines.claimed(mine(h, s.beam()), s.golem()), 0, "frozen miner's claim before the timeout");
+				h.assertValueEqual(mines.claimed(mine(h, s.beam()), other), -1, "other miner's claim before the timeout");
+			})
+			.thenWaitUntil(() -> h.assertValueEqual(mines.claimed(mine(h, s.beam()), other), 0, "other miner's claim"))
 			.thenSucceed();
 	}
 

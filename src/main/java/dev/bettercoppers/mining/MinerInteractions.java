@@ -51,8 +51,9 @@ public final class MinerInteractions {
 		return Component.translatable("status.bettercoppers.no_mine_entrance", MineLimits.of(level).entranceSearchRadius());
 	}
 
-	/** Forgets the mine with the golem. */
+	/** Forgets the mine with the golem, and frees its claim. */
 	public static void dropAll(CopperGolem golem) {
+		Mines.release(golem);
 		golem.removeAttached(ModAttachments.MINER);
 	}
 }

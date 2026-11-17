@@ -376,6 +376,9 @@ A mine grows one Mine Section at a time. The first one goes straight into the hi
 
 After that the miner rolls each next section: a Straight, a Corner, a Crossing, a Small Hall, Stairs Down, Stairs Up or a Dead End. Crossings and halls branch off to the left and right, a Dead End ends its branch, and above y 0 the mine leans downwards. A section that would run into another tunnel is left out. It digs on until no branch is left open, then moves on to the next open Mine Entrance.
 
+# Several miners
+Several miners can share a mine: every miner whose chest has the same entrance nearest works in it. Each digs its own section, and two never dig the same one. When every open tunnel already has a miner, the others wait at home, and a plain click says "Waiting: every tunnel has a miner". A miner that stops working for 5 minutes, such as one in an unloaded chunk, leaves its section to the next.
+
 # Supplies
 Supports take fences and planks: without them it doesn't dig on. Keep those and torches in its chest; it fetches them when it needs them. Without torches it digs on and leaves them out. Rails are optional: it lays them last, from the far end back, only if it carries some.
 
@@ -411,6 +414,9 @@ Schleichen + Rechtsklick auf ihn mit einer Kupferspitzhacke, dann verbinde ihn m
 Eine Mine wächst Abschnitt für Abschnitt. Der erste führt gerade in den Berg: 8 Blöcke lang, mit zwei Stützen und einer Fackel. Auf flachem Boden ist der erste Abschnitt stattdessen eine Treppe nach unten: 4 Stufen, jede 4 hoch, sodass du sie begehen kannst, und ein Absatz 4 Blöcke tiefer.
 
 Danach würfelt der Bergmann jeden weiteren Abschnitt aus: eine Gerade, eine Kurve, eine Kreuzung, eine kleine Halle, eine Treppe nach unten oder nach oben oder eine Sackgasse. Kreuzungen und Hallen zweigen nach links und rechts ab, eine Sackgasse beendet ihren Zweig, und über y 0 führt die Mine eher nach unten. Ein Abschnitt, der in einen anderen Stollen liefe, fällt weg. Er gräbt weiter, bis kein Zweig mehr offen ist, und zieht dann zum nächsten offenen Mineneingang weiter.
+
+# Mehrere Bergleute
+Mehrere Bergleute können sich eine Mine teilen: Jeder Bergmann, dessen Truhe denselben Eingang am nächsten hat, arbeitet darin. Jeder gräbt seinen eigenen Abschnitt, und nie graben zwei denselben. Hat jeder offene Stollen schon einen Bergmann, warten die anderen zu Hause, und ein einfacher Klick zeigt „Wartet: In jedem Stollen gräbt schon ein Bergmann“. Ein Bergmann, der 5 Minuten nicht arbeitet, etwa in einem nicht geladenen Chunk, überlässt seinen Abschnitt dem nächsten.
 
 # Nachschub
 Stützen brauchen Zäune und Bretter: Ohne sie gräbt er nicht weiter. Lege sie und Fackeln in seine Truhe; er holt sie, wenn er sie braucht. Ohne Fackeln gräbt er weiter und lässt sie weg. Schienen sind freiwillig: Er legt sie zuletzt, vom hinteren Ende zurück, nur wenn er welche dabeihat.
@@ -836,6 +842,7 @@ MESSAGES = [
     ("message.bettercoppers.mine_entrance_built", "Mine Entrance built", "Mineneingang gebaut"),
     ("message.bettercoppers.miner_needs_home", "Now link it to a copper chest within %s blocks of a Mine Entrance", "Verbinde ihn jetzt mit einer Kupfertruhe höchstens %s Blöcke von einem Mineneingang"),
     ("status.bettercoppers.no_mine_entrance", "No open Mine Entrance within %s blocks of its home chest", "Kein offener Mineneingang höchstens %s Blöcke von seiner Heimattruhe"),
+    ("status.bettercoppers.mine_waiting", "Waiting: every tunnel has a miner", "Wartet: In jedem Stollen gräbt schon ein Bergmann"),
     ("status.bettercoppers.mine", "Mine at %s %s %s", "Mine bei %s %s %s"),
     ("message.bettercoppers.quota_cleared", "The slip is blank again.", "Der Zettel ist wieder leer."),
 ]
