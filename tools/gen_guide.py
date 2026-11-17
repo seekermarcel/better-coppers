@@ -374,7 +374,7 @@ Sneak + right-click it with a copper pickaxe, then link it to that copper chest.
 # Mine Sections
 A mine grows one Mine Section at a time. The first one goes straight into the hill: 8 blocks long, with two supports and a torch. On flat ground the first section is Stairs Down instead: 4 steps down, each 4 high so you can walk them, and a landing 4 blocks lower.
 
-After that the miner rolls each next section: a Straight, a Corner, a Crossing, a Small Hall, Stairs Down, Stairs Up or a Dead End. Crossings and halls branch off to the left and right, a Dead End ends its branch, and above y 0 the mine leans downwards. A section that doesn't fit where it was rolled is left out, and it rolls again (see Barriers). It digs on until no branch is left open, then moves on to the next open Mine Entrance.
+After that the miner rolls each next section: a Straight, a Corner, a Crossing, a Small Hall, Stairs Down, Stairs Up or a Dead End, or a kind an add-on brings. Crossings and halls branch off to the left and right, a Dead End ends its branch, and above y 0 the mine leans downwards. A section that doesn't fit where it was rolled is left out, and it rolls again (see Barriers). It digs on until no branch is left open, then moves on to the next open Mine Entrance.
 
 # Several miners
 Several miners can share a mine: every miner whose chest has the same entrance nearest works in it. Each digs its own section, and two never dig the same one. When every open tunnel already has a miner, the others wait at home, and a plain click says "Waiting: every tunnel has a miner". A miner that stops working for 5 minutes, such as one in an unloaded chunk, leaves its section to the next.
@@ -423,7 +423,7 @@ Schleichen + Rechtsklick auf ihn mit einer Kupferspitzhacke, dann verbinde ihn m
 # Minenabschnitte
 Eine Mine wächst Abschnitt für Abschnitt. Der erste führt gerade in den Berg: 8 Blöcke lang, mit zwei Stützen und einer Fackel. Auf flachem Boden ist der erste Abschnitt stattdessen eine Treppe nach unten: 4 Stufen, jede 4 hoch, sodass du sie begehen kannst, und ein Absatz 4 Blöcke tiefer.
 
-Danach würfelt der Bergmann jeden weiteren Abschnitt aus: eine Gerade, eine Kurve, eine Kreuzung, eine kleine Halle, eine Treppe nach unten oder nach oben oder eine Sackgasse. Kreuzungen und Hallen zweigen nach links und rechts ab, eine Sackgasse beendet ihren Zweig, und über y 0 führt die Mine eher nach unten. Ein Abschnitt, der dort nicht passt, wo er gewürfelt wurde, fällt weg, und er würfelt neu (siehe Absperrungen). Er gräbt weiter, bis kein Zweig mehr offen ist, und zieht dann zum nächsten offenen Mineneingang weiter.
+Danach würfelt der Bergmann jeden weiteren Abschnitt aus: eine Gerade, eine Kurve, eine Kreuzung, eine kleine Halle, eine Treppe nach unten oder nach oben oder eine Sackgasse, oder eine Art, die ein Add-on mitbringt. Kreuzungen und Hallen zweigen nach links und rechts ab, eine Sackgasse beendet ihren Zweig, und über y 0 führt die Mine eher nach unten. Ein Abschnitt, der dort nicht passt, wo er gewürfelt wurde, fällt weg, und er würfelt neu (siehe Absperrungen). Er gräbt weiter, bis kein Zweig mehr offen ist, und zieht dann zum nächsten offenen Mineneingang weiter.
 
 # Mehrere Bergleute
 Mehrere Bergleute können sich eine Mine teilen: Jeder Bergmann, dessen Truhe denselben Eingang am nächsten hat, arbeitet darin. Jeder gräbt seinen eigenen Abschnitt, und nie graben zwei denselben. Hat jeder offene Stollen schon einen Bergmann, warten die anderen zu Hause, und ein einfacher Klick zeigt „Wartet: In jedem Stollen gräbt schon ein Bergmann“. Ein Bergmann, der 5 Minuten nicht arbeitet, etwa in einem nicht geladenen Chunk, überlässt seinen Abschnitt dem nächsten.
@@ -875,6 +875,13 @@ MESSAGES = [
     ("mine.bettercoppers.blocked.hard_rock", "Hard rock", "Hartes Gestein"),
     ("mine.bettercoppers.blocked.too_far", "Too far", "Zu weit"),
     ("mine.bettercoppers.blocked.too_deep", "Too deep", "Zu tief"),
+    ("mine_section.bettercoppers.straight", "Straight", "Gerade"),
+    ("mine_section.bettercoppers.corner", "Corner", "Kurve"),
+    ("mine_section.bettercoppers.crossing", "Crossing", "Kreuzung"),
+    ("mine_section.bettercoppers.small_hall", "Small Hall", "Kleine Halle"),
+    ("mine_section.bettercoppers.stairs_down", "Stairs Down", "Treppe nach unten"),
+    ("mine_section.bettercoppers.stairs_up", "Stairs Up", "Treppe nach oben"),
+    ("mine_section.bettercoppers.dead_end", "Dead End", "Sackgasse"),
     ("message.bettercoppers.quota_cleared", "The slip is blank again.", "Der Zettel ist wieder leer."),
 ]
 

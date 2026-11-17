@@ -4,7 +4,7 @@ title: Add-on API
 
 # Add-on API
 
-The **add-on API** is the Java package `dev.bettercoppers.api`, through which an add-on adds jobs, golem behaviours, link targets, upgrades, charging blocks and Golem Handbook chapters to Better Coppers. It is written for add-on authors; this page names Java classes, unlike the rest of the wiki.
+The **add-on API** is the Java package `dev.bettercoppers.api`, through which an add-on adds jobs, golem behaviours, link targets, upgrades, charging blocks, Mine Sections and Golem Handbook chapters to Better Coppers. It is written for add-on authors; this page names Java classes, unlike the rest of the wiki.
 
 Add-ons import only from this package. The [Automatisation](/automatisation/) add-on is held to that by a Gradle check, and a missing hook is added to the package instead of importing internals (ADR 0004 in `docs/adr/`). The package is a seam for the project's own add-ons: no stability is promised to third parties yet, which is why Automatisation pins the exact base mod version.
 
@@ -49,6 +49,7 @@ The build files define no Maven publication of the base mod, so no external coor
 | `registerLinkTarget(GolemLinkTarget)` | Lets players [link](#golemlinktarget) golems to a block. |
 | `registerUpgrade(GolemUpgrade)` | Adds an [upgrade](#golemupgrade). |
 | `registerChargingSpot(ChargingSpot)` | Adds a block golems [recharge](#chargingspot) on. |
+| `registerMineSection(Identifier, int, MineSectionTemplate)` | Adds a [Mine Section](#mine-sections) miners roll. |
 | `registerHandbookChapter(Identifier)` | Adds a [Golem Handbook chapter](#handbook-chapters). |
 | `CREATIVE_TAB` | Key of the "Better Coppers" [creative tab](#creative-tab). |
 
@@ -223,6 +224,44 @@ public static final ChargingSpot SOLAR_MAT = new ChargingSpot() {
 ```
 
 `chargingSpot(BlockState)` returns the first spot matching the block, or null for an ordinary block.
+
+## Mine Sections
+
+`registerMineSection(Identifier kind, int weight, MineSectionTemplate template)` adds a level section that [miners](/jobs/miner#the-next-sections) roll next to the built-in ones. A fourth argument, a `Predicate<Identifier>`, says which parent kinds it may follow; it gets the kind of the section the Open End belongs to, and the default allows all. Add-on kinds are never rolled at the entrance.
+
+- `weight` is on the scale where the built-in kinds sum to 100 (a Straight is 40), with no depth bias, and must be at least 1. A mirrorable template is two candidates, each with this weight.
+- The built-in follow rules don't apply to add-on kinds, except that the mine's last Open End never gets a kind without Open Ends. The Barrier checks apply unchanged.
+- The id is saved with every section of the kind. Register a new id instead of reshaping a published kind. If the add-on is removed, its sections are kept as done, and their Open Ends stay usable.
+- The namespace must be the add-on's own, not `bettercoppers`, and each id is registered once.
+- The section's name is the translation key `mine_section.<namespace>.<path>`. Explain it in the Handbook with a [chapter](#handbook-chapters).
+
+`MineSectionTemplate.builder()` describes the section from the Open End it grows from: `f` forward, `side` to the right (negative to the left). Slice `f0` starts at the Open End, and the golem stands in the parent's last slice to dig it.
+
+| Builder method | What it does |
+|---|---|
+| `columns(fromF, toF, fromSide, toSide)`, `column(f, side)` | Columns to dig, 3 high, with a plank floor where one is missing. |
+| `support(f, fromSide, toSide)` | Two fence posts at `fromSide` and `toSide` with a plank beam across their tops. |
+| `pillar(f, side)` | A plank pillar 3 high, as at the corners of a Crossing. It goes up once the next slice is dug. |
+| `torch(f, side)` | A wall torch, skipped where it is already bright. It hangs at head height on a beam or pillar beside it (looking behind, ahead, right, left), else one lower on the rock beside it. |
+| `rail(f, side)` | A rail, laid only if the miner carries rails. Rails go down last, from the far end back, and curve by themselves. |
+| `openEnd(f, side, Turn.AHEAD / LEFT / RIGHT)` | Where a next section can start: the first rock cell past the edge, facing out. |
+| `mirrorable()` | Rolls the mirror image too. |
+| `build()` | Checks the template. |
+
+`build()` throws `IllegalArgumentException` unless slice `f0` holds the opening at sides -1 to 1, no column lies behind `f0`, every column is face-connected, each Open End sits on the edge facing out, each support's posts and beam stand on dug columns, pillars, torches and rails lie on dug columns, every torch has something to hang on and every block can be reached from where the golem stands. Register during mod initialisation, so a bad template fails at start-up.
+
+```java
+// An L-shaped room with an arm to the right, open at the arm's side.
+BetterCoppersApi.registerMineSection(Identifier.fromNamespaceAndPath("example", "l_room"), 5, MineSectionTemplate.builder()
+	.columns(0, 4, -1, 1)
+	.columns(2, 4, 2, 4)
+	.support(4, -1, 1)
+	.torch(4, 3)
+	.rail(0, 0).rail(1, 0).rail(2, 0).rail(3, 0)
+	.openEnd(3, 5, MineSectionTemplate.Turn.RIGHT)
+	.mirrorable()
+	.build());
+```
 
 ## Handbook chapters
 

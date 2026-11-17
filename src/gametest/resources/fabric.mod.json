@@ -6,7 +6,8 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"dev.bettercoppers.test.ClearWeather"
+			"dev.bettercoppers.test.ClearWeather",
+			"dev.bettercoppers.test.TestMineSections"
 		],
 		"fabric-gametest": [
 			"dev.bettercoppers.test.GameTests",
